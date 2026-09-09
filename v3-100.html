@@ -459,7 +459,8 @@ async function scan(){
 
   }catch(e){
     document.getElementById("status").textContent="掃描失敗";
-    document.getElementById("time").textContent=e.message;
+    if(!document.getElementById("time").textContent.includes("批失敗"))
+  document.getElementById("time").textContent=String(e.message||e);
   }finally{
     scanning=false;
   }
