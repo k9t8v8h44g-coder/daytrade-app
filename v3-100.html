@@ -296,8 +296,10 @@ async function getAllQuotes(){
 
   document.getElementById("time").textContent =
     "第 " + (i+1) + " 批失敗：" + String(e.message || e);
-}
-
+     
+  throw e;
+    }
+   
     if(i<batches.length-1){
       await new Promise(r=>setTimeout(r,250));
     }
