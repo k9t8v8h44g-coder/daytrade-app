@@ -206,6 +206,10 @@ function liquidity(r){
     const data=await res.json();
     let rows=rowsOf(data);
 
+  
+
+document.getElementById("time").textContent="JSON完成｜rows="+rows.length;
+   
     rows=rows
       .filter(r=>{
         const c=codeOf(r);
