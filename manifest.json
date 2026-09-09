@@ -1,0 +1,9 @@
+{
+  "name": "台股當沖助手",
+  "short_name": "當沖助手",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b1220",
+  "theme_color": "#111827",
+  "description": "台股當沖標的排序、多空訊號與風控工具"
+}

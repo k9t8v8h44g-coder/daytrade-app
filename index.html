@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <link rel="manifest" href="manifest.json">
+  <title>台股當沖助手</title>
+  <style>
+    :root{
+      --bg:#0b1220;--panel:#111827;--muted:#94a3b8;--text:#f8fafc;
+      --line:#243041;--up:#22c55e;--down:#ef4444;--accent:#38bdf8;--warn:#f59e0b;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#09101c,#0b1220 30%);color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
+    .wrap{max-width:980px;margin:auto;padding:18px 14px 90px}
+    h1{font-size:24px;margin:4px 0}.sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+    .toolbar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+    button,select{border:1px solid var(--line);background:var(--panel);color:var(--text);
+      border-radius:12px;padding:12px;font-size:15px}
+    button.primary{background:#0ea5e9;border-color:#0ea5e9;font-weight:700}
+    .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0}
+    .card{background:rgba(17,24,39,.96);border:1px solid var(--line);border-radius:16px;padding:14px}
+    .metric{font-size:24px;font-weight:800}.label{font-size:12px;color:var(--muted)}
+    .table{display:flex;flex-direction:column;gap:10px}
+    .stock{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px}
+    .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+    .name{font-size:18px;font-weight:800}.code{font-size:12px;color:var(--muted)}
+    .price{font-size:20px;font-weight:800}.pct.up{color:var(--up)} .pct.down{color:var(--down)}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+    .mini{background:#0b1322;border-radius:10px;padding:8px}.mini b{display:block;font-size:13px;margin-top:3px}
+    .signal{display:inline-flex;align-items:center;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:800}
+    .long{background:rgba(34,197,94,.14);color:#86efac}.short{background:rgba(239,68,68,.14);color:#fca5a5}
+    .wait{background:rgba(245,158,11,.15);color:#fcd34d}
+    .score{font-weight:800;color:var(--accent)}
+    .foot{position:fixed;left:0;right:0;bottom:0;background:rgba(9,16,28,.92);
+      backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+      font-size:12px;color:var(--muted);text-align:center}
+    .note{font-size:12px;color:var(--muted);margin:14px 2px;line-height:1.55}
+    @media(min-width:760px){.cards{grid-template-columns:repeat(4,1fr)}.toolbar{grid-template-columns:180px 180px 1fr}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>台股當沖助手</h1>
+  <div class="sub">量價動能 × 多空訊號 × 風控排序</div>
+
+  <div class="toolbar">
+    <select id="side">
+      <option value="all">全部訊號</option>
+      <option value="long">偏多</option>
+      <option value="short">偏空</option>
+      <option value="wait">觀望</option>
+    </select>
+    <select id="sort">
+      <option value="score">依優先分數</option>
+      <option value="volume">依量能比</option>
+      <option value="change">依漲跌幅</option>
+    </select>
+    <button class="primary" id="refresh">重新掃描</button>
+  </div>
+
+  <div class="cards">
+    <div class="card"><div class="label">掃描檔數</div><div class="metric" id="cnt">0</div></div>
+    <div class="card"><div class="label">偏多</div><div class="metric" id="longCnt">0</div></div>
+    <div class="card"><div class="label">偏空</div><div class="metric" id="shortCnt">0</div></div>
+    <div class="card"><div class="label">觀望</div><div class="metric" id="waitCnt">0</div></div>
+  </div>
+
+  <div class="table" id="list"></div>
+  <div class="note">
+    目前為可安裝的手機版原型，內建示範資料與交易規則。實盤前需串接合法即時報價來源，
+    並自行確認券商 API、交易權限與風險控管。此工具僅供資訊整理與策略測試，不保證獲利。
+  </div>
+</div>
+<div class="foot">建議規則：單筆風險 ≤ 資金 0.5%～1%，不追高、不攤平虧損單。</div>
+
+<script>
+const seed = [
+ {code:"6182",name:"合晶",price:126.5,change:2.85,volume:1.82,breakout:true,momentum:78},
+ {code:"2492",name:"華新科",price:118.0,change:1.29,volume:1.44,breakout:true,momentum:70},
+ {code:"8039",name:"台虹",price:74.3,change:-0.94,volume:1.36,breakout:false,momentum:43},
+ {code:"2313",name:"華通",price:92.6,change:3.12,volume:2.10,breakout:true,momentum:84},
+ {code:"5425",name:"台半",price:98.2,change:-2.48,volume:1.71,breakout:false,momentum:31},
+ {code:"2351",name:"順德",price:162.0,change:0.62,volume:1.16,breakout:false,momentum:56},
+ {code:"2426",name:"鼎元",price:29.1,change:4.68,volume:2.42,breakout:true,momentum:88},
+ {code:"4939",name:"亞電",price:22.7,change:-3.24,volume:2.05,breakout:false,momentum:24}
+];
+
+function calc(s){
+  let score = 0;
+  score += Math.min(30, s.volume*12);
+  score += Math.max(0, Math.min(25, 12.5+s.change*3));
+  score += s.breakout ? 20 : 4;
+  score += s.momentum*0.25;
+  score = Math.round(Math.min(100,score));
+  let signal="wait";
+  if(score>=72 && s.change>0 && s.momentum>=65) signal="long";
+  else if(score<=48 && s.change<0 && s.momentum<=45) signal="short";
+  const risk = +(Math.max(0.8, Math.min(2.2, Math.abs(s.change)*0.35+0.8))).toFixed(1);
+  const stopLong = +(s.price*(1-risk/100)).toFixed(2);
+  const targetLong = +(s.price*(1+risk*1.6/100)).toFixed(2);
+  const stopShort = +(s.price*(1+risk/100)).toFixed(2);
+  const targetShort = +(s.price*(1-risk*1.6/100)).toFixed(2);
+  return {...s,score,signal,risk,stopLong,targetLong,stopShort,targetShort};
+}
+let stocks = seed.map(calc);
+
+function render(){
+  const side=document.getElementById("side").value;
+  const sort=document.getElementById("sort").value;
+  let arr=stocks.filter(s=>side==="all"||s.signal===side);
+  arr.sort((a,b)=>{
+    if(sort==="volume") return b.volume-a.volume;
+    if(sort==="change") return b.change-a.change;
+    return b.score-a.score;
+  });
+  document.getElementById("cnt").textContent=stocks.length;
+  document.getElementById("longCnt").textContent=stocks.filter(s=>s.signal==="long").length;
+  document.getElementById("shortCnt").textContent=stocks.filter(s=>s.signal==="short").length;
+  document.getElementById("waitCnt").textContent=stocks.filter(s=>s.signal==="wait").length;
+  const labels={long:"偏多",short:"偏空",wait:"觀望"};
+  document.getElementById("list").innerHTML=arr.map(s=>{
+    const pctClass=s.change>=0?"up":"down";
+    const stop=s.signal==="short"?s.stopShort:s.stopLong;
+    const target=s.signal==="short"?s.targetShort:s.targetLong;
+    return `
+    <div class="stock">
+      <div class="top">
+        <div><div class="name">${s.name} <span class="code">${s.code}</span></div>
+          <div style="margin-top:7px"><span class="signal ${s.signal}">${labels[s.signal]}</span></div>
+        </div>
+        <div style="text-align:right"><div class="price">${s.price.toFixed(2)}</div>
+          <div class="pct ${pctClass}">${s.change>=0?"+":""}${s.change.toFixed(2)}%</div></div>
+      </div>
+      <div class="grid">
+        <div class="mini"><span class="label">優先分數</span><b class="score">${s.score}</b></div>
+        <div class="mini"><span class="label">量能比</span><b>${s.volume.toFixed(2)}×</b></div>
+        <div class="mini"><span class="label">停損</span><b>${stop}</b></div>
+        <div class="mini"><span class="label">目標</span><b>${target}</b></div>
+      </div>
+    </div>`;
+  }).join("");
+}
+document.getElementById("side").addEventListener("change",render);
+document.getElementById("sort").addEventListener("change",render);
+document.getElementById("refresh").addEventListener("click",()=>{
+  stocks=stocks.map(s=>calc({...s,volume:+Math.max(.7,s.volume+(Math.random()-.5)*.3).toFixed(2),
+    change:+(s.change+(Math.random()-.5)*.7).toFixed(2)}));
+  render();
+});
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+render();
+</script>
+</body>
+</html>
