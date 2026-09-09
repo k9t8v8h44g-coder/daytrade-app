@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#07101f">
-<title>台股當沖助手 V3.4</title>
+<title>台股當沖助手 V3.5</title>
 
 <style>
 *{box-sizing:border-box}
@@ -136,10 +136,10 @@ footer{
 
 <main class="wrap">
 
-<h1>台股當沖助手 V3.4</h1>
+<h1>台股當沖助手 V3.5</h1>
 
 <div class="sub">
-上市＋上櫃｜100 檔候選池｜失敗自動救援｜多空 Top 10
+上市＋上櫃｜100 檔候選池｜實戰評分｜多空 Top 10
 </div>
 
 <div class="card status">
@@ -535,7 +535,7 @@ async function getAllQuotes(){
 }
 
 
-/* ===== 評分 ===== */
+/* ===== 盤中位置 ===== */
 
 function position(q){
 
@@ -561,6 +561,49 @@ function position(q){
 }
 
 
+/* ===== 當日振幅 ===== */
+
+function rangePct(q){
+
+  const hi=N(q.high);
+  const lo=N(q.low);
+  const prev=N(q.previousClose);
+
+  if(
+    !hi ||
+    !lo ||
+    !prev
+  ){
+    return 0;
+  }
+
+  return (hi-lo)/prev*100;
+}
+
+
+/* ===== 成交量分數 ===== */
+
+function volumeScore(q){
+
+  const v=N(q.volume);
+
+  if(v>=50000) return 10;
+  if(v>=30000) return 9;
+  if(v>=20000) return 8;
+  if(v>=12000) return 7;
+  if(v>=8000) return 6;
+  if(v>=5000) return 5;
+  if(v>=3000) return 4;
+  if(v>=1500) return 3;
+  if(v>=800) return 2;
+  if(v>0) return 1;
+
+  return 0;
+}
+
+
+/* ===== V3.5 實戰評分 ===== */
+
 function calc(q){
 
   const p=N(q.price);
@@ -572,47 +615,182 @@ function calc(q){
       ? (p-prev)/prev*100
       : 0;
 
+  const openPct=
+    open && prev
+      ? (p-open)/open*100
+      : 0;
+
   const pos=position(q);
+  const range=rangePct(q);
+  const vol=volumeScore(q);
+
+
+  /*
+    評分結構：
+
+    基礎分             50
+    漲跌動能           最多 ±18
+    開盤後強弱         最多 ±12
+    盤中位置           最多 ±12
+    成交量             最多 +10
+    合理振幅           最多 +8
+
+    最終分數壓在 0~99.5
+  */
+
 
   let longScore=50;
   let shortScore=50;
 
-  longScore+=pct*6;
-  longScore+=(pos-50)*0.35;
 
-  shortScore-=pct*6;
-  shortScore+=(50-pos)*0.35;
+  /* 漲跌動能 */
 
-  if(open>0 && p>open){
-    longScore+=8;
+  const trendWeight=
+    Math.max(
+      -18,
+      Math.min(
+        18,
+        pct*2.7
+      )
+    );
+
+  longScore+=trendWeight;
+  shortScore-=trendWeight;
+
+
+  /* 開盤後強弱 */
+
+  const openWeight=
+    Math.max(
+      -12,
+      Math.min(
+        12,
+        openPct*4
+      )
+    );
+
+  longScore+=openWeight;
+  shortScore-=openWeight;
+
+
+  /* 盤中位置 */
+
+  const posWeight=
+    (pos-50)*0.24;
+
+  longScore+=posWeight;
+  shortScore-=posWeight;
+
+
+  /* 成交活躍度 */
+
+  longScore+=vol;
+  shortScore+=vol;
+
+
+  /* 振幅 */
+
+  let rangeBonus=0;
+
+  if(range>=2 && range<=7){
+    rangeBonus=8;
+  }
+  else if(range>7 && range<=10){
+    rangeBonus=5;
+  }
+  else if(range>=1){
+    rangeBonus=3;
+  }
+
+  longScore+=rangeBonus;
+  shortScore+=rangeBonus;
+
+
+  /* 避免漲停股全部 100 分 */
+
+  if(pct>9){
+    longScore-=5;
+  }
+
+  if(pct<-9){
     shortScore-=5;
   }
 
-  if(open>0 && p<open){
-    shortScore+=8;
-    longScore-=5;
+
+  /* 避免位置已極端追高/追低 */
+
+  if(pos>95){
+    longScore-=4;
   }
+
+  if(pos<5){
+    shortScore-=4;
+  }
+
 
   longScore=
     Math.max(
       0,
-      Math.min(100,longScore)
+      Math.min(
+        99.5,
+        longScore
+      )
     );
 
   shortScore=
     Math.max(
       0,
-      Math.min(100,shortScore)
+      Math.min(
+        99.5,
+        shortScore
+      )
     );
+
 
   return{
     pct,
+    openPct,
     pos,
+    range,
+    vol,
     longScore,
     shortScore
   };
 }
 
+
+/* ===== 訊號強弱 ===== */
+
+function signalText(score,side){
+
+  if(side==="long"){
+
+    if(score>=85)
+      return "強勢偏多";
+
+    if(score>=75)
+      return "偏多優先";
+
+    if(score>=65)
+      return "偏多觀察";
+
+    return "中性觀察";
+  }
+
+  if(score>=85)
+    return "強勢偏空";
+
+  if(score>=75)
+    return "偏空優先";
+
+  if(score>=65)
+    return "偏空觀察";
+
+  return "中性觀察";
+}
+
+
+/* ===== 停損 / 目標 ===== */
 
 function plan(q,side){
 
@@ -620,14 +798,12 @@ function plan(q,side){
 
   if(side==="long"){
     return{
-      signal:"偏多觀察",
       stop:(p*0.985).toFixed(2),
       target:(p*1.025).toFixed(2)
     };
   }
 
   return{
-    signal:"偏空觀察",
     stop:(p*1.015).toFixed(2),
     target:(p*0.975).toFixed(2)
   };
@@ -674,6 +850,9 @@ function render(list,id,side){
       const p=
         plan(q,side);
 
+      const sig=
+        signalText(score,side);
+
       return `
 <div class="stock">
 
@@ -709,7 +888,7 @@ function render(list,id,side){
   </div>
 
   <div class="signal">
-    ${p.signal}
+    ${sig}
   </div>
 
   <div class="info">
@@ -722,6 +901,14 @@ function render(list,id,side){
 
     成交量 ${q.volume ?? "--"}　
     盤中位置 ${x.pos.toFixed(0)}%
+
+    <br>
+
+    開盤強弱
+    ${x.openPct>0 ? "+" : ""}
+    ${x.openPct.toFixed(2)}%　
+
+    振幅 ${x.range.toFixed(2)}%
 
     <br>
 
@@ -851,7 +1038,6 @@ async function scan(){
   }finally{
 
     scanning=false;
-
   }
 }
 
