@@ -139,12 +139,18 @@ export default {
         "&json=1&delay=0&_=" + Date.now();
 
       try {
-        const res = await fetch(api, {
-          headers: {
-            "User-Agent": "Mozilla/5.0",
-            "Accept": "application/json"
-          }
-        });
+      const controller = new AbortController();
+const timeout = setTimeout(() => controller.abort(), 8000);
+
+const res = await fetch(api, {
+  headers: {
+    "User-Agent": "Mozilla/5.0",
+    "Accept": "application/json"
+  },
+  signal: controller.signal
+});
+
+clearTimeout(timeout);
 
         if (!res.ok) {
           throw new Error(`TWSE HTTP ${res.status}`);
