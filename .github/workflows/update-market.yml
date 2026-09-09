@@ -1,0 +1,102 @@
+name: Update market data
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download TWSE market data
+        run: |
+          python - <<'PY'
+          import json
+          import urllib.request
+          import datetime
+          from pathlib import Path
+
+          url = "https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL"
+
+          req = urllib.request.Request(
+              url,
+              headers={
+                  "User-Agent": "Mozilla/5.0",
+                  "Accept": "application/json"
+              }
+          )
+
+          with urllib.request.urlopen(req, timeout=30) as r:
+              raw = json.load(r)
+
+          def num(v):
+              try:
+                  return float(str(v or "0").replace(",", ""))
+              except:
+                  return 0.0
+
+          stocks = []
+
+          for x in raw:
+              code = str(x.get("Code", "")).strip()
+              name = str(x.get("Name", "")).strip()
+              close = num(x.get("ClosingPrice"))
+              change = num(x.get("Change"))
+              volume = num(x.get("TradeVolume"))
+              amount = num(x.get("TradeValue"))
+
+              if not code or close <= 0:
+                  continue
+
+              prev = close - change
+              pct = change / prev * 100 if prev else 0
+
+              if pct >= 2:
+                  signal = "long"
+              elif pct <= -2:
+                  signal = "short"
+              else:
+                  signal = "watch"
+
+              stocks.append({
+                  "code": code,
+                  "name": name,
+                  "close": close,
+                  "change_pct": round(pct, 2),
+                  "volume": volume,
+                  "amount": amount,
+                  "signal": signal
+              })
+
+          tz = datetime.timezone(datetime.timedelta(hours=8))
+          now = datetime.datetime.now(tz)
+
+          output = {
+              "market_date": now.strftime("%Y-%m-%d"),
+              "updated_at": now.strftime("%Y-%m-%d %H:%M:%S +08:00"),
+              "stocks": stocks
+          }
+
+          Path("data").mkdir(exist_ok=True)
+
+          Path("data/market.json").write_text(
+              json.dumps(output, ensure_ascii=False),
+              encoding="utf-8"
+          )
+
+          print("stocks:", len(stocks))
+          PY
+
+      - name: Commit market data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/market.json
+          git diff --cached --quiet || git commit -m "Update market data"
+          git push
