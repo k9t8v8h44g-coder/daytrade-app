@@ -292,8 +292,11 @@ async function getAllQuotes(){
       const q=await getBatch(batches[i]);
       results.push(...q);
     }catch(e){
-      console.log("batch error",i,e);
-    }
+  console.log("batch error",i,e);
+
+  document.getElementById("time").textContent =
+    "第 " + (i+1) + " 批失敗：" + String(e.message || e);
+}
 
     if(i<batches.length-1){
       await new Promise(r=>setTimeout(r,250));
