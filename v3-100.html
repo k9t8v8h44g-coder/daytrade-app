@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#07101f">
-<title>台股當沖助手 V3.3</title>
+<title>台股當沖助手 V3.4</title>
 
 <style>
 *{box-sizing:border-box}
@@ -136,10 +136,10 @@ footer{
 
 <main class="wrap">
 
-<h1>台股當沖助手 V3.3</h1>
+<h1>台股當沖助手 V3.4</h1>
 
 <div class="sub">
-上市＋上櫃｜100 檔候選池｜穩定分批掃描｜多空 Top 10
+上市＋上櫃｜100 檔候選池｜失敗自動救援｜多空 Top 10
 </div>
 
 <div class="card status">
@@ -147,7 +147,6 @@ footer{
     <b id="status">建立候選池...</b>
     <div id="time" class="small">--</div>
   </div>
-
   <div class="live">● LIVE</div>
 </div>
 
@@ -185,6 +184,9 @@ footer{
 
 let pool=[];
 let scanning=false;
+
+
+/* ===== 基本工具 ===== */
 
 const N=x=>{
   const n=Number(x);
@@ -248,8 +250,16 @@ function liquidity(r){
 }
 
 
+function sleep(ms){
+  return new Promise(resolve=>setTimeout(resolve,ms));
+}
+
+
+/* ===== 建立候選池 ===== */
+
 async function buildPool(){
   try{
+
     document.getElementById("status").textContent=
       "建立候選池...";
 
@@ -312,7 +322,7 @@ async function buildPool(){
 
     if(!pool.length){
       throw new Error(
-        "找不到符合條件的四碼股票"
+        "找不到符合條件股票"
       );
     }
 
@@ -320,7 +330,7 @@ async function buildPool(){
       pool.length+" 檔";
 
     document.getElementById("poolInfo").textContent=
-      "依全市場成交流動性自動選取｜每批 8 檔";
+      "依全市場成交流動性自動選取｜每批 8 檔｜失敗拆 4 檔救援";
 
     document.getElementById("status").textContent=
       "候選池完成｜請按立即掃描";
@@ -329,6 +339,7 @@ async function buildPool(){
       "已建立 "+pool.length+" 檔候選池";
 
   }catch(e){
+
     console.error(e);
 
     document.getElementById("status").textContent=
@@ -340,16 +351,17 @@ async function buildPool(){
 }
 
 
+/* ===== 行情 API ===== */
+
 function makeQuery(list){
   return list
-    .map(x=>
-      x.market+":"+x.symbol
-    )
+    .map(x=>x.market+":"+x.symbol)
     .join(",");
 }
 
 
 async function getBatch(list){
+
   const symbols=makeQuery(list);
 
   const res=await fetch(
@@ -385,7 +397,53 @@ async function getBatch(list){
 }
 
 
+/* ===== 失敗批次救援 ===== */
+
+async function rescueBatch(list){
+
+  if(list.length<=1){
+    try{
+      return await getBatch(list);
+    }catch(e){
+      return [];
+    }
+  }
+
+  const mid=
+    Math.ceil(list.length/2);
+
+  const left=
+    list.slice(0,mid);
+
+  const right=
+    list.slice(mid);
+
+  let results=[];
+
+  try{
+    const q1=await getBatch(left);
+    results.push(...q1);
+  }catch(e){
+    console.log("rescue left fail",e);
+  }
+
+  await sleep(500);
+
+  try{
+    const q2=await getBatch(right);
+    results.push(...q2);
+  }catch(e){
+    console.log("rescue right fail",e);
+  }
+
+  return results;
+}
+
+
+/* ===== 全部行情 ===== */
+
 async function getAllQuotes(){
+
   const size=8;
   const batches=[];
 
@@ -400,7 +458,9 @@ async function getAllQuotes(){
   }
 
   const results=[];
-  let failed=0;
+
+  let failedBatches=0;
+  let rescued=0;
 
   for(
     let i=0;
@@ -416,6 +476,7 @@ async function getAllQuotes(){
       " 批";
 
     try{
+
       const q=
         await getBatch(
           batches[i]
@@ -425,38 +486,59 @@ async function getAllQuotes(){
 
     }catch(e){
 
-      failed++;
-
-      console.error(
-        "batch error",
-        i,
-        e
-      );
+      failedBatches++;
 
       document.getElementById("time").textContent=
         "第 "+
         (i+1)+
-        " 批暫時失敗："+
-        String(e.message || e);
+        " 批失敗，正在拆批救援";
 
+      await sleep(700);
+
+      const q=
+        await rescueBatch(
+          batches[i]
+        );
+
+      if(q.length){
+        rescued+=q.length;
+        results.push(...q);
+      }
     }
 
     if(i<batches.length-1){
-      await new Promise(
-        resolve=>
-          setTimeout(resolve,650)
-      );
+      await sleep(800);
     }
   }
 
-  return {
-    quotes:results,
-    failed
+  const unique=[];
+  const seen=new Set();
+
+  for(const q of results){
+
+    const key=
+      (q.market || "")+
+      "_"+
+      (q.symbol || "");
+
+    if(!seen.has(key)){
+      seen.add(key);
+      unique.push(q);
+    }
+  }
+
+  return{
+    quotes:unique,
+    failedBatches,
+    rescued
   };
 }
 
 
+/* ===== 評分 ===== */
+
 function position(q){
+
   const hi=N(q.high);
   const lo=N(q.low);
   const p=N(q.price);
@@ -480,6 +562,7 @@ function position(q){
 
 
 function calc(q){
+
   const p=N(q.price);
   const prev=N(q.previousClose);
   const open=N(q.open);
@@ -532,6 +615,7 @@ function calc(q){
 
 
 function plan(q,side){
+
   const p=N(q.price);
 
   if(side==="long"){
@@ -550,7 +634,10 @@ function plan(q,side){
 }
 
 
+/* ===== 畫面 ===== */
+
 function render(list,id,side){
+
   const el=
     document.getElementById(id);
 
@@ -561,33 +648,33 @@ function render(list,id,side){
   }
 
   el.innerHTML=
-    list.map(
-      (q,i)=>{
+    list.map((q,i)=>{
 
-        const x=calc(q);
-        const pct=x.pct;
+      const x=calc(q);
 
-        const score=
-          side==="long"
-            ? x.longScore
-            : x.shortScore;
+      const pct=x.pct;
 
-        const cls=
-          pct>0
-            ? "up"
-            : pct<0
-              ? "down"
-              : "flat";
+      const score=
+        side==="long"
+          ? x.longScore
+          : x.shortScore;
 
-        const m=
-          q.market==="otc"
-            ? "上櫃"
-            : "上市";
+      const cls=
+        pct>0
+          ? "up"
+          : pct<0
+            ? "down"
+            : "flat";
 
-        const p=
-          plan(q,side);
+      const m=
+        q.market==="otc"
+          ? "上櫃"
+          : "上市";
 
-        return `
+      const p=
+        plan(q,side);
+
+      return `
 <div class="stock">
 
   <div class="row">
@@ -649,13 +736,15 @@ function render(list,id,side){
 
 </div>
 `;
-      }
-    )
-    .join("");
+
+    }).join("");
 }
 
 
+/* ===== 掃描 ===== */
+
 async function scan(){
+
   if(scanning){
     return;
   }
@@ -680,45 +769,41 @@ async function scan(){
     const quotes=
       result.quotes;
 
-    const failed=
-      result.failed;
-
     if(!quotes.length){
       throw new Error(
-        "所有批次都沒有取得行情"
+        "沒有取得任何行情"
       );
     }
 
     const valid=
-      quotes.filter(
-        q=>
-          N(q.price)>0 &&
-          N(q.previousClose)>0
+      quotes.filter(q=>
+        N(q.price)>0 &&
+        N(q.previousClose)>0
       );
 
     if(!valid.length){
       throw new Error(
-        "行情回傳成功，但沒有有效成交價"
+        "沒有有效成交價"
       );
     }
 
     const longs=
       [...valid]
-        .sort(
-          (a,b)=>
-            calc(b).longScore-
-            calc(a).longScore
-        )
-        .slice(0,10);
+      .sort(
+        (a,b)=>
+          calc(b).longScore-
+          calc(a).longScore
+      )
+      .slice(0,10);
 
     const shorts=
       [...valid]
-        .sort(
-          (a,b)=>
-            calc(b).shortScore-
-            calc(a).shortScore
-        )
-        .slice(0,10);
+      .sort(
+        (a,b)=>
+          calc(b).shortScore-
+          calc(a).shortScore
+      )
+      .slice(0,10);
 
     render(
       longs,
@@ -732,22 +817,26 @@ async function scan(){
       "short"
     );
 
+    const missing=
+      Math.max(
+        0,
+        pool.length-valid.length
+      );
+
     document.getElementById("status").textContent=
       "掃描完成｜"+
       valid.length+
       " / "+
       pool.length+
-      " 檔"+
-      (
-        failed
-          ? "｜"+failed+" 批暫時失敗"
-          : ""
-      );
+      " 檔";
 
     document.getElementById("time").textContent=
-      "更新："+
-      new Date()
-        .toLocaleTimeString("zh-TW");
+      "缺少 "+
+      missing+
+      " 檔｜救援取得 "+
+      result.rescued+
+      " 檔｜更新 "+
+      new Date().toLocaleTimeString("zh-TW");
 
   }catch(e){
 
@@ -760,10 +849,14 @@ async function scan(){
       String(e.message || e);
 
   }finally{
+
     scanning=false;
+
   }
 }
 
+
+/* ===== 啟動 ===== */
 
 buildPool();
 
@@ -777,7 +870,7 @@ setInterval(()=>{
     scan();
   }
 
-},10000);
+},30000);
 
 </script>
 
