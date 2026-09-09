@@ -238,8 +238,8 @@ function liquidity(r){
       "候選池完成｜準備掃描";
 
     if(pool.length){
-      await scan();
-    }
+  document.getElementById("status").textContent="候選池完成｜請按立即掃描";
+}
 
   }catch(e){
     document.getElementById("status").textContent="候選池失敗";
