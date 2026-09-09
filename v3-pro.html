@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#07101f">
+<title>台股當沖助手 V3 Pro</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#07101f;color:#eef4ff;
+ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
+}
+.wrap{max-width:900px;margin:auto;padding:22px 14px 80px}
+h1{margin:0;font-size:30px}
+.sub{color:#9fb0ca;margin:8px 0 16px}
+.card,.stock{
+ background:#101a2d;border:1px solid #293a55;
+ border-radius:17px;padding:15px;margin-bottom:12px
+}
+.status,.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.live{color:#67e394;font-weight:900}
+.small,.info{color:#9fb0ca;font-size:13px}
+button{
+ width:100%;border:0;border-radius:13px;padding:14px;
+ background:#568cff;color:white;font-size:16px;font-weight:800
+}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}
+.title{font-size:23px;font-weight:900;margin:23px 0 11px}
+.name{font-size:19px;font-weight:850}
+.price{font-size:27px;font-weight:900;margin-top:8px}
+.score{font-size:25px;font-weight:900}
+.up{color:#ff6b6b}.down{color:#59dc9c}.flat{color:#eef4ff}
+.tag{
+ background:#1e2d49;border-radius:8px;padding:4px 7px;
+ font-size:11px;margin-left:5px
+}
+.signal{
+ display:inline-block;margin-top:10px;padding:6px 9px;
+ border-radius:9px;background:#20304d;font-weight:800
+}
+.info{line-height:1.65;margin-top:8px}
+footer{text-align:center;color:#74859e;font-size:12px;margin-top:25px}
+</style>
+</head>
+
+<body>
+<main class="wrap">
+
+<h1>台股當沖助手 V3 Pro</h1>
+<div class="sub">上市＋上櫃｜5 秒近即時｜多空 Top 10｜交易訊號</div>
+
+<div class="card status">
+ <div>
+  <b id="status">準備掃描...</b>
+  <div id="time" class="small">--</div>
+ </div>
+ <div class="live">● LIVE</div>
+</div>
+
+<div class="controls">
+ <button onclick="scan()">立即掃描</button>
+ <button onclick="location.reload()">重新載入</button>
+</div>
+
+<div class="title">🔥 多方 Top 10</div>
+<div id="long"></div>
+
+<div class="title">❄️ 空方 Top 10</div>
+<div id="short"></div>
+
+<footer>
+程式化行情篩選僅供參考｜資料來源 TWSE MIS｜下單前請以券商行情確認
+</footer>
+</main>
+
+<script>
+const stocks=[
+"tse:2330","tse:2317","tse:2308","tse:2454",
+"tse:2382","tse:3017","tse:3231","tse:2376",
+"tse:2408","tse:1303","tse:1815","tse:2481",
+"tse:6207","tse:2464","tse:2492","tse:2313",
+"tse:8039","tse:2351",
+"otc:6488","otc:5425","otc:6182","otc:4939",
+"otc:5347","otc:6187"
+];
+
+const num=x=>Number.isFinite(Number(x))?Number(x):0;
+
+function pos(q){
+ const h=num(q.high),l=num(q.low),p=num(q.price);
+ return h>l?(p-l)/(h-l)*100:50;
+}
+
+function volumeScore(q){
+ return Math.min(20,Math.log10(num(q.volume)+1)*4);
+}
+
+function longScore(q){
+ return num(q.changePct)*11+(pos(q)-50)*.4+volumeScore(q);
+}
+
+function shortScore(q){
+ return -num(q.changePct)*11+(50-pos(q))*.4+volumeScore(q);
+}
+
+function plan(q,type){
+ const p=num(q.price),h=num(q.high),l=num(q.low);
+ if(!p)return {signal:"觀望",stop:"--",target:"--"};
+
+ const range=Math.max(h-l,p*.01);
+
+ if(type==="long"){
+  return{
+   signal:pos(q)>=65&&num(q.changePct)>0?"偏多觀察":"等待確認",
+   stop:(p-range*.35).toFixed(2),
+   target:(p+range*.55).toFixed(2)
+  };
+ }
+
+ return{
+  signal:pos(q)<=35&&num(q.changePct)<0?"偏空觀察":"等待確認",
+  stop:(p+range*.35).toFixed(2),
+  target:(p-range*.55).toFixed(2)
+ };
+}
+
+async function scan(){
+ const status=document.getElementById("status");
+
+ try{
+  status.textContent="掃描中...";
+
+  const url="/api/quotes?symbols="+encodeURIComponent(stocks.join(","));
+  const r=await fetch(url,{cache:"no-store"});
+  const d=await r.json();
+
+  if(!d.ok)throw new Error(d.error||"API error");
+
+  const q=(d.quotes||[]).filter(x=>x.price!=null);
+
+  const longs=q.map(x=>({...x,score:longScore(x)}))
+   .sort((a,b)=>b.score-a.score).slice(0,10);
+
+  const shorts=q.map(x=>({...x,score:shortScore(x)}))
+   .sort((a,b)=>b.score-a.score).slice(0,10);
+
+  render("long",longs,"long");
+  render("short",shorts,"short");
+
+  status.textContent=`掃描完成｜${q.length} 檔`;
+  document.getElementById("time").textContent=
+   "更新："+new Date().toLocaleTimeString("zh-TW");
+
+ }catch(e){
+  status.textContent="掃描失敗";
+  document.getElementById("time").textContent=e.message;
+ }
+}
+
+function render(id,arr,type){
+ document.getElementById(id).innerHTML=arr.map((q,i)=>{
+  const pct=num(q.changePct);
+  const cls=pct>0?"up":pct<0?"down":"flat";
+  const m=q.market==="otc"?"上櫃":"上市";
+  const p=plan(q,type);
+
+  return`
+  <div class="stock">
+   <div class="row">
+    <div class="name">
+     #${i+1} ${q.name} ${q.symbol}
+     <span class="tag">${m}</span>
+    </div>
+    <div class="score">${q.score.toFixed(1)}</div>
+   </div>
+
+   <div class="row">
+    <div class="price ${cls}">${q.price}</div>
+    <div class="${cls}">
+     ${pct>0?"+":""}${pct.toFixed(2)}%
+    </div>
+   </div>
+
+   <div class="signal">${p.signal}</div>
+
+   <div class="info">
+    開 ${q.open??"--"}　高 ${q.high??"--"}　低 ${q.low??"--"}<br>
+    成交量 ${q.volume??"--"}　盤中位置 ${pos(q).toFixed(0)}%<br>
+    參考停損 ${p.stop}　參考目標 ${p.target}<br>
+    行情時間 ${q.tradeTime||"--"}
+   </div>
+  </div>`;
+ }).join("");
+}
+
+scan();
+setInterval(scan,5000);
+</script>
+</body>
+</html>
