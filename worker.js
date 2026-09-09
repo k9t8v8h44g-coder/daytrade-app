@@ -2,17 +2,19 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // V3 API 測試
     if (url.pathname === "/api/status") {
-      return Response.json({
+      return new Response(JSON.stringify({
         ok: true,
-        app: "台股當沖助手 V3.0",
-        message: "Worker API 正常運作",
+        app: "\u53f0\u80a1\u7576\u6c96\u52a9\u624b V3.0",
+        message: "Worker API \u6b63\u5e38\u904b\u4f5c",
         time: new Date().toISOString()
+      }), {
+        headers: {
+          "content-type": "application/json; charset=UTF-8"
+        }
       });
     }
 
-    // 其他網址繼續由原本靜態網站處理
     return env.ASSETS.fetch(request);
   }
 };
