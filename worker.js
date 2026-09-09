@@ -94,6 +94,109 @@ export default {
       }
     }
 
+        // 上市 + 上櫃多檔行情
+    if (url.pathname === "/api/quotes") {
+      const symbols = (url.searchParams.get("symbols") || "")
+        .split(",")
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      if (symbols.length === 0) {
+        return json({
+          ok: false,
+          error: "No symbols"
+        }, 400);
+      }
+
+      if (symbols.length > 30) {
+        return json({
+          ok: false,
+          error: "Maximum 30 symbols"
+        }, 400);
+      }
+
+      const channels = symbols.map(item => {
+        const parts = item.split(":");
+        const market = parts.length === 2 ? parts[0] : "tse";
+        const symbol = parts.length === 2 ? parts[1] : parts[0];
+
+        if (!["tse", "otc"].includes(market)) return null;
+        if (!/^\d{4,6}$/.test(symbol)) return null;
+
+        return `${market}_${symbol}.tw`;
+      }).filter(Boolean);
+
+      if (channels.length === 0) {
+        return json({
+          ok: false,
+          error: "Invalid symbols"
+        }, 400);
+      }
+
+      const api =
+        "https://mis.twse.com.tw/stock/api/getStockInfo.jsp" +
+        "?ex_ch=" + encodeURIComponent(channels.join("|")) +
+        "&json=1&delay=0&_=" + Date.now();
+
+      try {
+        const res = await fetch(api, {
+          headers: {
+            "User-Agent": "Mozilla/5.0",
+            "Accept": "application/json"
+          }
+        });
+
+        if (!res.ok) {
+          throw new Error(`TWSE HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        const quotes = (data.msgArray || []).map(q => {
+          const price = toNumber(q.z);
+          const previousClose = toNumber(q.y);
+
+          const change =
+            price !== null && previousClose !== null
+              ? price - previousClose
+              : null;
+
+          const changePct =
+            change !== null && previousClose
+              ? (change / previousClose) * 100
+              : null;
+
+          return {
+            symbol: q.c || "",
+            name: q.n || "",
+            market: q.ex || "",
+            price,
+            previousClose,
+            change,
+            changePct,
+            open: toNumber(q.o),
+            high: toNumber(q.h),
+            low: toNumber(q.l),
+            volume: toNumber(q.v),
+            tradeDate: q.d || "",
+            tradeTime: q.t || ""
+          };
+        });
+
+        return json({
+          ok: true,
+          count: quotes.length,
+          source: "TWSE MIS",
+          quotes
+        });
+
+      } catch (err) {
+        return json({
+          ok: false,
+          error: String(err.message || err)
+        }, 502);
+      }
+    }
     // 原本網站
     return env.ASSETS.fetch(request);
   }
