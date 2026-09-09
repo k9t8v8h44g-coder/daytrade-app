@@ -1,16 +1,90 @@
 <!doctype html>
-<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#111827"><title>台股當沖助手 V2</title>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07101f">
+<title>台股當沖助手 V2.1</title>
 <style>
-:root{--bg:#08111f;--panel:#101827;--panel2:#0b1423;--line:#263449;--text:#f8fafc;--muted:#93a4bd;--up:#22c55e;--down:#ef4444;--accent:#20aaf3;--warn:#f59e0b}*{box-sizing:border-box}body{margin:0;background:#08111f;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:980px;margin:auto;padding:18px 14px 90px}h1{margin:4px 0}.sub,.label,.small{color:var(--muted);font-size:13px}.status,.card,.stock,button,select{background:var(--panel);border:1px solid var(--line);border-radius:14px}.status{padding:12px;margin:14px 0}.toolbar,.cards,.grid{display:grid;gap:10px}.toolbar{grid-template-columns:1fr 1fr}.cards{grid-template-columns:1fr 1fr;margin:12px 0}.grid{grid-template-columns:repeat(4,1fr);margin-top:12px}button,select{padding:12px;color:var(--text);font-size:15px}.primary{grid-column:1/-1;background:#0ea5e9}.card,.stock{padding:14px}.metric{font-size:25px;font-weight:800}.table{display:flex;flex-direction:column;gap:10px}.top{display:flex;justify-content:space-between}.name,.price{font-size:20px;font-weight:800}.code{font-size:12px;color:var(--muted)}.up{color:var(--up)}.down{color:var(--down)}.mini{background:var(--panel2);padding:8px;border-radius:10px}.mini b{display:block}.signal{display:inline-block;margin-top:7px;padding:5px 9px;border-radius:999px;font-size:12px}.long{color:#86efac}.short{color:#fca5a5}.wait{color:#fcd34d}.score{color:var(--accent)}.empty{text-align:center;color:var(--muted);padding:28px}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--warn);margin-right:7px}.dot.ok{background:var(--up)}.dot.err{background:var(--down)}.foot{position:fixed;bottom:0;left:0;right:0;background:#07101c;padding:10px;text-align:center;color:var(--muted);font-size:12px}
-</style></head><body><div class="wrap"><h1>台股當沖助手 V2</h1><div class="sub">官方盤後行情 × 量價強弱 × 多空排序</div>
-<div class="status"><span id="dot" class="dot"></span><b id="statusTitle">尚未載入資料</b><div id="statusText" class="small">按「取得官方資料」開始掃描；本版不使用示範股價。</div></div>
-<div class="toolbar"><select id="side"><option value="all">全部訊號</option><option value="long">偏多</option><option value="short">偏空</option><option value="wait">觀望</option></select><select id="sort"><option value="score">依優先分數</option><option value="turnover">依成交金額</option><option value="change">依漲跌幅</option><option value="range">依振幅</option></select><button id="refresh" class="primary">取得官方資料</button></div>
-<div class="cards"><div class="card"><div class="label">掃描檔數</div><div class="metric" id="cnt">0</div></div><div class="card"><div class="label">偏多</div><div class="metric" id="longCnt">0</div></div><div class="card"><div class="label">偏空</div><div class="metric" id="shortCnt">0</div></div><div class="card"><div class="label">觀望</div><div class="metric" id="waitCnt">0</div></div></div><div id="list" class="table"><div class="empty">目前沒有行情資料。</div></div></div><div class="foot">V2 為盤後掃描版，不是盤中即時券商行情。</div>
+:root{--bg:#07101f;--panel:#101a2d;--line:#263750;--muted:#93a4bf;--up:#31d17c;--down:#ff626b;--accent:#19aee8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#f6f8fc;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
+.wrap{max-width:900px;margin:auto;padding:28px 18px 90px}h1{font-size:38px;margin:8px 0}.sub,.small{color:var(--muted)}
+.status,.box,.stock{background:var(--panel);border:1px solid var(--line);border-radius:18px}.status{padding:16px;margin:20px 0}.toolbar,.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+select,button{width:100%;padding:15px;border-radius:15px;border:1px solid var(--line);background:var(--panel);color:white;font-size:17px}
+button{background:var(--accent);font-weight:700;margin:12px 0 18px}.box{padding:16px}.num{font-size:30px;font-weight:800}
+.list{display:grid;gap:14px;margin-top:18px}.stock{padding:18px}.top{display:flex;justify-content:space-between;gap:12px}.name{font-size:21px;font-weight:800}.price{font-size:22px;font-weight:800;text-align:right}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}.mini{background:#0b1425;border-radius:12px;padding:10px}.label{font-size:13px;color:var(--muted)}.val{font-weight:800;margin-top:4px}
+.up{color:var(--up)}.down{color:var(--down)}.tag{display:inline-block;padding:6px 11px;border-radius:999px;margin-top:9px;background:#143c32;color:var(--up);font-weight:700}
+.warn{color:#ffd166}.err{color:#ff7b83}.ok{color:var(--up)}
+footer{position:fixed;bottom:0;left:0;right:0;background:#07101feF;border-top:1px solid var(--line);padding:10px;text-align:center;color:var(--muted);font-size:13px}
+@media(max-width:600px){h1{font-size:32px}.grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body><main class="wrap">
+<h1>台股當沖助手 V2.1</h1>
+<div class="sub">盤後掃描・資料日期驗證・失敗不歸零</div>
+<div id="status" class="status"><b>準備取得市場資料</b><div class="small">按下方按鈕開始。</div></div>
+<div class="toolbar">
+<select id="signal"><option value="all">全部訊號</option><option value="long">偏多</option><option value="short">偏空</option><option value="watch">觀望</option></select>
+<select id="sort"><option value="amount">依成交金額</option><option value="change">依漲跌幅</option></select>
+</div>
+<button id="reload">重新取得市場資料</button>
+<section class="stats">
+<div class="box"><span class="small">掃描檔數</span><div id="total" class="num">—</div></div>
+<div class="box"><span class="small">偏多</span><div id="long" class="num">—</div></div>
+<div class="box"><span class="small">偏空</span><div id="short" class="num">—</div></div>
+<div class="box"><span class="small">觀望</span><div id="watch" class="num">—</div></div>
+</section>
+<div id="list" class="list"></div>
+</main>
+<footer>V2.1 盤後掃描版｜非券商即時報價；交易前請以券商行情確認。</footer>
 <script>
-const API="https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL",E=id=>document.getElementById(id);let stocks=[];
-const n=v=>{let x=Number(String(v??"").replaceAll(",","").replace("+",""));return Number.isFinite(x)?x:0};
-function prep(rows){let a=rows.map(r=>{let p=n(r.ClosingPrice),c=n(r.Change),prev=p-c,h=n(r.HighestPrice),l=n(r.LowestPrice);return{code:String(r.Code||""),name:r.Name||"",price:p,open:n(r.OpeningPrice),high:h,low:l,change:prev?c/prev*100:0,turnover:n(r.TradeValue),range:prev?(h-l)/prev*100:0,pos:h>l?(p-l)/(h-l):.5}}).filter(s=>/^\d{4,6}$/.test(s.code)&&s.price>0&&s.turnover>0);let t=a.map(s=>s.turnover).sort((x,y)=>x-y);a.forEach(s=>{let li=t.filter(x=>x<=s.turnover).length/t.length,sc=40+(li-.5)*36+Math.max(-18,Math.min(18,s.change*3))+Math.max(-8,Math.min(8,(s.pos-.5)*16))+Math.min(8,s.range*1.1);s.score=Math.round(Math.max(0,Math.min(100,sc)));s.signal=s.score>=72&&s.change>.7&&s.pos>=.58?"long":s.score<=40&&s.change<-.7&&s.pos<=.42?"short":"wait";let r=Math.max(.8,Math.min(2.5,Math.max(1,s.range*.38)));s.stop=s.price*(s.signal==="short"?1+r/100:1-r/100);s.target=s.price*(s.signal==="short"?1-r*1.6/100:1+r*1.6/100)});return a}
-function render(){let side=E("side").value,sort=E("sort").value,a=stocks.filter(s=>side==="all"||s.signal===side);a.sort((x,y)=>sort==="turnover"?y.turnover-x.turnover:sort==="change"?y.change-x.change:sort==="range"?y.range-x.range:y.score-x.score);E("cnt").textContent=stocks.length;E("longCnt").textContent=stocks.filter(s=>s.signal==="long").length;E("shortCnt").textContent=stocks.filter(s=>s.signal==="short").length;E("waitCnt").textContent=stocks.filter(s=>s.signal==="wait").length;let lab={long:"偏多",short:"偏空",wait:"觀望"};E("list").innerHTML=a.slice(0,30).map(s=>`<div class="stock"><div class="top"><div><div class="name">${s.name} <span class="code">${s.code}</span></div><span class="signal ${s.signal}">${lab[s.signal]}</span></div><div><div class="price">${s.price.toFixed(2)}</div><div class="${s.change>=0?"up":"down"}">${s.change>=0?"+":""}${s.change.toFixed(2)}%</div></div></div><div class="grid"><div class="mini"><span class="label">優先分數</span><b class="score">${s.score}</b></div><div class="mini"><span class="label">成交金額</span><b>${(s.turnover/1e8).toFixed(1)}億</b></div><div class="mini"><span class="label">停損</span><b>${s.stop.toFixed(2)}</b></div><div class="mini"><span class="label">目標</span><b>${s.target.toFixed(2)}</b></div></div></div>`).join("")||'<div class="empty">沒有符合條件的股票。</div>'}
-async function load(){let b=E("refresh");b.disabled=true;b.textContent="讀取中…";try{let r=await fetch(API,{cache:"no-store"});if(!r.ok)throw Error("HTTP "+r.status);stocks=prep(await r.json());if(!stocks.length)throw Error("沒有可用行情");E("dot").className="dot ok";E("statusTitle").textContent="官方盤後資料已載入";E("statusText").textContent="資料來源：臺灣證券交易所公開行情；分數為 App 自行計算。";render()}catch(e){stocks=[];E("dot").className="dot err";E("statusTitle").textContent="資料讀取失敗";E("statusText").textContent="錯誤："+e.message;render()}finally{b.disabled=false;b.textContent="重新取得官方資料"}}
-E("side").onchange=render;E("sort").onchange=render;E("refresh").onclick=load;
+const $=id=>document.getElementById(id);
+let rows=[], lastGood=[];
+const endpoints=[
+ "https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL",
+ "https://www.twse.com.tw/exchangeReport/STOCK_DAY_ALL?response=json"
+];
+function n(v){let x=Number(String(v??"").replace(/,/g,""));return Number.isFinite(x)?x:0}
+function normalize(a){
+ return (Array.isArray(a)?a:[]).map(x=>{
+  let code=x.Code||x.code||x.stockNo||"", name=x.Name||x.name||"", close=n(x.ClosingPrice||x.close||x.Close),
+      ch=n(x.Change||x.change), vol=n(x.TradeVolume||x.volume), amt=n(x.TradeValue||x.amount);
+  let pct=close&&ch?ch/(close-ch)*100:0;
+  let sig=pct>=2?"long":pct<=-2?"short":"watch";
+  return {code,name,close,pct,vol,amt,sig};
+ }).filter(x=>x.code&&x.close>0);
+}
+async function fetchJSON(url){
+ const c=new AbortController(); const t=setTimeout(()=>c.abort(),9000);
+ try{let r=await fetch(url,{cache:"no-store",signal:c.signal});if(!r.ok)throw Error("HTTP "+r.status);return await r.json()}
+ finally{clearTimeout(t)}
+}
+async function load(){
+ $("status").innerHTML="<b>正在取得資料…</b><div class='small'>若官方端點拒絕瀏覽器連線，會保留上一筆成功資料。</div>";
+ let err="";
+ for(const url of endpoints){
+  try{
+   let j=await fetchJSON(url), data=Array.isArray(j)?j:(j.data||[]);
+   let z=normalize(data);
+   if(z.length){rows=z;lastGood=z;localStorage.setItem("dt21",JSON.stringify(z));localStorage.setItem("dt21time",new Date().toISOString());render();
+    $("status").innerHTML="<b class='ok'>● 資料讀取成功</b><div class='small'>更新時間："+new Date().toLocaleString("zh-TW")+"</div>";return}
+  }catch(e){err=e.message}
+ }
+ try{lastGood=JSON.parse(localStorage.getItem("dt21")||"[]")}catch{}
+ if(lastGood.length){rows=lastGood;render();let t=localStorage.getItem("dt21time");
+  $("status").innerHTML="<b class='warn'>● 官方資料暫時無法更新</b><div class='small'>目前顯示上次成功資料："+(t?new Date(t).toLocaleString("zh-TW"):"時間未知")+"。錯誤："+err+"</div>";
+ }else{
+  rows=[];render();
+  $("status").innerHTML="<b class='err'>● 官方資料讀取失敗</b><div class='small'>瀏覽器可能被資料來源的跨網域政策阻擋。沒有成功資料，因此不以 0 檔冒充掃描結果。錯誤："+err+"</div>";
+ }
+}
+function render(){
+ let f=$("signal").value==="all"?rows:rows.filter(x=>x.sig===$("signal").value);
+ f=[...f].sort((a,b)=>$("sort").value==="change"?Math.abs(b.pct)-Math.abs(a.pct):b.amt-a.amt).slice(0,80);
+ $("total").textContent=rows.length||"—";$("long").textContent=rows.length?rows.filter(x=>x.sig==="long").length:"—";
+ $("short").textContent=rows.length?rows.filter(x=>x.sig==="short").length:"—";$("watch").textContent=rows.length?rows.filter(x=>x.sig==="watch").length:"—";
+ $("list").innerHTML=f.map(x=>`<article class="stock"><div class="top"><div><div class="name">${x.name} <span class="small">${x.code}</span></div><span class="tag">${x.sig==="long"?"偏多":x.sig==="short"?"偏空":"觀望"}</span></div><div><div class="price">${x.close.toFixed(2)}</div><div class="${x.pct>=0?"up":"down"}">${x.pct>=0?"+":""}${x.pct.toFixed(2)}%</div></div></div><div class="grid"><div class="mini"><div class="label">成交量</div><div class="val">${Math.round(x.vol/1000).toLocaleString()} 張</div></div><div class="mini"><div class="label">成交金額</div><div class="val">${(x.amt/1e8).toFixed(1)} 億</div></div><div class="mini"><div class="label">參考停損</div><div class="val">${(x.close*.98).toFixed(2)}</div></div><div class="mini"><div class="label">參考目標</div><div class="val">${(x.close*1.03).toFixed(2)}</div></div></div></article>`).join("") || `<div class="status small">目前沒有可顯示資料。</div>`;
+}
+$("reload").onclick=load;$("signal").onchange=render;$("sort").onchange=render;load();
 </script></body></html>
