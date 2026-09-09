@@ -265,7 +265,8 @@ async function getBatch(list){
 
 if(!res.ok){
   throw new Error(
-    data.error || ("行情 HTTP "+res.status)
+    (data.error || ("行情 HTTP "+res.status)) +
+    "｜" + symbols
   );
 }
 
