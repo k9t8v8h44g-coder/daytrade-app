@@ -1,90 +1,35 @@
 <!doctype html>
-<html lang="zh-Hant">
-<head>
-<meta charset="utf-8">
+<html lang="zh-Hant"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#07101f">
-<title>台股當沖助手 V2.1</title>
+<meta name="theme-color" content="#07101f"><title>台股當沖助手 V2.2</title>
 <style>
 :root{--bg:#07101f;--panel:#101a2d;--line:#263750;--muted:#93a4bf;--up:#31d17c;--down:#ff626b;--accent:#19aee8}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#f6f8fc;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
-.wrap{max-width:900px;margin:auto;padding:28px 18px 90px}h1{font-size:38px;margin:8px 0}.sub,.small{color:var(--muted)}
-.status,.box,.stock{background:var(--panel);border:1px solid var(--line);border-radius:18px}.status{padding:16px;margin:20px 0}.toolbar,.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-select,button{width:100%;padding:15px;border-radius:15px;border:1px solid var(--line);background:var(--panel);color:white;font-size:17px}
-button{background:var(--accent);font-weight:700;margin:12px 0 18px}.box{padding:16px}.num{font-size:30px;font-weight:800}
-.list{display:grid;gap:14px;margin-top:18px}.stock{padding:18px}.top{display:flex;justify-content:space-between;gap:12px}.name{font-size:21px;font-weight:800}.price{font-size:22px;font-weight:800;text-align:right}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#f7f9fd;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
+.wrap{max-width:900px;margin:auto;padding:30px 18px 90px}h1{font-size:38px;margin:8px 0}.sub,.small{color:var(--muted)}
+.card,.stock{background:var(--panel);border:1px solid var(--line);border-radius:18px}.card{padding:17px;margin:20px 0}
+.toolbar,.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}select,button{width:100%;padding:15px;border-radius:15px;border:1px solid var(--line);background:var(--panel);color:white;font-size:17px}
+button{background:var(--accent);font-weight:750;margin:12px 0 18px}.stats .card{margin:0}.num{font-size:30px;font-weight:800}
+.list{display:grid;gap:14px;margin-top:18px}.stock{padding:18px}.top{display:flex;justify-content:space-between}.name,.price{font-size:21px;font-weight:800}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}.mini{background:#0b1425;border-radius:12px;padding:10px}.label{font-size:13px;color:var(--muted)}.val{font-weight:800;margin-top:4px}
-.up{color:var(--up)}.down{color:var(--down)}.tag{display:inline-block;padding:6px 11px;border-radius:999px;margin-top:9px;background:#143c32;color:var(--up);font-weight:700}
-.warn{color:#ffd166}.err{color:#ff7b83}.ok{color:var(--up)}
-footer{position:fixed;bottom:0;left:0;right:0;background:#07101feF;border-top:1px solid var(--line);padding:10px;text-align:center;color:var(--muted);font-size:13px}
+.up{color:var(--up)}.down{color:var(--down)}.ok{color:var(--up)}.err{color:#ff7b83}.tag{display:inline-block;margin-top:8px;padding:5px 10px;border-radius:99px;background:#143c32;color:var(--up);font-weight:700}
+footer{position:fixed;bottom:0;left:0;right:0;padding:10px;text-align:center;background:#07101fee;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
 @media(max-width:600px){h1{font-size:32px}.grid{grid-template-columns:1fr 1fr}}
-</style>
-</head>
-<body><main class="wrap">
-<h1>台股當沖助手 V2.1</h1>
-<div class="sub">盤後掃描・資料日期驗證・失敗不歸零</div>
-<div id="status" class="status"><b>準備取得市場資料</b><div class="small">按下方按鈕開始。</div></div>
-<div class="toolbar">
-<select id="signal"><option value="all">全部訊號</option><option value="long">偏多</option><option value="short">偏空</option><option value="watch">觀望</option></select>
-<select id="sort"><option value="amount">依成交金額</option><option value="change">依漲跌幅</option></select>
-</div>
-<button id="reload">重新取得市場資料</button>
-<section class="stats">
-<div class="box"><span class="small">掃描檔數</span><div id="total" class="num">—</div></div>
-<div class="box"><span class="small">偏多</span><div id="long" class="num">—</div></div>
-<div class="box"><span class="small">偏空</span><div id="short" class="num">—</div></div>
-<div class="box"><span class="small">觀望</span><div id="watch" class="num">—</div></div>
-</section>
-<div id="list" class="list"></div>
-</main>
-<footer>V2.1 盤後掃描版｜非券商即時報價；交易前請以券商行情確認。</footer>
+</style></head><body><main class="wrap">
+<h1>台股當沖助手 V2.2</h1><div class="sub">盤後掃描 × GitHub Actions 資料中介 × 多空排序</div>
+<div id="status" class="card"><b>準備讀取資料</b><div class="small">V2.2 不再由 iPhone 直接連官方 API。</div></div>
+<div class="toolbar"><select id="sig"><option value="all">全部訊號</option><option value="long">偏多</option><option value="short">偏空</option><option value="watch">觀望</option></select>
+<select id="sort"><option value="amount">依成交金額</option><option value="change">依漲跌幅</option></select></div>
+<button onclick="load()">重新取得市場資料</button>
+<section class="stats"><div class="card"><div class="small">掃描檔數</div><div id="n" class="num">—</div></div><div class="card"><div class="small">偏多</div><div id="l" class="num">—</div></div><div class="card"><div class="small">偏空</div><div id="s" class="num">—</div></div><div class="card"><div class="small">觀望</div><div id="w" class="num">—</div></div></section>
+<div id="list" class="list"></div></main><footer>V2.2 盤後掃描版｜非券商即時報價；交易前請以券商行情確認。</footer>
 <script>
-const $=id=>document.getElementById(id);
-let rows=[], lastGood=[];
-const endpoints=[
- "https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL",
- "https://www.twse.com.tw/exchangeReport/STOCK_DAY_ALL?response=json"
-];
-function n(v){let x=Number(String(v??"").replace(/,/g,""));return Number.isFinite(x)?x:0}
-function normalize(a){
- return (Array.isArray(a)?a:[]).map(x=>{
-  let code=x.Code||x.code||x.stockNo||"", name=x.Name||x.name||"", close=n(x.ClosingPrice||x.close||x.Close),
-      ch=n(x.Change||x.change), vol=n(x.TradeVolume||x.volume), amt=n(x.TradeValue||x.amount);
-  let pct=close&&ch?ch/(close-ch)*100:0;
-  let sig=pct>=2?"long":pct<=-2?"short":"watch";
-  return {code,name,close,pct,vol,amt,sig};
- }).filter(x=>x.code&&x.close>0);
-}
-async function fetchJSON(url){
- const c=new AbortController(); const t=setTimeout(()=>c.abort(),9000);
- try{let r=await fetch(url,{cache:"no-store",signal:c.signal});if(!r.ok)throw Error("HTTP "+r.status);return await r.json()}
- finally{clearTimeout(t)}
-}
-async function load(){
- $("status").innerHTML="<b>正在取得資料…</b><div class='small'>若官方端點拒絕瀏覽器連線，會保留上一筆成功資料。</div>";
- let err="";
- for(const url of endpoints){
-  try{
-   let j=await fetchJSON(url), data=Array.isArray(j)?j:(j.data||[]);
-   let z=normalize(data);
-   if(z.length){rows=z;lastGood=z;localStorage.setItem("dt21",JSON.stringify(z));localStorage.setItem("dt21time",new Date().toISOString());render();
-    $("status").innerHTML="<b class='ok'>● 資料讀取成功</b><div class='small'>更新時間："+new Date().toLocaleString("zh-TW")+"</div>";return}
-  }catch(e){err=e.message}
- }
- try{lastGood=JSON.parse(localStorage.getItem("dt21")||"[]")}catch{}
- if(lastGood.length){rows=lastGood;render();let t=localStorage.getItem("dt21time");
-  $("status").innerHTML="<b class='warn'>● 官方資料暫時無法更新</b><div class='small'>目前顯示上次成功資料："+(t?new Date(t).toLocaleString("zh-TW"):"時間未知")+"。錯誤："+err+"</div>";
- }else{
-  rows=[];render();
-  $("status").innerHTML="<b class='err'>● 官方資料讀取失敗</b><div class='small'>瀏覽器可能被資料來源的跨網域政策阻擋。沒有成功資料，因此不以 0 檔冒充掃描結果。錯誤："+err+"</div>";
- }
-}
-function render(){
- let f=$("signal").value==="all"?rows:rows.filter(x=>x.sig===$("signal").value);
- f=[...f].sort((a,b)=>$("sort").value==="change"?Math.abs(b.pct)-Math.abs(a.pct):b.amt-a.amt).slice(0,80);
- $("total").textContent=rows.length||"—";$("long").textContent=rows.length?rows.filter(x=>x.sig==="long").length:"—";
- $("short").textContent=rows.length?rows.filter(x=>x.sig==="short").length:"—";$("watch").textContent=rows.length?rows.filter(x=>x.sig==="watch").length:"—";
- $("list").innerHTML=f.map(x=>`<article class="stock"><div class="top"><div><div class="name">${x.name} <span class="small">${x.code}</span></div><span class="tag">${x.sig==="long"?"偏多":x.sig==="short"?"偏空":"觀望"}</span></div><div><div class="price">${x.close.toFixed(2)}</div><div class="${x.pct>=0?"up":"down"}">${x.pct>=0?"+":""}${x.pct.toFixed(2)}%</div></div></div><div class="grid"><div class="mini"><div class="label">成交量</div><div class="val">${Math.round(x.vol/1000).toLocaleString()} 張</div></div><div class="mini"><div class="label">成交金額</div><div class="val">${(x.amt/1e8).toFixed(1)} 億</div></div><div class="mini"><div class="label">參考停損</div><div class="val">${(x.close*.98).toFixed(2)}</div></div><div class="mini"><div class="label">參考目標</div><div class="val">${(x.close*1.03).toFixed(2)}</div></div></div></article>`).join("") || `<div class="status small">目前沒有可顯示資料。</div>`;
-}
-$("reload").onclick=load;$("signal").onchange=render;$("sort").onchange=render;load();
+let rows=[];const $=x=>document.getElementById(x),num=x=>Number(String(x??0).replace(/,/g,""))||0;
+async function load(){try{$("status").innerHTML="<b>正在讀取 data/market.json…</b>";
+let r=await fetch("./data/market.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw Error("HTTP "+r.status);
+let j=await r.json();rows=j.stocks||[];render();$("status").innerHTML=`<b class="ok">● 資料讀取成功</b><div class="small">資料日期：${j.market_date||"未知"}　更新：${j.updated_at||"未知"}</div>`;
+}catch(e){rows=[];render();$("status").innerHTML=`<b class="err">● 尚無市場資料</b><div class="small">請先讓 GitHub Actions 執行「Update market data」。錯誤：${e.message}</div>`}}
+function render(){let q=$("sig").value==="all"?rows:rows.filter(x=>x.signal===$("sig").value);q=[...q].sort((a,b)=>$("sort").value==="change"?Math.abs(b.change_pct)-Math.abs(a.change_pct):b.amount-a.amount).slice(0,100);
+$("n").textContent=rows.length||"—";$("l").textContent=rows.length?rows.filter(x=>x.signal==="long").length:"—";$("s").textContent=rows.length?rows.filter(x=>x.signal==="short").length:"—";$("w").textContent=rows.length?rows.filter(x=>x.signal==="watch").length:"—";
+$("list").innerHTML=q.map(x=>`<article class="stock"><div class="top"><div><div class="name">${x.name} <span class="small">${x.code}</span></div><span class="tag">${x.signal==="long"?"偏多":x.signal==="short"?"偏空":"觀望"}</span></div><div><div class="price">${num(x.close).toFixed(2)}</div><div class="${x.change_pct>=0?"up":"down"}">${x.change_pct>=0?"+":""}${num(x.change_pct).toFixed(2)}%</div></div></div><div class="grid"><div class="mini"><div class="label">成交量</div><div class="val">${Math.round(num(x.volume)/1000).toLocaleString()} 張</div></div><div class="mini"><div class="label">成交金額</div><div class="val">${(num(x.amount)/1e8).toFixed(1)} 億</div></div><div class="mini"><div class="label">參考停損</div><div class="val">${(num(x.close)*.98).toFixed(2)}</div></div><div class="mini"><div class="label">參考目標</div><div class="val">${(num(x.close)*1.03).toFixed(2)}</div></div></div></article>`).join("")||'<div class="card small">目前沒有可顯示資料。</div>'}
+$("sig").onchange=render;$("sort").onchange=render;load();
 </script></body></html>
