@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#07101f">
+<title>台股當沖掃描器 V3.0</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:#07101f;
+  color:#eef4ff;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.wrap{
+  max-width:900px;
+  margin:auto;
+  padding:22px 14px 70px;
+}
+h1{margin:0;font-size:29px}
+.sub{color:#9fb0ca;margin:8px 0 16px}
+.card{
+  background:#101a2d;
+  border:1px solid #263750;
+  border-radius:16px;
+  padding:15px;
+  margin-bottom:12px;
+}
+.status{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+}
+.live{color:#62e391;font-weight:800}
+.small{font-size:13px;color:#9fb0ca}
+.tabs{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin:16px 0;
+}
+button{
+  padding:13px;
+  border:0;
+  border-radius:12px;
+  font-size:16px;
+  font-weight:800;
+  color:white;
+  background:#4d8cff;
+}
+.section-title{
+  font-size:22px;
+  font-weight:850;
+  margin:22px 0 10px;
+}
+.stock{
+  background:#101a2d;
+  border:1px solid #263750;
+  border-radius:16px;
+  padding:15px;
+  margin-bottom:10px;
+}
+.row{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center;
+}
+.name{font-size:19px;font-weight:850}
+.price{font-size:24px;font-weight:850}
+.up{color:#ff6666}
+.down{color:#58db9b}
+.flat{color:#eef4ff}
+.tag{
+  display:inline-block;
+  background:#1e2c46;
+  padding:4px 7px;
+  border-radius:8px;
+  font-size:11px;
+  margin-left:5px;
+}
+.score{
+  font-size:24px;
+  font-weight:900;
+}
+.info{
+  margin-top:9px;
+  line-height:1.55;
+  color:#aab8ce;
+  font-size:14px;
+}
+footer{
+  color:#7f90aa;
+  text-align:center;
+  font-size:12px;
+  margin-top:24px;
+}
+</style>
+</head>
+
+<body>
+<main class="wrap">
+
+<h1>台股當沖掃描器 V3.0</h1>
+<div class="sub">
+上市＋上櫃｜5 秒近即時掃描｜多空 Top 10
+</div>
+
+<div class="card status">
+  <div>
+    <b id="status">正在掃描...</b>
+    <div id="updateTime" class="small">--</div>
+  </div>
+  <div class="live">● LIVE</div>
+</div>
+
+<div class="tabs">
+  <button onclick="scan()">立即重新掃描</button>
+  <button onclick="location.reload()">重新載入</button>
+</div>
+
+<div class="section-title">🔥 多方 Top 10</div>
+<div id="longList"></div>
+
+<div class="section-title">❄️ 空方 Top 10</div>
+<div id="shortList"></div>
+
+<footer>
+當沖評分為程式化篩選參考｜行情來源 TWSE MIS｜實際交易請以券商報價確認
+</footer>
+
+</main>
+
+<script>
+const candidates = [
+  "tse:2330",
+  "tse:2317",
+  "tse:2308",
+  "tse:2454",
+  "tse:2382",
+  "tse:3231",
+  "tse:2357",
+  "tse:3017",
+  "tse:2376",
+  "tse:2408",
+  "tse:1303",
+  "tse:1815",
+  "tse:2481",
+  "tse:6207",
+  "tse:2464",
+  "tse:2492",
+  "tse:2313",
+  "tse:8039",
+  "otc:6488",
+  "otc:5425",
+  "otc:6182",
+  "otc:4939",
+  "otc:5347",
+  "otc:6187"
+];
+
+function number(v){
+  return typeof v === "number" && Number.isFinite(v)
+    ? v
+    : 0;
+}
+
+function position(q){
+  const h = number(q.high);
+  const l = number(q.low);
+  const p = number(q.price);
+
+  if(!h || !l || h === l) return 50;
+
+  return ((p-l)/(h-l))*100;
+}
+
+function longScore(q){
+  const pct = number(q.changePct);
+  const pos = position(q);
+  const vol = Math.log10(number(q.volume)+1);
+
+  return (
+    pct * 12 +
+    (pos-50) * 0.35 +
+    vol * 4
+  );
+}
+
+function shortScore(q){
+  const pct = number(q.changePct);
+  const pos = position(q);
+  const vol = Math.log10(number(q.volume)+1);
+
+  return (
+    (-pct) * 12 +
+    (50-pos) * 0.35 +
+    vol * 4
+  );
+}
+
+async function scan(){
+  const status = document.getElementById("status");
+
+  try{
+    status.textContent = "掃描中...";
+
+    const api =
+      "/api/quotes?symbols=" +
+      encodeURIComponent(candidates.join(","));
+
+    const res = await fetch(api,{cache:"no-store"});
+    const data = await res.json();
+
+    if(!data.ok){
+      throw new Error(data.error || "API error");
+    }
+
+    const quotes = (data.quotes || [])
+      .filter(q => q.price !== null);
+
+    const longs = [...quotes]
+      .map(q => ({
+        ...q,
+        scanScore: longScore(q)
+      }))
+      .sort((a,b)=>b.scanScore-a.scanScore)
+      .slice(0,10);
+
+    const shorts = [...quotes]
+      .map(q => ({
+        ...q,
+        scanScore: shortScore(q)
+      }))
+      .sort((a,b)=>b.scanScore-a.scanScore)
+      .slice(0,10);
+
+    render("longList",longs,"long");
+    render("shortList",shorts,"short");
+
+    status.textContent =
+      "掃描完成｜" + quotes.length + " 檔";
+
+    document.getElementById("updateTime").textContent =
+      "更新：" +
+      new Date().toLocaleTimeString("zh-TW");
+
+  }catch(err){
+    status.textContent = "掃描失敗";
+    document.getElementById("updateTime").textContent =
+      String(err.message || err);
+  }
+}
+
+function render(id,rows,type){
+  const el = document.getElementById(id);
+
+  el.innerHTML = rows.map((q,i)=>{
+    const pct = number(q.changePct);
+    const cls =
+      pct > 0 ? "up" :
+      pct < 0 ? "down" :
+      "flat";
+
+    const market =
+      q.market === "otc" ? "上櫃" : "上市";
+
+    const pos = position(q);
+
+    return `
+      <div class="stock">
+        <div class="row">
+          <div>
+            <div class="name">
+              #${i+1} ${q.name} ${q.symbol}
+              <span class="tag">${market}</span>
+            </div>
+          </div>
+
+          <div class="score">
+            ${q.scanScore.toFixed(1)}
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <div class="price ${cls}">
+            ${q.price ?? "--"}
+          </div>
+
+          <div class="${cls}">
+            ${pct > 0 ? "+" : ""}
+            ${pct.toFixed(2)}%
+          </div>
+        </div>
+
+        <div class="info">
+          開 ${q.open ?? "--"}　
+          高 ${q.high ?? "--"}　
+          低 ${q.low ?? "--"}<br>
+          成交量 ${q.volume ?? "--"}　
+          盤中位置 ${pos.toFixed(0)}%<br>
+          行情時間 ${q.tradeTime || "--"}
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+scan();
+setInterval(scan,5000);
+</script>
+
+</body>
+</html>
