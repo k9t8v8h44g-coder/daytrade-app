@@ -261,14 +261,23 @@ async function getBatch(list){
     {cache:"no-store"}
   );
 
-  if(!res.ok){
-    throw new Error("行情 HTTP "+res.status);
-  }
+ const data=await res.json().catch(()=>({}));
+
+if(!res.ok){
+  throw new Error(
+    data.error || ("行情 HTTP "+res.status)
+  );
+}
+
+if(!data.ok){
+  throw new Error(
+    data.error || "行情取得失敗"
+  );
+}
 
   const data=await res.json();
 
-  if(!data.ok){
-    throw new Error(data.error || "行情取得失敗");
+
   }
 
   return Array.isArray(data.quotes) ? data.quotes : [];
