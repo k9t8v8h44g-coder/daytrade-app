@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#07101f">
-<title>台股當沖助手 V3.8</title>
+<title>台股當沖助手 V3.9</title>
 
 <style>
 *{box-sizing:border-box}
@@ -22,7 +22,10 @@ body{
   padding:22px 14px 80px
 }
 
-h1{margin:0;font-size:29px}
+h1{
+  margin:0;
+  font-size:29px
+}
 
 .sub{
   color:#9fb0ca;
@@ -93,6 +96,13 @@ button{
   font-weight:900
 }
 
+.scoreLabel{
+  color:#9fb0ca;
+  font-size:11px;
+  text-align:right;
+  margin-top:2px
+}
+
 .up{color:#ff6969}
 .down{color:#59dc9c}
 .flat{color:#eef4ff}
@@ -157,7 +167,9 @@ button{
   font-size:13px
 }
 
-.tradebox b{color:#eef4ff}
+.tradebox b{
+  color:#eef4ff
+}
 
 .info{
   line-height:1.7;
@@ -184,10 +196,10 @@ footer{
 
 <main class="wrap">
 
-<h1>台股當沖助手 V3.8</h1>
+<h1>台股當沖助手 V3.9</h1>
 
 <div class="sub">
-上市＋上櫃｜200 檔當沖候選池｜動能評分｜盤中進場訊號
+上市＋上櫃｜200 檔候選池｜可交易性排名｜多空進場判斷
 </div>
 
 <div class="card status">
@@ -200,6 +212,7 @@ footer{
 </div>
 
 <div class="card">
+
   <div class="row">
     <span>全市場當沖候選池</span>
     <b id="poolCount">--</b>
@@ -208,6 +221,7 @@ footer{
   <div class="small" id="poolInfo">
     正在讀取上市＋上櫃市場資料
   </div>
+
 </div>
 
 <div class="buttons">
@@ -215,15 +229,15 @@ footer{
   <button onclick="scan()">立即掃描</button>
 </div>
 
-<div class="title">🔥 多方 Top 10</div>
+<div class="title">🔥 多方優先 Top 10</div>
 <div id="long"></div>
 
-<div class="title">❄️ 空方 Top 10</div>
+<div class="title">❄️ 空方優先 Top 10</div>
 <div id="short"></div>
 
 <footer>
-上市＋上櫃全市場先篩選 200 檔｜
-8 檔分批近即時掃描｜
+V3.9 以「可交易性」而非單純漲跌幅排名｜
+200 檔分批近即時掃描｜
 行情來源 TWSE MIS｜
 實際交易請以券商報價確認
 </footer>
@@ -238,7 +252,9 @@ let scanning=false;
 const POOL_SIZE=200;
 
 
-/* ===== 基本工具 ===== */
+/* ========================================
+   基本工具
+======================================== */
 
 const N=x=>{
   const n=Number(x);
@@ -250,6 +266,7 @@ function clamp(x,min,max){
 }
 
 function fmt(x){
+
   const n=N(x);
 
   if(!n) return "--";
@@ -260,15 +277,22 @@ function fmt(x){
   return n.toFixed(2);
 }
 
+function sleep(ms){
+  return new Promise(resolve=>setTimeout(resolve,ms));
+}
+
 function rowsOf(data){
+
   if(Array.isArray(data)) return data;
   if(data && Array.isArray(data.rows)) return data.rows;
   if(data && Array.isArray(data.stocks)) return data.stocks;
   if(data && Array.isArray(data.data)) return data.data;
+
   return [];
 }
 
 function codeOf(r){
+
   return String(
     r.code ??
     r.symbol ??
@@ -301,6 +325,7 @@ function marketOf(r){
 }
 
 function liquidity(r){
+
   return N(
     r.amount ??
     r.tradeValue ??
@@ -313,14 +338,13 @@ function liquidity(r){
   );
 }
 
-function sleep(ms){
-  return new Promise(resolve=>setTimeout(resolve,ms));
-}
 
-
-/* ===== market.json 欄位相容 ===== */
+/* ========================================
+   market.json 欄位
+======================================== */
 
 function rowClose(r){
+
   return N(
     r.close ??
     r.price ??
@@ -332,6 +356,7 @@ function rowClose(r){
 }
 
 function rowPrev(r){
+
   return N(
     r.previousClose ??
     r.prevClose ??
@@ -343,6 +368,7 @@ function rowPrev(r){
 }
 
 function rowHigh(r){
+
   return N(
     r.high ??
     r.h ??
@@ -351,6 +377,7 @@ function rowHigh(r){
 }
 
 function rowLow(r){
+
   return N(
     r.low ??
     r.l ??
@@ -358,17 +385,11 @@ function rowLow(r){
   );
 }
 
-
-/* ===== 候選池活性 ===== */
-
 function rowRangePct(r){
 
   const hi=rowHigh(r);
   const lo=rowLow(r);
-
-  const base=
-    rowPrev(r) ||
-    rowClose(r);
+  const base=rowPrev(r) || rowClose(r);
 
   if(
     !hi ||
@@ -381,7 +402,6 @@ function rowRangePct(r){
 
   return (hi-lo)/base*100;
 }
-
 
 function rowMovePct(r){
 
@@ -396,28 +416,20 @@ function rowMovePct(r){
 }
 
 
-/*
-  V3.8 候選池：
+/* ========================================
+   V3.9 候選池
 
-  流動性最重要，
-  再增加合理振幅與價格活性。
+   只做「第一層」粗篩。
 
-  若 market.json 沒有高低價或昨收，
-  仍會以流動性正常排序。
-*/
+   不再過度獎勵大漲股票。
+   流動性仍然是最重要條件。
+======================================== */
 
 function candidateScore(r){
 
-  const liq=
-    liquidity(r);
-
-  const range=
-    rowRangePct(r);
-
-  const move=
-    Math.abs(
-      rowMovePct(r)
-    );
+  const liq=liquidity(r);
+  const range=rowRangePct(r);
+  const move=Math.abs(rowMovePct(r));
 
   let score=0;
 
@@ -427,68 +439,57 @@ function candidateScore(r){
   if(liq>0){
 
     score+=
-      Math.log10(
-        liq+1
-      )*12;
+      Math.log10(liq+1)*15;
   }
 
 
-  /* 振幅品質 */
+  /* 適合當沖的振幅 */
 
   if(
     range>=2 &&
-    range<=6
+    range<=5
   ){
-
-    score+=15;
+    score+=8;
   }
 
   else if(
     range>=1 &&
     range<2
   ){
-
-    score+=8;
+    score+=4;
   }
 
   else if(
-    range>6 &&
+    range>5 &&
+    range<=7
+  ){
+    score+=5;
+  }
+
+  else if(
+    range>7 &&
     range<=9
   ){
-
-    score+=9;
-  }
-
-  else if(
-    range>9
-  ){
-
-    score+=3;
+    score+=2;
   }
 
 
-  /* 有方向的股票較適合盤中篩選 */
+  /*
+    漲跌活性只給很小權重，
+    避免昨日暴漲暴跌直接霸榜。
+  */
 
   if(
     move>=1 &&
-    move<=6
+    move<=5
   ){
-
-    score+=10;
+    score+=4;
   }
 
   else if(
-    move>6 &&
-    move<=9
+    move>5 &&
+    move<=7
   ){
-
-    score+=6;
-  }
-
-  else if(
-    move>9
-  ){
-
     score+=2;
   }
 
@@ -497,7 +498,9 @@ function candidateScore(r){
 }
 
 
-/* ===== 建立 200 檔候選池 ===== */
+/* ========================================
+   建立候選池
+======================================== */
 
 async function buildPool(){
 
@@ -507,7 +510,7 @@ async function buildPool(){
       "建立 200 檔候選池...";
 
     document.getElementById("time").textContent=
-      "正在讀取上市＋上櫃市場資料";
+      "正在讀取上市＋上櫃全市場資料";
 
 
     const res=
@@ -520,8 +523,7 @@ async function buildPool(){
     if(!res.ok){
 
       throw new Error(
-        "市場資料 HTTP "+
-        res.status
+        "市場資料 HTTP "+res.status
       );
     }
 
@@ -542,18 +544,11 @@ async function buildPool(){
     }
 
 
-    /*
-      先排除：
-      非 4 碼股票
-      無流動性股票
-    */
-
     rows=
       rows
       .filter(r=>{
 
-        const c=
-          codeOf(r);
+        const c=codeOf(r);
 
         return(
           /^\d{4}$/.test(c) &&
@@ -568,8 +563,7 @@ async function buildPool(){
       );
 
 
-    const seen=
-      new Set();
+    const seen=new Set();
 
 
     pool=
@@ -581,9 +575,7 @@ async function buildPool(){
           "_"+
           codeOf(r);
 
-        if(
-          seen.has(key)
-        ){
+        if(seen.has(key)){
           return false;
         }
 
@@ -592,17 +584,11 @@ async function buildPool(){
         return true;
 
       })
-      .slice(
-        0,
-        POOL_SIZE
-      )
+      .slice(0,POOL_SIZE)
       .map(r=>({
 
-        symbol:
-          codeOf(r),
-
-        market:
-          marketOf(r)
+        symbol:codeOf(r),
+        market:marketOf(r)
 
       }));
 
@@ -620,7 +606,7 @@ async function buildPool(){
 
 
     document.getElementById("poolInfo").textContent=
-      "上市＋上櫃全市場｜流動性優先＋振幅活性加權｜每批 8 檔｜失敗拆批救援";
+      "全市場粗篩｜流動性優先｜盤中再用可交易性重新排名｜每批 8 檔";
 
 
     document.getElementById("status").textContent=
@@ -630,7 +616,7 @@ async function buildPool(){
     document.getElementById("time").textContent=
       "已建立 "+
       pool.length+
-      " 檔當沖候選池";
+      " 檔候選池";
 
 
   }catch(e){
@@ -641,15 +627,14 @@ async function buildPool(){
       "候選池失敗";
 
     document.getElementById("time").textContent=
-      String(
-        e.message ||
-        e
-      );
+      String(e.message || e);
   }
 }
 
 
-/* ===== 行情 API ===== */
+/* ========================================
+   API
+======================================== */
 
 function makeQuery(list){
 
@@ -702,11 +687,7 @@ async function getBatch(list){
   }
 
 
-  if(
-    !Array.isArray(
-      data.quotes
-    )
-  ){
+  if(!Array.isArray(data.quotes)){
 
     throw new Error(
       "API 沒有回傳 quotes"
@@ -718,7 +699,9 @@ async function getBatch(list){
 }
 
 
-/* ===== 失敗拆批救援 ===== */
+/* ========================================
+   拆批救援
+======================================== */
 
 async function rescueBatch(list){
 
@@ -726,9 +709,7 @@ async function rescueBatch(list){
 
     try{
 
-      return await getBatch(
-        list
-      );
+      return await getBatch(list);
 
     }catch(e){
 
@@ -738,22 +719,15 @@ async function rescueBatch(list){
 
 
   const mid=
-    Math.ceil(
-      list.length/2
-    );
+    Math.ceil(list.length/2);
 
 
   const left=
-    list.slice(
-      0,
-      mid
-    );
+    list.slice(0,mid);
 
 
   const right=
-    list.slice(
-      mid
-    );
+    list.slice(mid);
 
 
   let results=[];
@@ -762,13 +736,9 @@ async function rescueBatch(list){
   try{
 
     const q1=
-      await getBatch(
-        left
-      );
+      await getBatch(left);
 
-    results.push(
-      ...q1
-    );
+    results.push(...q1);
 
   }catch(e){
 
@@ -785,13 +755,9 @@ async function rescueBatch(list){
   try{
 
     const q2=
-      await getBatch(
-        right
-      );
+      await getBatch(right);
 
-    results.push(
-      ...q2
-    );
+    results.push(...q2);
 
   }catch(e){
 
@@ -806,7 +772,9 @@ async function rescueBatch(list){
 }
 
 
-/* ===== 全部行情 ===== */
+/* ========================================
+   全部行情
+======================================== */
 
 async function getAllQuotes(){
 
@@ -857,9 +825,7 @@ async function getAllQuotes(){
           batches[i]
         );
 
-      results.push(
-        ...q
-      );
+      results.push(...q);
 
 
     }catch(e){
@@ -884,20 +850,14 @@ async function getAllQuotes(){
 
       if(q.length){
 
-        rescued+=
-          q.length;
+        rescued+=q.length;
 
-        results.push(
-          ...q
-        );
+        results.push(...q);
       }
     }
 
 
-    if(
-      i<
-      batches.length-1
-    ){
+    if(i<batches.length-1){
 
       await sleep(800);
     }
@@ -905,14 +865,10 @@ async function getAllQuotes(){
 
 
   const unique=[];
-
-  const seen=
-    new Set();
+  const seen=new Set();
 
 
-  for(
-    const q of results
-  ){
+  for(const q of results){
 
     const key=
       (q.market || "")+
@@ -920,9 +876,7 @@ async function getAllQuotes(){
       (q.symbol || "");
 
 
-    if(
-      !seen.has(key)
-    ){
+    if(!seen.has(key)){
 
       seen.add(key);
 
@@ -939,7 +893,9 @@ async function getAllQuotes(){
 }
 
 
-/* ===== 技術資料 ===== */
+/* ========================================
+   基本盤中資料
+======================================== */
 
 function position(q){
 
@@ -991,8 +947,6 @@ function rangePct(q){
 }
 
 
-/* ===== 成交量評分 ===== */
-
 function volumeScore(q){
 
   const v=N(q.volume);
@@ -1012,7 +966,16 @@ function volumeScore(q){
 }
 
 
-/* ===== 動能評分 ===== */
+/* ========================================
+   V3.9 可交易性模型
+
+   重點：
+   不是「誰漲最多」
+   而是「現在的位置適不適合做」
+
+   score：
+   0～100
+======================================== */
 
 function calc(q){
 
@@ -1020,18 +983,15 @@ function calc(q){
   const prev=N(q.previousClose);
   const open=N(q.open);
 
-
   const pct=
     prev
       ? (p-prev)/prev*100
       : 0;
 
-
   const openPct=
     open
       ? (p-open)/open*100
       : 0;
-
 
   const pos=
     position(q);
@@ -1043,187 +1003,366 @@ function calc(q){
     volumeScore(q);
 
 
-  let longScore=40;
-  let shortScore=40;
+  let longScore=35;
+  let shortScore=35;
 
 
-  /* 今日方向 */
+  /* =====================
+     成交量
+  ===================== */
 
-  const trend=
-    clamp(
-      pct*2.25,
-      -20,
-      20
-    );
+  longScore+=vol*1.5;
+  shortScore+=vol*1.5;
 
 
-  longScore+=trend;
-  shortScore-=trend;
+  /* =====================
+     振幅
 
-
-  /* 開盤後動能 */
-
-  const intraday=
-    clamp(
-      openPct*3.3,
-      -15,
-      15
-    );
-
-
-  longScore+=intraday;
-  shortScore-=intraday;
-
-
-  /* 盤中位置 */
-
-  const posLong=
-    (pos-50)*0.30;
-
-
-  longScore+=posLong;
-  shortScore-=posLong;
-
-
-  /* 流動性 */
-
-  longScore+=vol*0.8;
-  shortScore+=vol*0.8;
-
-
-  /* 振幅品質 */
-
-  let rangeBonus=0;
-
+     2～5% 最適合當沖
+  ===================== */
 
   if(
     range>=2 &&
     range<=5
   ){
 
-    rangeBonus=7;
-  }
+    longScore+=10;
+    shortScore+=10;
 
-  else if(
-    range>5 &&
-    range<=7
-  ){
-
-    rangeBonus=5;
-  }
-
-  else if(
+  }else if(
     range>=1 &&
     range<2
   ){
 
-    rangeBonus=3;
-  }
+    longScore+=5;
+    shortScore+=5;
 
-  else if(
+  }else if(
+    range>5 &&
+    range<=7
+  ){
+
+    longScore+=6;
+    shortScore+=6;
+
+  }else if(
     range>7 &&
     range<=9
   ){
 
-    rangeBonus=2;
+    longScore+=2;
+    shortScore+=2;
+
+  }else if(
+    range>9
+  ){
+
+    longScore-=5;
+    shortScore-=5;
   }
 
 
-  longScore+=rangeBonus;
-  shortScore+=rangeBonus;
+  /* =====================
+     多方今日漲幅
+
+     +1～+5% 最佳
+  ===================== */
+
+  if(
+    pct>=1 &&
+    pct<=5
+  ){
+
+    longScore+=15;
+
+  }else if(
+    pct>0 &&
+    pct<1
+  ){
+
+    longScore+=7;
+
+  }else if(
+    pct>5 &&
+    pct<=7
+  ){
+
+    longScore+=6;
+
+  }else if(
+    pct>7 &&
+    pct<9
+  ){
+
+    longScore-=4;
+
+  }else if(
+    pct>=9
+  ){
+
+    longScore-=15;
+
+  }else if(
+    pct<=0
+  ){
+
+    longScore-=12;
+  }
 
 
-  /* 多方追高 */
+  /* =====================
+     空方今日跌幅
+  ===================== */
+
+  if(
+    pct<=-1 &&
+    pct>=-5
+  ){
+
+    shortScore+=15;
+
+  }else if(
+    pct<0 &&
+    pct>-1
+  ){
+
+    shortScore+=7;
+
+  }else if(
+    pct<-5 &&
+    pct>=-7
+  ){
+
+    shortScore+=6;
+
+  }else if(
+    pct<-7 &&
+    pct>-9
+  ){
+
+    shortScore-=4;
+
+  }else if(
+    pct<=-9
+  ){
+
+    shortScore-=15;
+
+  }else if(
+    pct>=0
+  ){
+
+    shortScore-=12;
+  }
+
+
+  /* =====================
+     多方開盤後動能
+
+     +0.3～+3% 最佳
+  ===================== */
+
+  if(
+    openPct>=0.3 &&
+    openPct<=3
+  ){
+
+    longScore+=12;
+
+  }else if(
+    openPct>0 &&
+    openPct<0.3
+  ){
+
+    longScore+=5;
+
+  }else if(
+    openPct>3 &&
+    openPct<=5
+  ){
+
+    longScore+=5;
+
+  }else if(
+    openPct>5
+  ){
+
+    longScore-=7;
+
+  }else{
+
+    longScore-=10;
+  }
+
+
+  /* =====================
+     空方開盤後動能
+  ===================== */
+
+  if(
+    openPct<=-0.3 &&
+    openPct>=-3
+  ){
+
+    shortScore+=12;
+
+  }else if(
+    openPct<0 &&
+    openPct>-0.3
+  ){
+
+    shortScore+=5;
+
+  }else if(
+    openPct<-3 &&
+    openPct>=-5
+  ){
+
+    shortScore+=5;
+
+  }else if(
+    openPct<-5
+  ){
+
+    shortScore-=7;
+
+  }else{
+
+    shortScore-=10;
+  }
+
+
+  /* =====================
+     多方盤中位置
+
+     55～80% 最佳
+  ===================== */
+
+  if(
+    pos>=55 &&
+    pos<=80
+  ){
+
+    longScore+=18;
+
+  }else if(
+    pos>80 &&
+    pos<=85
+  ){
+
+    longScore+=9;
+
+  }else if(
+    pos>=45 &&
+    pos<55
+  ){
+
+    longScore+=4;
+
+  }else if(
+    pos>85 &&
+    pos<=92
+  ){
+
+    longScore-=5;
+
+  }else if(
+    pos>92
+  ){
+
+    longScore-=18;
+
+  }else if(
+    pos<45
+  ){
+
+    longScore-=10;
+  }
+
+
+  /* =====================
+     空方盤中位置
+
+     20～45% 最佳
+  ===================== */
+
+  if(
+    pos>=20 &&
+    pos<=45
+  ){
+
+    shortScore+=18;
+
+  }else if(
+    pos>=15 &&
+    pos<20
+  ){
+
+    shortScore+=9;
+
+  }else if(
+    pos>45 &&
+    pos<=55
+  ){
+
+    shortScore+=4;
+
+  }else if(
+    pos>=8 &&
+    pos<15
+  ){
+
+    shortScore-=5;
+
+  }else if(
+    pos<8
+  ){
+
+    shortScore-=18;
+
+  }else if(
+    pos>55
+  ){
+
+    shortScore-=10;
+  }
+
+
+  /* =====================
+     明確追高 / 追空懲罰
+  ===================== */
 
   let longRisk=0;
-
-
-  if(pos>=95){
-
-    longRisk+=8;
-
-  }else if(pos>=90){
-
-    longRisk+=4;
-  }
-
-
-  if(pct>=9){
-
-    longRisk+=8;
-
-  }else if(pct>=7){
-
-    longRisk+=4;
-  }
-
-
-  if(openPct>=6){
-
-    longRisk+=5;
-  }
-
-
-  longScore-=longRisk;
-
-
-  /* 空方追空 */
-
   let shortRisk=0;
 
 
-  if(pos<=5){
+  if(pos>=90) longRisk+=5;
+  if(pos>=95) longRisk+=8;
 
-    shortRisk+=8;
+  if(pct>=7) longRisk+=5;
+  if(pct>=9) longRisk+=8;
 
-  }else if(pos<=10){
-
-    shortRisk+=4;
-  }
-
-
-  if(pct<=-9){
-
-    shortRisk+=8;
-
-  }else if(pct<=-7){
-
-    shortRisk+=4;
-  }
+  if(openPct>=5) longRisk+=5;
 
 
-  if(openPct<=-6){
+  if(pos<=10) shortRisk+=5;
+  if(pos<=5) shortRisk+=8;
 
-    shortRisk+=5;
-  }
+  if(pct<=-7) shortRisk+=5;
+  if(pct<=-9) shortRisk+=8;
+
+  if(openPct<=-5) shortRisk+=5;
 
 
+  longScore-=longRisk;
   shortScore-=shortRisk;
-
-
-  /* 高分壓縮 */
-
-  if(longScore>80){
-
-    longScore=
-      80+
-      (longScore-80)*0.55;
-  }
-
-
-  if(shortScore>80){
-
-    shortScore=
-      80+
-      (shortScore-80)*0.55;
-  }
 
 
   longScore=
     clamp(
       longScore,
       0,
-      98
+      100
     );
 
 
@@ -1231,7 +1370,7 @@ function calc(q){
     clamp(
       shortScore,
       0,
-      98
+      100
     );
 
 
@@ -1249,45 +1388,9 @@ function calc(q){
 }
 
 
-/* ===== 強弱訊號 ===== */
-
-function signalText(score,side){
-
-  if(side==="long"){
-
-    if(score>=88)
-      return "🔥 強勢多方";
-
-    if(score>=80)
-      return "🟢 多方優先";
-
-    if(score>=70)
-      return "偏多觀察";
-
-    if(score>=60)
-      return "弱多觀察";
-
-    return "中性";
-  }
-
-
-  if(score>=88)
-    return "❄️ 強勢空方";
-
-  if(score>=80)
-    return "🟢 空方優先";
-
-  if(score>=70)
-    return "偏空觀察";
-
-  if(score>=60)
-    return "弱空觀察";
-
-  return "中性";
-}
-
-
-/* ===== 進場決策 ===== */
+/* ========================================
+   進場決策
+======================================== */
 
 function entryDecision(q,x,side){
 
@@ -1304,38 +1407,28 @@ function entryDecision(q,x,side){
 
   if(side==="long"){
 
-    if(score<65){
-
-      return{
-        text:"⚪ 暫不進場",
-        cls:"entry-neutral",
-        reason:"多方動能尚未達到進場門檻"
-      };
-    }
-
-
     if(
       pos>=95 ||
-      pct>=9
+      pct>=9 ||
+      openPct>=6
     ){
 
       return{
         text:"⛔ 禁止追高",
         cls:"entry-stop",
-        reason:"價格位於盤中極高區，風險報酬比偏差"
+        reason:"目前價格過度延伸，不符合當沖風險報酬",
+        rank:0
       };
     }
 
 
-    if(
-      pos>=85 ||
-      pct>=7
-    ){
+    if(score<60){
 
       return{
-        text:"🟡 等拉回",
-        cls:"entry-wait",
-        reason:"趨勢強，但目前位置偏高，等待回測再判斷"
+        text:"⚪ 暫不進場",
+        cls:"entry-neutral",
+        reason:"目前多方可交易性不足",
+        rank:1
       };
     }
 
@@ -1343,25 +1436,44 @@ function entryDecision(q,x,side){
     if(
       score>=75 &&
       pos>=55 &&
-      pos<=84 &&
-      openPct>0 &&
-      pct>0
+      pos<=82 &&
+      pct>0 &&
+      pct<=6 &&
+      openPct>0
     ){
 
       return{
-        text:"🟢 可進場觀察",
+        text:"🟢 現在可做觀察",
         cls:"entry-go",
-        reason:"價格、開盤後動能與盤中位置同步偏多"
+        reason:"方向、盤中位置、振幅與量能條件較完整",
+        rank:4
       };
     }
 
 
-    if(pos<45){
+    if(
+      pos>82 ||
+      pct>6
+    ){
+
+      return{
+        text:"🟡 等拉回",
+        cls:"entry-wait",
+        reason:"方向偏多，但目前價格偏高，等待較佳風險報酬",
+        rank:2
+      };
+    }
+
+
+    if(
+      pos<55
+    ){
 
       return{
         text:"🟡 等轉強",
         cls:"entry-wait",
-        reason:"位置仍偏低，等待重新站回盤中強勢區"
+        reason:"多方條件尚可，但盤中位置還沒有轉強",
+        rank:2
       };
     }
 
@@ -1369,69 +1481,77 @@ function entryDecision(q,x,side){
     return{
       text:"🟡 等確認",
       cls:"entry-wait",
-      reason:"方向偏多，但尚未形成理想進場位置"
-    };
-  }
-
-
-  if(score<65){
-
-    return{
-      text:"⚪ 暫不進場",
-      cls:"entry-neutral",
-      reason:"空方動能尚未達到進場門檻"
+      reason:"條件接近成立，等待價格與動能進一步確認",
+      rank:3
     };
   }
 
 
   if(
     pos<=5 ||
-    pct<=-9
+    pct<=-9 ||
+    openPct<=-6
   ){
 
     return{
       text:"⛔ 禁止追空",
       cls:"entry-stop",
-      reason:"價格位於盤中極低區，避免殺低追空"
+      reason:"目前價格過度下殺，不符合放空風險報酬",
+      rank:0
     };
   }
 
 
-  if(
-    pos<=15 ||
-    pct<=-7
-  ){
+  if(score<60){
 
     return{
-      text:"🟡 等反彈",
-      cls:"entry-wait",
-      reason:"空方趨勢強，但位置偏低，等待反彈再判斷"
+      text:"⚪ 暫不進場",
+      cls:"entry-neutral",
+      reason:"目前空方可交易性不足",
+      rank:1
     };
   }
 
 
   if(
     score>=75 &&
-    pos>=16 &&
+    pos>=18 &&
     pos<=45 &&
-    openPct<0 &&
-    pct<0
+    pct<0 &&
+    pct>=-6 &&
+    openPct<0
   ){
 
     return{
-      text:"🟢 可進場觀察",
+      text:"🟢 現在可做觀察",
       cls:"entry-go",
-      reason:"價格、開盤後動能與盤中位置同步偏空"
+      reason:"方向、盤中位置、振幅與量能條件較完整",
+      rank:4
     };
   }
 
 
-  if(pos>55){
+  if(
+    pos<18 ||
+    pct<-6
+  ){
+
+    return{
+      text:"🟡 等反彈",
+      cls:"entry-wait",
+      reason:"方向偏空，但目前位置偏低，等待反彈再判斷",
+      rank:2
+    };
+  }
+
+
+  if(pos>45){
 
     return{
       text:"🟡 等轉弱",
       cls:"entry-wait",
-      reason:"價格位置仍偏高，等待空方重新掌控"
+      reason:"空方條件尚可，但價格位置還沒有明顯轉弱",
+      rank:2
     };
   }
 
@@ -1439,12 +1559,116 @@ function entryDecision(q,x,side){
   return{
     text:"🟡 等確認",
     cls:"entry-wait",
-    reason:"方向偏空，但目前尚非理想放空位置"
+    reason:"條件接近成立，等待價格與空方動能確認",
+    rank:3
   };
 }
 
 
-/* ===== 進場區 ===== */
+/* ========================================
+   排名
+
+   先看：
+   1. 現在可做
+   2. 等確認
+   3. 等待
+   4. 暫不進場
+   5. 禁止追價
+
+   再比較可交易分數
+======================================== */
+
+function rankingData(q,side){
+
+  const x=calc(q);
+
+  const decision=
+    entryDecision(
+      q,
+      x,
+      side
+    );
+
+
+  const score=
+    side==="long"
+      ? x.longScore
+      : x.shortScore;
+
+
+  return{
+    q,
+    x,
+    decision,
+    score
+  };
+}
+
+
+function rankQuotes(list,side){
+
+  return list
+    .map(
+      q=>rankingData(q,side)
+    )
+    .sort((a,b)=>{
+
+      if(
+        b.decision.rank !==
+        a.decision.rank
+      ){
+
+        return(
+          b.decision.rank-
+          a.decision.rank
+        );
+      }
+
+      return b.score-a.score;
+
+    })
+    .slice(0,10)
+    .map(x=>x.q);
+}
+
+
+/* ========================================
+   強弱標籤
+======================================== */
+
+function signalText(score,side){
+
+  if(side==="long"){
+
+    if(score>=85)
+      return "🔥 高可交易性";
+
+    if(score>=75)
+      return "🟢 多方優先";
+
+    if(score>=65)
+      return "偏多觀察";
+
+    return "條件普通";
+  }
+
+
+  if(score>=85)
+    return "❄️ 高可交易性";
+
+  if(score>=75)
+    return "🟢 空方優先";
+
+  if(score>=65)
+    return "偏空觀察";
+
+  return "條件普通";
+}
+
+
+/* ========================================
+   進場區
+======================================== */
 
 function entryZone(q,side){
 
@@ -1466,8 +1690,7 @@ function entryZone(q,side){
   }
 
 
-  const span=
-    hi-lo;
+  const span=hi-lo;
 
 
   if(side==="long"){
@@ -1476,11 +1699,11 @@ function entryZone(q,side){
 
       low:
         lo+
-        span*0.58,
+        span*0.55,
 
       high:
         lo+
-        span*0.75
+        span*0.72
     };
   }
 
@@ -1489,16 +1712,18 @@ function entryZone(q,side){
 
     low:
       lo+
-      span*0.25,
+      span*0.28,
 
     high:
       lo+
-      span*0.42
+      span*0.45
   };
 }
 
 
-/* ===== 取消條件 ===== */
+/* ========================================
+   取消條件
+======================================== */
 
 function cancelLevel(q,side){
 
@@ -1509,10 +1734,7 @@ function cancelLevel(q,side){
 
   if(side==="long"){
 
-    if(
-      open &&
-      lo
-    ){
+    if(open && lo){
 
       return Math.max(
         lo,
@@ -1524,10 +1746,7 @@ function cancelLevel(q,side){
   }
 
 
-  if(
-    open &&
-    hi
-  ){
+  if(open && hi){
 
     return Math.min(
       hi,
@@ -1540,7 +1759,9 @@ function cancelLevel(q,side){
 }
 
 
-/* ===== 停損 / 目標 ===== */
+/* ========================================
+   停損 / 目標
+======================================== */
 
 function plan(q,side){
 
@@ -1574,7 +1795,9 @@ function plan(q,side){
 }
 
 
-/* ===== 風險 ===== */
+/* ========================================
+   風險
+======================================== */
 
 function riskText(x,side){
 
@@ -1586,7 +1809,7 @@ function riskText(x,side){
 
   if(risk>=12){
 
-    return "⚠️ 位置極端，避免追價";
+    return "⚠️ 極端位置，不適合追價";
   }
 
 
@@ -1602,11 +1825,13 @@ function riskText(x,side){
   }
 
 
-  return "動能位置正常";
+  return "位置與動能正常";
 }
 
 
-/* ===== 畫面 ===== */
+/* ========================================
+   畫面
+======================================== */
 
 function render(list,id,side){
 
@@ -1721,8 +1946,16 @@ function render(list,id,side){
 
     </div>
 
-    <div class="score">
-      ${score.toFixed(1)}
+    <div>
+
+      <div class="score">
+        ${score.toFixed(1)}
+      </div>
+
+      <div class="scoreLabel">
+        可交易分
+      </div>
+
     </div>
 
   </div>
@@ -1834,7 +2067,9 @@ function render(list,id,side){
 }
 
 
-/* ===== 掃描 ===== */
+/* ========================================
+   掃描
+======================================== */
 
 async function scan(){
 
@@ -1894,24 +2129,27 @@ async function scan(){
     }
 
 
+    /*
+      V3.9：
+      不再直接按照 score 排序。
+
+      rankQuotes 會先把：
+      🟢 現在可做
+      排到最前面。
+    */
+
     const longs=
-      [...valid]
-      .sort(
-        (a,b)=>
-          calc(b).longScore-
-          calc(a).longScore
-      )
-      .slice(0,10);
+      rankQuotes(
+        valid,
+        "long"
+      );
 
 
     const shorts=
-      [...valid]
-      .sort(
-        (a,b)=>
-          calc(b).shortScore-
-          calc(a).shortScore
-      )
-      .slice(0,10);
+      rankQuotes(
+        valid,
+        "short"
+      );
 
 
     render(
@@ -1966,10 +2204,7 @@ async function scan(){
 
 
     document.getElementById("time").textContent=
-      String(
-        e.message ||
-        e
-      );
+      String(e.message || e);
 
 
   }finally{
@@ -1979,7 +2214,9 @@ async function scan(){
 }
 
 
-/* ===== 啟動 ===== */
+/* ========================================
+   啟動
+======================================== */
 
 buildPool();
 
