@@ -6,57 +6,294 @@ const TPEX_AFTER="https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_
 
 function rocDateISO(s){
   s=String(s||"").trim().replace(/[^\d]/g,"");
-  if(/^1\d{6}$/.test(s)){const y=Number(s.slice(0,3))+1911;return `${y}-${s.slice(3,5)}-${s.slice(5,7)}`}
-  if(/^\d{8}$/.test(s))return `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`;
+  if(/^1\d{6}$/.test(s)){
+    const y=Number(s.slice(0,3))+1911;
+    return `${y}-${s.slice(3,5)}-${s.slice(5,7)}`;
+  }
+  if(/^\d{8}$/.test(s)){
+    return `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`;
+  }
   return null;
 }
+
 async function fetchLatestTwseTradeDate(){
-  const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),8000);
+  const ctl=new AbortController();
+  const timer=setTimeout(()=>ctl.abort(),8000);
+
   try{
-    const r=await fetch(TWSE_MARKET_DATES,{signal:ctl.signal,headers:{"Accept":"application/json"}});
-    if(!r.ok)throw new Error("TWSE date HTTP "+r.status);
-    const a=await r.json(); if(!Array.isArray(a)||!a.length)return null;
-    const dates=a.map(x=>rocDateISO(x.Date)).filter(Boolean).sort();
+    const r=await fetch(TWSE_MARKET_DATES,{
+      signal:ctl.signal,
+      headers:{
+        "Accept":"application/json"
+      }
+    });
+
+    if(!r.ok){
+      throw new Error("TWSE date HTTP "+r.status);
+    }
+
+    const a=await r.json();
+
+    if(!Array.isArray(a)||!a.length){
+      return null;
+    }
+
+    const dates=a
+      .map(x=>rocDateISO(x.Date))
+      .filter(Boolean)
+      .sort();
+
     return dates.at(-1)||null;
-  }finally{clearTimeout(timer)}
+
+  }finally{
+    clearTimeout(timer);
+  }
 }
 
-function pick(o,keys){for(const k of keys)if(o&&o[k]!=null&&o[k]!=="")return o[k];return null}
-function nn(v){if(v==null||v===""||v==="--"||v==="---")return null;const x=Number(String(v).replace(/,/g,"").replace(/[＋+]/g,""));return Number.isFinite(x)?x:null}
-function afterRow(r,market){
-  const symbol=String(pick(r,["Code","SecuritiesCompanyCode","股票代號","代號","code"])||"").trim();
-  const name=String(pick(r,["Name","CompanyName","證券名稱","股票名稱","name"])||"").trim();
-  const tradeDate=String(pick(r,["Date","TradeDate","TradingDate","資料日期","日期","date"])||"").trim();
-  const price=nn(pick(r,["ClosingPrice","Close","收盤價","收盤","close"]));
-  const open=nn(pick(r,["OpeningPrice","Open","開盤價","開盤","open"]));
-  const high=nn(pick(r,["HighestPrice","High","最高價","最高","high"]));
-  const low=nn(pick(r,["LowestPrice","Low","最低價","最低","low"]));
-  const volume=nn(pick(r,["TradeVolume","TradingShares","成交股數","成交量","volume"]))||0;
-  const ch=nn(pick(r,["Change","ChangeAmount","漲跌價差","漲跌","change"]));
-  let previousClose=(price!=null&&ch!=null)?price-ch:null;
-  const ref=nn(pick(r,["PreviousClose","ReferencePrice","昨收","參考價","previousClose"]));
-  if(ref!=null)previousClose=ref;
-  return {symbol,name,market,tradeDate,price,previousClose,open,high,low,volume,change:ch,source:market==="tse"?"TWSE OpenAPI":"TPEx OpenAPI"};
-}
-async function fetchAfter(url,market){
-  const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),10000);
-  try{
-    const r=await fetch(url,{signal:ctl.signal,headers:{"Accept":"application/json","User-Agent":"Mozilla/5.0"}});
-    if(!r.ok)throw new Error((market==="tse"?"TWSE":"TPEx")+" HTTP "+r.status);
-    const j=await r.json();
-    const arr=Array.isArray(j)?j:(Array.isArray(j?.data)?j.data:[]);
-    return arr.map(x=>afterRow(x,market)).filter(q=>/^\d{4}$/.test(q.symbol)&&q.price!=null&&q.price>0&&q.previousClose!=null&&q.previousClose>0);
-  }finally{clearTimeout(timer)}
-}
-async function getAfterHours(){
-  const settled=await Promise.allSettled([fetchAfter(TWSE_AFTER,"tse"),fetchAfter(TPEX_AFTER,"otc")]);
-  const quotes=[],errors=[];
-  for(let i=0;i<settled.length;i++){
-    const x=settled[i],label=i===0?"TWSE":"TPEx";
-    if(x.status==="fulfilled")quotes.push(...x.value);
-    else errors.push(label+": "+String(x.reason?.message||x.reason));
+function pick(o,keys){
+  for(const k of keys){
+    if(o&&o[k]!=null&&o[k]!==""){
+      return o[k];
+    }
   }
-  return {quotes,errors};
+  return null;
+}
+
+function nn(v){
+  if(v==null||v===""||v==="--"||v==="---"){
+    return null;
+  }
+
+  const x=Number(
+    String(v)
+      .replace(/,/g,"")
+      .replace(/[＋+]/g,"")
+  );
+
+  return Number.isFinite(x)?x:null;
+}
+
+function afterRow(r,market){
+
+  const symbol=String(
+    pick(r,[
+      "Code",
+      "SecuritiesCompanyCode",
+      "股票代號",
+      "代號",
+      "code"
+    ])||""
+  ).trim();
+
+  const name=String(
+    pick(r,[
+      "Name",
+      "CompanyName",
+      "證券名稱",
+      "股票名稱",
+      "name"
+    ])||""
+  ).trim();
+
+  const tradeDate=String(
+    pick(r,[
+      "Date",
+      "TradeDate",
+      "TradingDate",
+      "資料日期",
+      "日期",
+      "date"
+    ])||""
+  ).trim();
+
+  const price=nn(
+    pick(r,[
+      "ClosingPrice",
+      "Close",
+      "收盤價",
+      "收盤",
+      "close"
+    ])
+  );
+
+  const open=nn(
+    pick(r,[
+      "OpeningPrice",
+      "Open",
+      "開盤價",
+      "開盤",
+      "open"
+    ])
+  );
+
+  const high=nn(
+    pick(r,[
+      "HighestPrice",
+      "High",
+      "最高價",
+      "最高",
+      "high"
+    ])
+  );
+
+  const low=nn(
+    pick(r,[
+      "LowestPrice",
+      "Low",
+      "最低價",
+      "最低",
+      "low"
+    ])
+  );
+
+  const volume=nn(
+    pick(r,[
+      "TradeVolume",
+      "TradingShares",
+      "成交股數",
+      "成交量",
+      "volume"
+    ])
+  )||0;
+
+  const ch=nn(
+    pick(r,[
+      "Change",
+      "ChangeAmount",
+      "漲跌價差",
+      "漲跌",
+      "change"
+    ])
+  );
+
+  let previousClose=
+    (price!=null&&ch!=null)
+      ?price-ch
+      :null;
+
+  const ref=nn(
+    pick(r,[
+      "PreviousClose",
+      "ReferencePrice",
+      "昨收",
+      "參考價",
+      "previousClose"
+    ])
+  );
+
+  if(ref!=null){
+    previousClose=ref;
+  }
+
+  return {
+    symbol,
+    name,
+    market,
+    tradeDate,
+    price,
+    previousClose,
+    open,
+    high,
+    low,
+    volume,
+    change:ch,
+    source:
+      market==="tse"
+        ?"TWSE OpenAPI"
+        :"TPEx OpenAPI"
+  };
+}
+
+async function fetchAfter(url,market){
+
+  const ctl=new AbortController();
+
+  const timer=setTimeout(
+    ()=>ctl.abort(),
+    5000
+  );
+
+  try{
+
+    const r=await fetch(url,{
+      signal:ctl.signal,
+      headers:{
+        "Accept":"application/json",
+        "User-Agent":"Mozilla/5.0"
+      }
+    });
+
+    if(!r.ok){
+      throw new Error(
+        (market==="tse"?"TWSE":"TPEx")
+        +" HTTP "
+        +r.status
+      );
+    }
+
+    const j=await r.json();
+
+    const arr=
+      Array.isArray(j)
+        ?j
+        :(
+          Array.isArray(j?.data)
+            ?j.data
+            :[]
+        );
+
+    return arr
+      .map(x=>afterRow(x,market))
+      .filter(q=>
+        /^\d{4}$/.test(q.symbol) &&
+        q.price!=null &&
+        q.price>0 &&
+        q.previousClose!=null &&
+        q.previousClose>0
+      );
+
+  }finally{
+    clearTimeout(timer);
+  }
+}
+
+async function getAfterHours(){
+
+  const settled=
+    await Promise.allSettled([
+      fetchAfter(TWSE_AFTER,"tse"),
+      fetchAfter(TPEX_AFTER,"otc")
+    ]);
+
+  const quotes=[];
+  const errors=[];
+
+  for(let i=0;i<settled.length;i++){
+
+    const x=settled[i];
+
+    const label=
+      i===0
+        ?"TWSE"
+        :"TPEx";
+
+    if(x.status==="fulfilled"){
+      quotes.push(...x.value);
+    }else{
+      errors.push(
+        label+": "+
+        String(
+          x.reason?.message||
+          x.reason
+        )
+      );
+    }
+  }
+
+  return {
+    quotes,
+    errors
+  };
 }
 
 const CORS={
@@ -65,170 +302,525 @@ const CORS={
   "Access-Control-Allow-Headers":"Content-Type",
   "Cache-Control":"no-store"
 };
-function json(x,status=200){return new Response(JSON.stringify(x),{status,headers:{...CORS,"Content-Type":"application/json; charset=utf-8"}})}
-function n(v){if(v==null||v===""||v==="-")return null;const x=Number(String(v).replace(/,/g,""));return Number.isFinite(x)?x:null}
-function px(v){return v?n(String(v).split("_")[0]):null}
+
+function json(x,status=200){
+
+  return new Response(
+    JSON.stringify(x),
+    {
+      status,
+      headers:{
+        ...CORS,
+        "Content-Type":
+          "application/json; charset=utf-8"
+      }
+    }
+  );
+}
+
+function n(v){
+
+  if(
+    v==null||
+    v===""||
+    v==="-"
+  ){
+    return null;
+  }
+
+  const x=Number(
+    String(v)
+      .replace(/,/g,"")
+  );
+
+  return Number.isFinite(x)
+    ?x
+    :null;
+}
+
+function px(v){
+
+  return v
+    ?n(String(v).split("_")[0])
+    :null;
+}
+
 function normalize(x){
-  const price=px(x.z)??px(x.y)??px(x.o), prev=px(x.y);
+
+  const price=
+    px(x.z) ??
+    px(x.y) ??
+    px(x.o);
+
+  const prev=px(x.y);
+
   return {
-    symbol:x.c||"",name:x.n||x.nf||"",market:(x.ex||"").toLowerCase(),
-    price,previousClose:prev,
-    change:(price!=null&&prev!=null)?price-prev:null,
-    changePct:(price!=null&&prev)?(price-prev)/prev*100:null,
-    open:px(x.o),high:px(x.h),low:px(x.l),volume:n(x.v)??n(x.tv)??0,
-    tradeDate:x.d||"",tradeTime:x.t||"",source:"TWSE MIS"
+
+    symbol:x.c||"",
+
+    name:
+      x.n||
+      x.nf||
+      "",
+
+    market:
+      (x.ex||"")
+      .toLowerCase(),
+
+    price,
+
+    previousClose:prev,
+
+    change:
+      (
+        price!=null &&
+        prev!=null
+      )
+        ?price-prev
+        :null,
+
+    changePct:
+      (
+        price!=null &&
+        prev
+      )
+        ?(price-prev)/prev*100
+        :null,
+
+    open:px(x.o),
+
+    high:px(x.h),
+
+    low:px(x.l),
+
+    volume:
+      n(x.v) ??
+      n(x.tv) ??
+      0,
+
+    tradeDate:x.d||"",
+
+    tradeTime:x.t||"",
+
+    source:"TWSE MIS"
   };
 }
+
 async function oneExchange(symbol,ex){
-  const ex_ch=ex+"_"+symbol+".tw";
-  const u=TWSE_URL+"?ex_ch="+encodeURIComponent(ex_ch)+"&json=1&delay=0&_="+Date.now();
-  const ctl=new AbortController(), timer=setTimeout(()=>ctl.abort(),4500);
+
+  const ex_ch=
+    ex+"_"+symbol+".tw";
+
+  const u=
+    TWSE_URL+
+    "?ex_ch="+
+    encodeURIComponent(ex_ch)+
+    "&json=1&delay=0&_="+
+    Date.now();
+
+  const ctl=
+    new AbortController();
+
+  const timer=
+    setTimeout(
+      ()=>ctl.abort(),
+      4500
+    );
+
   try{
-    const r=await fetch(u,{signal:ctl.signal,headers:{
-      "Accept":"application/json,text/plain,*/*",
-      "Referer":"https://mis.twse.com.tw/stock/fibest.jsp"
-    }});
-    if(!r.ok)throw new Error("TWSE HTTP "+r.status);
-    const j=await r.json();
-    const row=(j.msgArray||[]).find(x=>x.c===symbol);
-    if(!row)return null;
-    const q=normalize(row);
-    return q.price!=null?q:null;
-  }finally{clearTimeout(timer)}
-}
-async function oneSymbol(symbol){
-  // Try listed first, then OTC. Each upstream request contains exactly ONE stock.
-  try{
-    const q=await oneExchange(symbol,"tse");
-    if(q)return q;
-  }catch(e){}
-  try{
-    const q=await oneExchange(symbol,"otc");
-    if(q)return q;
-  }catch(e){}
-  return null;
-}
-async function getQuotes(symbols){
-  // Worker pool: at most 4 single-stock requests in flight.
-  const out=new Array(symbols.length).fill(null);
-  let cursor=0;
-  async function runner(){
-    while(true){
-      const i=cursor++;
-      if(i>=symbols.length)return;
-      out[i]=await oneSymbol(symbols[i]);
-    }
-  }
-  await Promise.all(Array.from({length:Math.min(4,symbols.length)},runner));
-  return out.filter(Boolean);
-}
-export default{
-  async fetch(request,env){
-    if(request.method==="OPTIONS")return new Response(null,{status:204,headers:CORS});
-    const u=new URL(request.url);
-    if(u.pathname==="/api/status")return json({
-      ok:true,service:"daytrade-realtime",source:"TWSE MIS",
-      mode:"single-symbol-pool",concurrency:4,timeoutMs:4500
+
+    const r=await fetch(u,{
+      signal:ctl.signal,
+      headers:{
+        "Accept":
+          "application/json,text/plain,*/*",
+
+        "Referer":
+          "https://mis.twse.com.tw/stock/fibest.jsp"
+      }
     });
 
-    if(u.pathname==="/api/afterhours"){
-      const started=Date.now();
-      try{
-        const out=await getAfterHours();
-        // Prefer the actual date carried by today's after-hours payload.
-        // FMTQIK can lag behind the daily-close endpoints after market close.
-        const tseQuotes=out.quotes.filter(q=>q.market==="tse");
-        const otcQuotes=out.quotes.filter(q=>q.market==="otc");
-
-        const tseDates=[...new Set(tseQuotes.map(q=>rocDateISO(q.tradeDate)).filter(Boolean))].sort();
-        const otcDates=[...new Set(otcQuotes.map(q=>rocDateISO(q.tradeDate)).filter(Boolean))].sort();
-        const payloadDates=[...new Set([...tseDates,...otcDates])].sort();
-
-        const tseDate=tseDates.length?tseDates.at(-1):null;
-        const otcDate=otcDates.length?otcDates.at(-1):null;
-
-        // Use the oldest available market date as the safe combined marketDate.
-        // This prevents a fresh market from masking another stale market.
-        let marketDate=null;
-        const latestMarketDates=[tseDate,otcDate].filter(Boolean).sort();
-        if(latestMarketDates.length) marketDate=latestMarketDates[0];
-
-        let twseCalendarDate=null;
-        try{twseCalendarDate=await fetchLatestTwseTradeDate()}
-        catch(e){out.errors.push("TWSE calendar date: "+String(e?.message||e))}
-
-        if(!marketDate) marketDate=twseCalendarDate;
-
-        const dateMismatch=!!(tseDate&&otcDate&&tseDate!==otcDate);
-
-        return json({
-          ok:out.quotes.length>0,
-          count:out.quotes.length,
-          partial:out.errors.length>0 || dateMismatch,
-          errors:out.errors,
-          elapsedMs:Date.now()-started,
-          source:"TWSE + TPEx official after-hours",
-          marketDate,
-          payloadDates,
-          diagnostic:{
-            tseDate,
-            otcDate,
-            twseCalendarDate,
-            dateMismatch,
-            tseDates,
-            otcDates,
-            tseCount:tseQuotes.length,
-            otcCount:otcQuotes.length,
-            tseSample:tseQuotes.slice(0,3).map(q=>({symbol:q.symbol,tradeDate:q.tradeDate,price:q.price})),
-            otcSample:otcQuotes.slice(0,3).map(q=>({symbol:q.symbol,tradeDate:q.tradeDate,price:q.price}))
-          },
-          marketCounts:{
-            tse:tseQuotes.length,
-            otc:otcQuotes.length
-          },
-          quotes:out.quotes
-        },out.quotes.length?200:502);
-      }catch(e){
-        return json({ok:false,error:String(e?.message||e),count:0,quotes:[]},502);
-      }
+    if(!r.ok){
+      throw new Error(
+        "TWSE HTTP "+r.status
+      );
     }
-    if(u.pathname==="/api/quote"||u.pathname==="/api/quotes"){
-      const raw=u.pathname==="/api/quote"
-        ?[(u.searchParams.get("symbol")||"").trim()]
-        :(u.searchParams.get("symbols")||"").split(",").map(s=>s.trim());
-      const parsed=[...new Set(raw)].map(s=>{
-        const m=String(s).match(/^(?:(tse|otc):)?(\d{4,6})$/i);
-        return m?{market:(m[1]||"").toLowerCase(),symbol:m[2]}:null;
-      }).filter(Boolean);
-      if(!parsed.length)return json({ok:false,error:"No valid symbols"},400);
-      if(parsed.length>20)return json({ok:false,error:"Maximum 20 symbols"},400);
-      const started=Date.now();
-      try{
-        const quotes=[];
-        for(const x of parsed){
-          let q=null;
-          if(x.market){
-            try{q=await oneExchange(x.symbol,x.market)}catch(e){}
-          }else{
-            q=await oneSymbol(x.symbol);
-          }
-          if(q)quotes.push(q);
+
+    const j=await r.json();
+
+    const row=
+      (j.msgArray||[])
+      .find(x=>x.c===symbol);
+
+    if(!row){
+      return null;
+    }
+
+    const q=normalize(row);
+
+    return q.price!=null
+      ?q
+      :null;
+
+  }finally{
+    clearTimeout(timer);
+  }
+}
+
+async function oneSymbol(symbol){
+
+  try{
+
+    const q=
+      await oneExchange(
+        symbol,
+        "tse"
+      );
+
+    if(q){
+      return q;
+    }
+
+  }catch(e){}
+
+  try{
+
+    const q=
+      await oneExchange(
+        symbol,
+        "otc"
+      );
+
+    if(q){
+      return q;
+    }
+
+  }catch(e){}
+
+  return null;
+}
+
+async function getQuotes(symbols){
+
+  const out=
+    new Array(symbols.length)
+    .fill(null);
+
+  let cursor=0;
+
+  async function runner(){
+
+    while(true){
+
+      const i=cursor++;
+
+      if(i>=symbols.length){
+        return;
+      }
+
+      out[i]=
+        await oneSymbol(
+          symbols[i]
+        );
+    }
+  }
+
+  await Promise.all(
+    Array.from(
+      {
+        length:
+          Math.min(
+            4,
+            symbols.length
+          )
+      },
+      runner
+    )
+  );
+
+  return out.filter(Boolean);
+}
+
+export default{
+
+  async fetch(request,env){
+
+    if(request.method==="OPTIONS"){
+
+      return new Response(
+        null,
+        {
+          status:204,
+          headers:CORS
         }
+      );
+    }
+
+    const u=
+      new URL(request.url);
+
+    if(u.pathname==="/api/status"){
+
+      return json({
+
+        ok:true,
+
+        service:
+          "daytrade-realtime",
+
+        source:
+          "TWSE MIS",
+
+        mode:
+          "single-symbol-pool",
+
+        concurrency:4,
+
+        timeoutMs:4500,
+
+        afterhoursTimeoutMs:5000,
+
+        version:"4.5.8"
+      });
+    }
+
+    if(
+      u.pathname===
+      "/api/afterhours"
+    ){
+
+      const started=
+        Date.now();
+
+      try{
+
+        const out=
+          await getAfterHours();
+
+        const payloadDates=[
+          ...new Set(
+            out.quotes
+              .map(q=>
+                rocDateISO(
+                  q.tradeDate
+                )
+              )
+              .filter(Boolean)
+          )
+        ].sort();
+
+        let marketDate=
+          payloadDates.length
+            ?payloadDates.at(-1)
+            :null;
+
+        if(!marketDate){
+
+          try{
+
+            marketDate=
+              await fetchLatestTwseTradeDate();
+
+          }catch(e){
+
+            out.errors.push(
+              "TWSE date: "+
+              String(
+                e?.message||
+                e
+              )
+            );
+          }
+        }
+
         return json({
-          ok:quotes.length>0,
-          count:quotes.length,
-          requested:parsed.length,
-          partial:quotes.length<parsed.length,
-          elapsedMs:Date.now()-started,
-          mode:"single-symbol-pool",
-          source:"TWSE MIS",
-          quotes
-        },quotes.length?200:502);
+
+          ok:
+            out.quotes.length>0,
+
+          count:
+            out.quotes.length,
+
+          partial:
+            out.errors.length>0,
+
+          errors:
+            out.errors,
+
+          elapsedMs:
+            Date.now()-started,
+
+          source:
+            "TWSE + TPEx official after-hours",
+
+          marketDate,
+
+          payloadDates,
+
+          marketCounts:{
+
+            tse:
+              out.quotes.filter(
+                q=>q.market==="tse"
+              ).length,
+
+            otc:
+              out.quotes.filter(
+                q=>q.market==="otc"
+              ).length
+          },
+
+          quotes:
+            out.quotes
+
+        },
+        out.quotes.length
+          ?200
+          :502
+        );
+
       }catch(e){
-        return json({ok:false,error:String(e?.message||e),count:0,requested:parsed.length,quotes:[]},502);
+
+        return json({
+
+          ok:false,
+
+          error:
+            String(
+              e?.message||
+              e
+            ),
+
+          count:0,
+
+          quotes:[]
+        },502);
       }
     }
-    if(env&&env.ASSETS)return env.ASSETS.fetch(request);
-    return new Response("Not found",{status:404,headers:CORS});
+
+    if(
+      u.pathname==="/api/quote" ||
+      u.pathname==="/api/quotes"
+    ){
+
+      const raw=
+        u.pathname==="/api/quote"
+
+        ?[
+          (
+            u.searchParams
+            .get("symbol")||
+            ""
+          ).trim()
+        ]
+
+        :(
+          u.searchParams
+          .get("symbols")||
+          ""
+        )
+        .split(",")
+        .map(s=>s.trim());
+
+      const symbols=[
+        ...new Set(raw)
+      ].filter(
+        s=>/^\d{4,6}$/.test(s)
+      );
+
+      if(!symbols.length){
+
+        return json({
+          ok:false,
+          error:"No valid symbols"
+        },400);
+      }
+
+      if(symbols.length>20){
+
+        return json({
+          ok:false,
+          error:"Maximum 20 symbols"
+        },400);
+      }
+
+      const started=
+        Date.now();
+
+      try{
+
+        const quotes=
+          await getQuotes(
+            symbols
+          );
+
+        return json({
+
+          ok:
+            quotes.length>0,
+
+          count:
+            quotes.length,
+
+          requested:
+            symbols.length,
+
+          partial:
+            quotes.length<
+            symbols.length,
+
+          elapsedMs:
+            Date.now()-started,
+
+          mode:
+            "single-symbol-pool",
+
+          source:
+            "TWSE MIS",
+
+          quotes
+
+        },
+        quotes.length
+          ?200
+          :502
+        );
+
+      }catch(e){
+
+        return json({
+
+          ok:false,
+
+          error:
+            String(
+              e?.message||
+              e
+            ),
+
+          count:0,
+
+          requested:
+            symbols.length,
+
+          quotes:[]
+        },502);
+      }
+    }
+
+    if(env&&env.ASSETS){
+
+      return env.ASSETS.fetch(
+        request
+      );
+    }
+
+    return new Response(
+      "Not found",
+      {
+        status:404,
+        headers:CORS
+      }
+    );
   }
 };
