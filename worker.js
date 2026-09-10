@@ -5,11 +5,10 @@ const TWSE_MARKET_DATES="https://openapi.twse.com.tw/v1/exchangeReport/FMTQIK";
 const TPEX_AFTER="https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes";
 
 const DEFAULT_OTC_AFTER_SYMBOLS=[
-  "6182", // 合晶
-  "5425", // 台半
-  "1815", // 富喬
-  "6207", // 雷科
-  "4939"  // 亞電
+  "1815","3105","3260","3293","3324","3363","3374","3483","3529","3548",
+  "3552","3580","3680","3707","4123","4162","4979","4991","5009","5347",
+  "5371","5425","5483","5498","6104","6125","6147","6182","6207","6223",
+  "6231","6274","6290","6488","6510","6547","6643","8069","8086","8299"
 ];
 
 const TPEX_FALLBACK=
@@ -743,7 +742,7 @@ async function getOtcAfterHoursByMis(symbols){
         .map(x=>String(x||"").trim())
         .filter(x=>/^\d{4,6}$/.test(x))
     )
-  ];
+  ].slice(0,60);
 
   let cursor=0;
 
@@ -797,7 +796,7 @@ async function getOtcAfterHoursByMis(symbols){
       {
         length:
           Math.min(
-            4,
+            8,
             unique.length
           )
       },
