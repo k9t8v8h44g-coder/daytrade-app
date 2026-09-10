@@ -1,295 +1,160 @@
-export default {
-  async fetch(request, env) {
-    const url = new URL(request.url);
-
-    if (url.pathname === "/api/status") {
-      return json({
-        ok: true,
-        app: "台股當沖助手 V3.3",
-        message: "Worker API 正常運作",
-        time: new Date().toISOString()
-      });
-    }
-
-    if (url.pathname === "/api/quote") {
-      const symbol = (url.searchParams.get("symbol") || "").trim();
-      const market = (url.searchParams.get("market") || "tse").trim().toLowerCase();
-
-      if (!/^\d{4,6}$/.test(symbol)) {
-        return json({ ok: false, error: "Invalid symbol" }, 400);
-      }
-
-      if (!["tse", "otc"].includes(market)) {
-        return json({ ok: false, error: "Invalid market" }, 400);
-      }
-
-      try {
-        const q = await fetchQuotes([`${market}:${symbol}`]);
-
-        if (!q.length) {
-          return json({ ok: false, error: "No quote data" }, 502);
-        }
-
-        return json({
-          ok: true,
-          ...q[0]
-        });
-
-      } catch (err) {
-        return json({
-          ok: false,
-          error: String(err.message || err)
-        }, 502);
-      }
-    }
-
-    if (url.pathname === "/api/quotes") {
-      const raw = (url.searchParams.get("symbols") || "").trim();
-
-      if (!raw) {
-        return json({ ok: false, error: "No symbols" }, 400);
-      }
-
-      const items = raw
-        .split(",")
-        .map(s => s.trim())
-        .filter(Boolean);
-
-      if (items.length > 20) {
-        return json({
-          ok: false,
-          error: "Maximum 20 symbols"
-        }, 400);
-      }
-
-      const normalized = items
-        .map(item => {
-          const parts = item.split(":");
-
-          const market =
-            parts.length === 2
-              ? parts[0].toLowerCase()
-              : "tse";
-
-          const symbol =
-            parts.length === 2
-              ? parts[1]
-              : parts[0];
-
-          if (!["tse", "otc"].includes(market)) {
-            return null;
-          }
-
-          if (!/^\d{4,6}$/.test(symbol)) {
-            return null;
-          }
-
-          return `${market}:${symbol}`;
-        })
-        .filter(Boolean);
-
-      if (!normalized.length) {
-        return json({
-          ok: false,
-          error: "Invalid symbols"
-        }, 400);
-      }
-
-      try {
-        const quotes = await fetchQuotes(normalized);
-
-        return json({
-          ok: true,
-          count: quotes.length,
-          source: "TWSE MIS",
-          quotes
-        });
-
-      } catch (err) {
-        return json({
-          ok: false,
-          error: String(err.message || err)
-        }, 502);
-      }
-    }
-
-    return env.ASSETS.fetch(request);
-  }
+const TWSE_URL = "https://mis.twse.com.tw/stock/api/getStockInfo.jsp";
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET,OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+  "Cache-Control": "no-store"
 };
 
-
-async function fetchQuotes(items) {
-  const channels = items.map(item => {
-    const [market, symbol] = item.split(":");
-    return `${market}_${symbol}.tw`;
+function json(data, status=200){
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {...CORS, "Content-Type":"application/json; charset=utf-8"}
   });
-
-  const api =
-    "https://mis.twse.com.tw/stock/api/getStockInfo.jsp" +
-    "?ex_ch=" +
-    encodeURIComponent(channels.join("|")) +
-    "&json=1&delay=0&_=" +
-    Date.now();
-
-  let lastError = null;
-
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    try {
-      const controller = new AbortController();
-
-      const timeout = setTimeout(
-        () => controller.abort(),
-        7000
-      );
-
-      const res = await fetch(api, {
-        headers: {
-          "User-Agent": "Mozilla/5.0",
-          "Accept": "application/json",
-          "Referer": "https://mis.twse.com.tw/stock/index.jsp"
-        },
-        signal: controller.signal
-      });
-
-      clearTimeout(timeout);
-
-      if (!res.ok) {
-        const err = new Error(`TWSE HTTP ${res.status}`);
-        err.status = res.status;
-        throw err;
-      }
-
-      const data = await res.json();
-
-      const quotes = (data.msgArray || [])
-        .map(q => normalizeQuote(q))
-        .filter(Boolean);
-
-      if (!quotes.length) {
-        throw new Error("TWSE 無有效行情");
-      }
-
-      return quotes;
-
-    } catch (err) {
-      lastError = err;
-
-      if (attempt < 3) {
-        await sleep(700 * attempt);
-      }
-    }
-  }
-
-  throw lastError || new Error("TWSE 連線失敗");
 }
-
-
-function normalizeQuote(q) {
-  const symbol = q.c || "";
-  const name = q.n || "";
-  const market = q.ex || "";
-
-  const previousClose = toNumber(q.y);
-  const open = toNumber(q.o);
-  const high = toNumber(q.h);
-  const low = toNumber(q.l);
-  const volume = toNumber(q.v);
-
-  let price = toNumber(q.z);
-
-  if (price === null) {
-    const bid = firstNumber(q.b);
-    const ask = firstNumber(q.a);
-
-    if (bid !== null) {
-      price = bid;
-    } else if (ask !== null) {
-      price = ask;
-    }
-  }
-
-  if (!symbol) {
-    return null;
-  }
-
-  const change =
-    price !== null && previousClose !== null
-      ? price - previousClose
-      : null;
-
-  const changePct =
-    change !== null &&
-    previousClose !== null &&
-    previousClose !== 0
-      ? (change / previousClose) * 100
-      : null;
-
+function n(v){
+  if(v===undefined || v===null || v==="" || v==="-") return null;
+  const x=Number(String(v).replace(/,/g,""));
+  return Number.isFinite(x)?x:null;
+}
+function parsePrice(v){
+  if(!v) return null;
+  const s=String(v).split("_")[0];
+  return n(s);
+}
+function marketCode(symbol){
+  // Try listed first; TWSE MIS ignores invalid ex_ch items and returns the valid ones.
+  return "tse_"+symbol+".tw";
+}
+function normalize(x){
+  const price=parsePrice(x.z) ?? parsePrice(x.y) ?? parsePrice(x.o);
+  const prev=parsePrice(x.y);
+  const open=parsePrice(x.o);
+  const high=parsePrice(x.h);
+  const low=parsePrice(x.l);
+  const volume=n(x.v) ?? n(x.tv) ?? 0;
+  const change=(price!=null && prev!=null)?price-prev:null;
+  const changePct=(change!=null && prev)?change/prev*100:null;
   return {
-    symbol,
-    name,
-    market,
-    price,
-    previousClose,
-    change,
-    changePct,
-    open,
-    high,
-    low,
-    volume,
-    tradeDate: q.d || "",
-    tradeTime: q.t || "",
-    source: "TWSE MIS"
+    symbol:x.c||"",
+    name:x.n||x.nf||"",
+    market:(x.ex||"").toLowerCase(),
+    price, previousClose:prev, change, changePct, open, high, low, volume,
+    tradeDate:x.d||"", tradeTime:x.t||"", source:"TWSE MIS"
   };
 }
 
-
-function firstNumber(value) {
-  if (!value) return null;
-
-  const first = String(value)
-    .split("_")
-    .map(v => toNumber(v))
-    .find(v => v !== null);
-
-  return first ?? null;
-}
-
-
-function toNumber(value) {
-  if (
-    value === undefined ||
-    value === null ||
-    value === "" ||
-    value === "-"
-  ) {
-    return null;
+async function twseFetch(symbols){
+  // Each requested symbol is tried as both TWSE and TPEx; MIS returns whichever exists.
+  const ex=[];
+  for(const s of symbols){
+    ex.push("tse_"+s+".tw");
+    ex.push("otc_"+s+".tw");
   }
-
-  const n = Number(value);
-
-  return Number.isFinite(n)
-    ? n
-    : null;
+  const url=TWSE_URL+"?ex_ch="+encodeURIComponent(ex.join("|"))+"&json=1&delay=0&_="+Date.now();
+  const ctl=new AbortController();
+  const timer=setTimeout(()=>ctl.abort(),7000);
+  try{
+    const r=await fetch(url,{
+      signal:ctl.signal,
+      headers:{
+        "Accept":"application/json,text/plain,*/*",
+        "Referer":"https://mis.twse.com.tw/stock/fibest.jsp",
+        "User-Agent":"Mozilla/5.0"
+      }
+    });
+    if(!r.ok) throw new Error("TWSE HTTP "+r.status);
+    const j=await r.json();
+    const rows=Array.isArray(j.msgArray)?j.msgArray:[];
+    const seen=new Set();
+    return rows.map(normalize).filter(q=>{
+      if(!q.symbol || q.price==null || seen.has(q.symbol)) return false;
+      seen.add(q.symbol); return true;
+    });
+  }finally{
+    clearTimeout(timer);
+  }
 }
 
-
-function sleep(ms) {
-  return new Promise(resolve =>
-    setTimeout(resolve, ms)
-  );
+async function fetchSmallBatch(symbols){
+  let lastErr=null;
+  for(let attempt=1;attempt<=3;attempt++){
+    try{
+      const rows=await twseFetch(symbols);
+      if(rows.length) return rows;
+      throw new Error("沒有有效成交價");
+    }catch(e){
+      lastErr=e;
+      if(attempt<3) await new Promise(r=>setTimeout(r,350*attempt));
+    }
+  }
+  // Rescue: if a small batch still fails, try each symbol individually.
+  if(symbols.length>1){
+    const out=[];
+    for(const s of symbols){
+      try{
+        const rows=await twseFetch([s]);
+        out.push(...rows);
+      }catch(e){}
+      await new Promise(r=>setTimeout(r,120));
+    }
+    if(out.length) return out;
+  }
+  throw lastErr||new Error("TWSE 行情失敗");
 }
 
+async function getQuotes(symbols){
+  // Critical fix: never forward 20 symbols to TWSE in one request.
+  // Split into 5-symbol chunks and process sequentially to avoid TWSE 520/rate limiting.
+  const chunks=[];
+  for(let i=0;i<symbols.length;i+=5) chunks.push(symbols.slice(i,i+5));
+  const out=[];
+  for(let i=0;i<chunks.length;i++){
+    try{
+      out.push(...await fetchSmallBatch(chunks[i]));
+    }catch(e){}
+    if(i<chunks.length-1) await new Promise(r=>setTimeout(r,180));
+  }
+  const map=new Map();
+  for(const q of out) map.set(q.symbol,q);
+  return symbols.map(s=>map.get(s)).filter(Boolean);
+}
 
-function json(data, status = 200) {
-  return new Response(
-    JSON.stringify(data),
-    {
-      status,
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        "Access-Control-Allow-Origin": "*",
-        "Cache-Control": "no-store"
+export default {
+  async fetch(request, env){
+    if(request.method==="OPTIONS") return new Response(null,{status:204,headers:CORS});
+    const url=new URL(request.url);
+
+    if(url.pathname==="/api/status"){
+      return json({ok:true,service:"daytrade-realtime",source:"TWSE MIS",batchMode:"5x sequential"});
+    }
+
+    if(url.pathname==="/api/quote"){
+      const symbol=(url.searchParams.get("symbol")||"").trim();
+      if(!/^\d{4,6}$/.test(symbol)) return json({ok:false,error:"Invalid symbol"},400);
+      try{
+        const quotes=await getQuotes([symbol]);
+        return json({ok:true,count:quotes.length,source:"TWSE MIS",quotes});
+      }catch(e){
+        return json({ok:false,error:String(e?.message||e)},502);
       }
     }
-  );
-}
+
+    if(url.pathname==="/api/quotes"){
+      const raw=(url.searchParams.get("symbols")||"").split(",").map(s=>s.trim()).filter(Boolean);
+      const symbols=[...new Set(raw)].filter(s=>/^\d{4,6}$/.test(s));
+      if(!symbols.length) return json({ok:false,error:"No valid symbols"},400);
+      if(symbols.length>20) return json({ok:false,error:"Maximum 20 symbols"},400);
+      try{
+        const quotes=await getQuotes(symbols);
+        if(!quotes.length) return json({ok:false,error:"No valid quotes"},502);
+        return json({ok:true,count:quotes.length,requested:symbols.length,source:"TWSE MIS",quotes});
+      }catch(e){
+        return json({ok:false,error:String(e?.message||e)},502);
+      }
+    }
+
+    if(env && env.ASSETS) return env.ASSETS.fetch(request);
+    return new Response("Not found",{status:404,headers:CORS});
+  }
+};
