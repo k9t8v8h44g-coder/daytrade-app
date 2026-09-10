@@ -30,50 +30,63 @@ function rocDateISO(s){
 function twDateCompact(d){
   return `${d.getUTCFullYear()}${String(d.getUTCMonth()+1).padStart(2,"0")}${String(d.getUTCDate()).padStart(2,"0")}`;
 }
+async function fetchStooqHistory(symbol){
+  const code=`${symbol}.tw`;
+  const u=`https://stooq.com/q/d/l/?s=${encodeURIComponent(code)}&i=d`;
+  const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),5500);
+  try{
+    const r=await fetch(u,{signal:ctl.signal,headers:{"Accept":"text/csv,text/plain,*/*","User-Agent":"Mozilla/5.0"}});
+    if(!r.ok)throw new Error("Stooq HTTP "+r.status);
+    const text=await r.text();
+    const lines=text.trim().split(/\r?\n/);
+    if(lines.length<6)throw new Error("Stooq history insufficient");
+    const rows=[];
+    for(const line of lines.slice(1)){
+      const a=line.split(",");
+      if(a.length<6)continue;
+      const [date,open,high,low,close,volume]=a;
+      const nums=[open,high,low,close].map(Number);
+      if(nums.every(Number.isFinite))rows.push({date,open:+open,high:+high,low:+low,close:+close,volume:Number(volume)||null});
+    }
+    return rows.slice(-20);
+  }finally{clearTimeout(timer)}
+}
+
 async function getHistory(symbol,market="tse"){
-  const now=new Date();
-  const months=[];
+  const now=new Date(),months=[];
   for(let k=0;k<2;k++){
     const d=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()-k,1));
     months.push(twDateCompact(d));
   }
   const rows=[],errors=[];
+
   if(market==="otc"){
     for(const date of months){
-      // TPEx official individual-stock daily history endpoint.
       const rocYear=Number(date.slice(0,4))-1911;
       const rocDate=`${rocYear}/${date.slice(4,6)}/01`;
-      const urls=[
-        `https://www.tpex.org.tw/www/zh-tw/afterTrading/tradingStock?code=${encodeURIComponent(symbol)}&date=${encodeURIComponent(rocDate)}&response=json`,
-        `https://www.tpex.org.tw/web/stock/aftertrading/daily_trading_info/st43_result.php?l=zh-tw&d=${encodeURIComponent(rocDate)}&stkno=${encodeURIComponent(symbol)}`
-      ];
-      let done=false;
-      for(const u of urls){
-        const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),4500);
-        try{
-          const r=await fetch(u,{signal:ctl.signal,redirect:"follow",headers:{
-            "Accept":"application/json,text/plain,*/*",
-            "User-Agent":"Mozilla/5.0",
-            "Referer":"https://www.tpex.org.tw/zh-tw/mainboard/trading/info/stock-pricing.html"
-          }});
-          if(!r.ok)throw new Error("HTTP "+r.status);
+      const u=`https://www.tpex.org.tw/www/zh-tw/afterTrading/tradingStock?code=${encodeURIComponent(symbol)}&date=${encodeURIComponent(rocDate)}&response=json`;
+      const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),3000);
+      try{
+        const r=await fetch(u,{signal:ctl.signal,redirect:"follow",headers:{"Accept":"application/json","User-Agent":"Mozilla/5.0"}});
+        if(r.ok){
           const j=await r.json();
-          const data=Array.isArray(j?.tables?.[0]?.data)?j.tables[0].data:(Array.isArray(j.data)?j.data:(Array.isArray(j.aaData)?j.aaData:[]));
-          if(!data.length)continue;
+          const data=Array.isArray(j?.tables?.[0]?.data)?j.tables[0].data:(Array.isArray(j.data)?j.data:[]);
           for(const a of data){
             if(!Array.isArray(a)||a.length<7)continue;
             const clean=v=>Number(String(v??"").replace(/,/g,"").replace(/[＋+]/g,""));
-            // TPEx rows: date, shares, amount, open, high, low, close, change, trades
             const open=clean(a[3]),high=clean(a[4]),low=clean(a[5]),close=clean(a[6]),volume=clean(a[1]);
             if([open,high,low,close].every(Number.isFinite))rows.push({date:String(a[0]),open,high,low,close,volume:Number.isFinite(volume)?volume:null});
           }
-          done=true; break;
-        }catch(e){errors.push(String(e?.message||e))}
-        finally{clearTimeout(timer)}
-      }
-      if(!done)errors.push("TPEx month unavailable "+date);
+        }
+      }catch(e){errors.push("TPEx "+String(e?.message||e))}
+      finally{clearTimeout(timer)}
     }
-    return {rows:rows.slice(-20),source:"TPEx 個股日成交資訊",warning:rows.length?null:errors.slice(-2).join(" | ")};
+    if(rows.length>=5)return {rows:rows.slice(-20),source:"TPEx 個股日成交資訊",warning:null};
+    try{
+      const alt=await fetchStooqHistory(symbol);
+      if(alt.length>=5)return {rows:alt,source:"Stooq 歷史日線（備援）",warning:null};
+    }catch(e){errors.push(String(e?.message||e))}
+    return {rows:[],source:"fallback",warning:"歷史資料暫時無法取得"};
   }
 
   for(const date of months){
@@ -83,8 +96,7 @@ async function getHistory(symbol,market="tse"){
       const r=await fetch(u,{signal:ctl.signal,headers:{"Accept":"application/json"}});
       if(!r.ok)continue;
       const j=await r.json();
-      if(!Array.isArray(j.data))continue;
-      for(const a of j.data){
+      for(const a of (Array.isArray(j.data)?j.data:[])){
         if(!Array.isArray(a)||a.length<9)continue;
         const clean=v=>Number(String(v??"").replace(/,/g,""));
         const open=clean(a[3]),high=clean(a[4]),low=clean(a[5]),close=clean(a[6]),volume=clean(a[1]);
@@ -92,7 +104,12 @@ async function getHistory(symbol,market="tse"){
       }
     }finally{clearTimeout(timer)}
   }
-  return {rows:rows.slice(-20),source:"TWSE STOCK_DAY",warning:null};
+  if(rows.length>=5)return {rows:rows.slice(-20),source:"TWSE STOCK_DAY",warning:null};
+  try{
+    const alt=await fetchStooqHistory(symbol);
+    if(alt.length>=5)return {rows:alt,source:"Stooq 歷史日線（備援）",warning:null};
+  }catch(e){}
+  return {rows:[],source:"fallback",warning:"歷史資料暫時無法取得"};
 }
 async function fetchLatestTwseTradeDate(){
   const ctl=new AbortController();
