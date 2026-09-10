@@ -58,7 +58,7 @@ async function getHistory(symbol,market="tse"){
           }});
           if(!r.ok)throw new Error("HTTP "+r.status);
           const j=await r.json();
-          const data=Array.isArray(j.data)?j.data:(Array.isArray(j.aaData)?j.aaData:[]);
+          const data=Array.isArray(j?.tables?.[0]?.data)?j.tables[0].data:(Array.isArray(j.data)?j.data:(Array.isArray(j.aaData)?j.aaData:[]));
           if(!data.length)continue;
           for(const a of data){
             if(!Array.isArray(a)||a.length<7)continue;
