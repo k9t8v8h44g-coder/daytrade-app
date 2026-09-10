@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#07101f">
-<title>台股當沖助手 V4.4</title>
+<title>台股當沖助手 V4.5</title>
 <style>
 *{box-sizing:border-box}
 html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:900px;margin:auto;padding:22px 14px 80px}h1{margin:0;font-size:29px}.sub{color:#9fb0ca;margin:8px 0 16px;line-height:1.55}.card,.stock{background:#101a2d;border:1px solid #293a55;border-radius:17px;padding:15px;margin-bottom:12px}.row,.status{display:flex;justify-content:space-between;align-items:center;gap:10px}.live{color:#67e394;font-weight:900}.small,.info{color:#9fb0ca;font-size:13px}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}button{width:100%;border:0;border-radius:13px;padding:14px;background:#568cff;color:white;font-size:16px;font-weight:850}button:disabled{opacity:.55}.title{font-size:23px;font-weight:900;margin:23px 0 11px}.name{font-size:19px;font-weight:850}.price{font-size:27px;font-weight:900}.score{font-size:25px;font-weight:900}.scoreLabel{color:#9fb0ca;font-size:11px;text-align:right}.up{color:#ff6969}.down{color:#59dc9c}.flat{color:#eef4ff}.tag{display:inline-block;background:#1e2d49;border-radius:8px;padding:4px 7px;font-size:11px;margin-left:5px}.signal{display:inline-block;margin-top:9px;padding:6px 9px;border-radius:9px;background:#20304d;font-weight:800}.entry{margin-top:11px;border-radius:12px;padding:11px 12px;font-weight:900;font-size:15px}.entry-go{background:#123c2c;color:#74edac;border:1px solid #266c4e}.entry-wait{background:#3d351b;color:#f2cd68;border:1px solid #6f5e2b}.entry-stop{background:#482329;color:#ff8b94;border:1px solid #7c3a44}.entry-neutral{background:#1d2c46;color:#a9bbd6;border:1px solid #354865}.reasonbox{margin-top:10px;padding:10px 12px;background:#17243a;border-radius:11px;color:#b9c9df;font-size:13px;line-height:1.7}.reasonbox b{color:#eef4ff}.exhaustbox{margin-top:10px;padding:11px 12px;background:#111d31;border:1px solid #2a3c59;border-radius:12px;font-size:13px;line-height:1.7}.exhaust-title{font-weight:900}.exhaust-buy{color:#ff8b94}.exhaust-sell{color:#74edac}.exhaust-neutral{color:#a9bbd6}.tradebox{margin-top:10px;padding:11px 12px;background:#0c1527;border:1px solid #233756;border-radius:12px;line-height:1.8;font-size:13px}.tradebox b{color:#eef4ff}.info{line-height:1.7;margin-top:10px}.risk{margin-top:8px;font-size:12px;color:#f0c36a}.session{margin-top:8px;padding:8px 10px;border-radius:10px;background:#17243a;color:#a9bbd6;font-size:12px;line-height:1.5}.pulse{color:#67e394}footer{text-align:center;color:#74859e;font-size:12px;margin-top:25px;line-height:1.6}
@@ -15,18 +15,31 @@ html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;fo
  font-size:15px;font-weight:800;background:#4f86ff;color:white;
  box-shadow:0 6px 24px rgba(0,0,0,.28)
 }
-.precisionbox{margin-top:10px;padding:10px 12px;background:#101c30;border:1px solid #304664;border-radius:11px;font-size:13px;line-height:1.7}.precisionbox b{color:#eef4ff}</style>
+.precisionbox{margin-top:10px;padding:10px 12px;background:#101c30;border:1px solid #304664;border-radius:11px;font-size:13px;line-height:1.7}.precisionbox b{color:#eef4ff}
+.ahTitle{font-size:18px;font-weight:900;margin:16px 0 7px}
+.ahRow{border-top:1px solid #293a55;padding:11px 0}
+.ahScore{font-size:20px;font-weight:900}
+.ahMeta{color:#9fb0ca;font-size:13px;line-height:1.6;margin-top:4px}
+</style>
 </head>
 <body>
 <main class="wrap">
-<h1>台股當沖助手 V4.4</h1>
+<h1>台股當沖助手 V4.5</h1>
 <div class="sub">上市＋上櫃｜200 檔分段輪替雷達｜Top 20 約 5 秒近即時追蹤｜買盤竭盡＋賣盤竭盡</div>
 <div class="card status"><div><b id="status">建立候選池...</b><div id="time" class="small">--</div><div id="session" class="session">正在確認台北盤中時段...</div></div><div class="live">● 近即時</div></div>
 <div class="card"><div class="row"><span>全市場當沖候選池</span><b id="poolCount">--</b></div><div class="small" id="poolInfo">正在讀取上市＋上櫃市場資料</div></div>
 <div class="buttons"><button onclick="buildPool()">重建候選池</button><button id="scanBtn" onclick="fullScan(true)">立即全掃</button></div>
+
+<div class="card">
+  <div class="row"><div><b style="font-size:20px">🌙 盤後分析・明日當沖候選</b><div class="small" style="margin-top:5px">盤後依今日量價與收盤結構排序；隔日開盤仍須重新確認</div></div></div>
+  <button id="afterBtn" type="button" style="margin-top:12px">產生明日當沖候選</button>
+  <div id="afterStatus" class="small" style="margin-top:10px">等待盤後分析</div>
+  <div id="tomorrowLong"></div>
+  <div id="tomorrowShort"></div>
+</div>
 <div class="title">🔥 多方優先 Top 10</div><div id="long"><div class="card small">等待第一次完整掃描...</div></div>
 <div class="title">❄️ 空方優先 Top 10</div><div id="short"><div class="card small">等待第一次完整掃描...</div></div>
-<footer>V4.4｜分段輪替雷達＋Top 20 近即時＋精準訊號＋閱讀鎖定＋Top 20 近即時追蹤｜竭盡模型使用連續價格＋增量成交量推進效率｜非逐筆委託流模型｜行情來源 TWSE MIS｜實際交易請以券商報價確認</footer>
+<footer>V4.5｜盤後分析＋明日當沖候選＋精準訊號＋閱讀鎖定｜竭盡模型使用連續價格＋增量成交量推進效率｜非逐筆委託流模型｜行情來源 TWSE MIS｜實際交易請以券商報價確認</footer>
 </main>
 <script>
 let pool=[],watchList=[];
@@ -294,7 +307,64 @@ window.addEventListener("scroll",()=>{
   }
 },{passive:true});
 
-document.addEventListener("DOMContentLoaded",()=>{
+
+function ahScore(q,side){
+  const p=N(q.price),y=N(q.previousClose),o=N(q.open),h=N(q.high),l=N(q.low),v=N(q.volume);
+  const pct=y?(p-y)/y*100:0, pos=(h&&l&&h!==l)?(p-l)/(h-l)*100:50;
+  const range=y&&h&&l?(h-l)/y*100:0;
+  let s=45+Math.min(22,Math.log10(Math.max(v,1))*3.7);
+  if(side==="long"){s+=clamp(pct*3,-14,17);s+=(pos-50)*.16;if(o&&p>o)s+=5;}
+  else{s+=clamp(-pct*3,-14,17);s+=(50-pos)*.16;if(o&&p<o)s+=5;}
+  if(range>8)s-=6;
+  return clamp(s,0,100);
+}
+function ahPlan(q,side){
+  const p=N(q.price),h=N(q.high),l=N(q.low),o=N(q.open),y=N(q.previousClose);
+  const pct=y?(p-y)/y*100:0,pos=(h&&l&&h!==l)?(p-l)/(h-l)*100:50;
+  const trigger=side==="long"?(h||p):(l||p);
+  const invalid=side==="long"?(o||l||p):(o||h||p);
+  const chase=side==="long"?(p*1.015):(p*.985);
+  const why=[
+    `${pct>=0?"+":""}${pct.toFixed(2)}%`,
+    pos>=70?"收近高":pos<=30?"收近低":"收盤位置中性",
+    `量 ${Math.round(N(q.volume)).toLocaleString()}`
+  ].join("｜");
+  return{trigger,invalid,chase,why};
+}
+function renderAH(list,id,side){
+  const el=document.getElementById(id);
+  const title=side==="long"?"🔥 明日多方候選 Top 10":"❄️ 明日空方候選 Top 10";
+  el.innerHTML=`<div class="ahTitle">${title}</div>`+list.map((q,i)=>{
+    const s=ahScore(q,side),p=ahPlan(q,side);
+    return `<div class="ahRow"><div class="row"><b>#${i+1} ${q.name||""} ${q.symbol||""}</b><span class="ahScore">${s.toFixed(1)}</span></div>
+    <div class="ahMeta">收盤 ${fmt(q.price)}｜${p.why}<br>
+    <b>隔日確認</b> ${side==="long"?"突破/站穩":"跌破/站不回"} ${fmt(p.trigger)} 且量能延續<br>
+    <b>失效參考</b> ${fmt(p.invalid)}｜<b>不追價區</b> ${side==="long"?"高於":"低於"} ${fmt(p.chase)}</div></div>`;
+  }).join("");
+}
+async function runAfterHours(){
+  const st=document.getElementById("afterStatus"),btn=document.getElementById("afterBtn");
+  btn.disabled=true;st.textContent="正在整理盤後資料…";
+  try{
+    let rows=[];
+    // market.json is the stable after-hours source already used to build the candidate pool.
+    const res=await fetch("./data/market.json?ts="+Date.now(),{cache:"no-store"});
+    if(!res.ok)throw new Error("盤後市場資料 HTTP "+res.status);
+    const raw=rowsOf(await res.json());
+    rows=raw.filter(r=>/^\d{4}$/.test(codeOf(r))&&rowClose(r)>0&&rowPrev(r)>0).map(r=>({
+      symbol:codeOf(r),market:marketOf(r),name:r.name??r.stockName??r.n??"",
+      price:rowClose(r),previousClose:rowPrev(r),open:N(r.open??r.o),
+      high:rowHigh(r),low:rowLow(r),volume:N(r.volume??r.v??r.tradeVolume??0)
+    }));
+    if(!rows.length)throw new Error("目前沒有可用盤後資料");
+    const longs=[...rows].sort((a,b)=>ahScore(b,"long")-ahScore(a,"long")).slice(0,10);
+    const shorts=[...rows].sort((a,b)=>ahScore(b,"short")-ahScore(a,"short")).slice(0,10);
+    renderAH(longs,"tomorrowLong","long");renderAH(shorts,"tomorrowShort","short");
+    st.textContent=`已分析 ${rows.length} 檔｜明日候選只做盤前準備，開盤後仍以即時量價確認`;
+  }catch(e){st.textContent="盤後分析暫時無法完成："+(e.message||e);}
+  finally{btn.disabled=false;}
+}
+document.addEventListener("DOMContentLoaded",()=>{const ab=document.getElementById("afterBtn");if(ab)ab.addEventListener("click",runAfterHours);
   const b=document.getElementById("rankUpdateBtn");
   if(b)b.addEventListener("click",()=>renderWatch(true));
 });
