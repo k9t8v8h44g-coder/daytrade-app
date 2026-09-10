@@ -4,6 +4,14 @@ const TWSE_AFTER="https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL";
 const TWSE_MARKET_DATES="https://openapi.twse.com.tw/v1/exchangeReport/FMTQIK";
 const TPEX_AFTER="https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes";
 
+const DEFAULT_OTC_AFTER_SYMBOLS=[
+  "6182", // 合晶
+  "5425", // 台半
+  "1815", // 富喬
+  "6207", // 雷科
+  "4939"  // 亞電
+];
+
 const TPEX_FALLBACK=
   "https://www.tpex.org.tw/www/zh-tw/afterTrading/otc?date=&id=&response=json";
 
@@ -454,11 +462,15 @@ async function fetchTpexFallback(){
   }
 }
 
-async function getAfterHours(){
+async function getAfterHours(otcSymbols=DEFAULT_OTC_AFTER_SYMBOLS){
 
   const quotes=[];
   const errors=[];
 
+  /*
+    1) TWSE listed stocks:
+       keep the already-working official bulk OpenAPI.
+  */
   try{
 
     const tse=
@@ -480,28 +492,36 @@ async function getAfterHours(){
     );
   }
 
-  let otc=[];
-
+  /*
+    2) OTC watch / recommendation symbols:
+       do NOT call TPEx from the Worker, because TPEx currently
+       redirects Cloudflare Worker traffic to /errors.
+       Fetch only the OTC symbols the app actually needs through
+       TWSE MIS using otc_<symbol>.tw.
+  */
   try{
 
-    otc=
-      await fetchAfter(
-        TPEX_AFTER,
-        "otc"
+    const otc=
+      await getOtcAfterHoursByMis(
+        otcSymbols
       );
+
+    quotes.push(...otc.quotes);
+
+    errors.push(
+      ...otc.errors
+    );
 
   }catch(e){
 
     errors.push(
-      "TPEx OpenAPI: "+
+      "OTC MIS: "+
       String(
         e?.message||
         e
       )
     );
   }
-
-  quotes.push(...otc);
 
   return {
     quotes,
@@ -712,6 +732,85 @@ async function oneSymbol(symbol){
   return null;
 }
 
+async function getOtcAfterHoursByMis(symbols){
+
+  const out=[];
+  const errors=[];
+
+  const unique=[
+    ...new Set(
+      (symbols||[])
+        .map(x=>String(x||"").trim())
+        .filter(x=>/^\d{4,6}$/.test(x))
+    )
+  ];
+
+  let cursor=0;
+
+  async function runner(){
+
+    while(true){
+
+      const i=cursor++;
+
+      if(i>=unique.length){
+        return;
+      }
+
+      const symbol=unique[i];
+
+      try{
+
+        const q=
+          await oneExchange(
+            symbol,
+            "otc"
+          );
+
+        if(q){
+          out.push({
+            ...q,
+            market:"otc",
+            source:"TWSE MIS OTC"
+          });
+        }else{
+          errors.push(
+            "OTC "+symbol+": no quote"
+          );
+        }
+
+      }catch(e){
+
+        errors.push(
+          "OTC "+symbol+": "+
+          String(
+            e?.message||
+            e
+          )
+        );
+      }
+    }
+  }
+
+  await Promise.all(
+    Array.from(
+      {
+        length:
+          Math.min(
+            4,
+            unique.length
+          )
+      },
+      runner
+    )
+  );
+
+  return {
+    quotes:out,
+    errors
+  };
+}
+
 async function getQuotes(symbols){
 
   const out=
@@ -792,7 +891,9 @@ export default{
 
         afterhoursTimeoutMs:12000,
 
-        version:"4.6.1"
+        otcAfterMode:"TWSE MIS symbol watchlist",
+
+        version:"4.7.0"
       });
     }
 
@@ -806,8 +907,18 @@ export default{
 
       try{
 
+        const otcParam=
+          (u.searchParams.get("otc")||"")
+            .split(",")
+            .map(x=>x.trim())
+            .filter(x=>/^\d{4,6}$/.test(x));
+
         const out=
-          await getAfterHours();
+          await getAfterHours(
+            otcParam.length
+              ?otcParam
+              :DEFAULT_OTC_AFTER_SYMBOLS
+          );
 
         const payloadDates=[
           ...new Set(
@@ -863,7 +974,7 @@ export default{
             Date.now()-started,
 
           source:
-            "TWSE + TPEx official after-hours",
+            "TWSE OpenAPI + OTC TWSE MIS",
 
           marketDate,
 
@@ -881,6 +992,18 @@ export default{
                 q=>q.market==="otc"
               ).length
           },
+
+          otcRequested:
+            (
+              (u.searchParams.get("otc")||"")
+                .split(",")
+                .map(x=>x.trim())
+                .filter(x=>/^\d{4,6}$/.test(x))
+                .length
+            ) || DEFAULT_OTC_AFTER_SYMBOLS.length,
+
+          otcMode:
+            "TWSE MIS watchlist",
 
           quotes:
             out.quotes
