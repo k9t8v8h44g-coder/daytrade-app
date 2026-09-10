@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#07101f">
-<title>台股當沖助手 V4.7.1</title>
+<title>台股當沖助手 V4.7.2</title>
 <style>
 *{box-sizing:border-box}
 html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:900px;margin:auto;padding:22px 14px 80px}h1{margin:0;font-size:29px}.sub{color:#9fb0ca;margin:8px 0 16px;line-height:1.55}.card,.stock{background:#101a2d;border:1px solid #293a55;border-radius:17px;padding:15px;margin-bottom:12px}.row,.status{display:flex;justify-content:space-between;align-items:center;gap:10px}.live{color:#67e394;font-weight:900}.small,.info{color:#9fb0ca;font-size:13px}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}button{width:100%;border:0;border-radius:13px;padding:14px;background:#568cff;color:white;font-size:16px;font-weight:850}button:disabled{opacity:.55}.title{font-size:23px;font-weight:900;margin:23px 0 11px}.name{font-size:19px;font-weight:850}.price{font-size:27px;font-weight:900}.score{font-size:25px;font-weight:900}.scoreLabel{color:#9fb0ca;font-size:11px;text-align:right}.up{color:#ff6969}.down{color:#59dc9c}.flat{color:#eef4ff}.tag{display:inline-block;background:#1e2d49;border-radius:8px;padding:4px 7px;font-size:11px;margin-left:5px}.signal{display:inline-block;margin-top:9px;padding:6px 9px;border-radius:9px;background:#20304d;font-weight:800}.entry{margin-top:11px;border-radius:12px;padding:11px 12px;font-weight:900;font-size:15px}.entry-go{background:#123c2c;color:#74edac;border:1px solid #266c4e}.entry-wait{background:#3d351b;color:#f2cd68;border:1px solid #6f5e2b}.entry-stop{background:#482329;color:#ff8b94;border:1px solid #7c3a44}.entry-neutral{background:#1d2c46;color:#a9bbd6;border:1px solid #354865}.reasonbox{margin-top:10px;padding:10px 12px;background:#17243a;border-radius:11px;color:#b9c9df;font-size:13px;line-height:1.7}.reasonbox b{color:#eef4ff}.exhaustbox{margin-top:10px;padding:11px 12px;background:#111d31;border:1px solid #2a3c59;border-radius:12px;font-size:13px;line-height:1.7}.exhaust-title{font-weight:900}.exhaust-buy{color:#ff8b94}.exhaust-sell{color:#74edac}.exhaust-neutral{color:#a9bbd6}.tradebox{margin-top:10px;padding:11px 12px;background:#0c1527;border:1px solid #233756;border-radius:12px;line-height:1.8;font-size:13px}.tradebox b{color:#eef4ff}.info{line-height:1.7;margin-top:10px}.risk{margin-top:8px;font-size:12px;color:#f0c36a}.session{margin-top:8px;padding:8px 10px;border-radius:10px;background:#17243a;color:#a9bbd6;font-size:12px;line-height:1.5}.pulse{color:#67e394}footer{text-align:center;color:#74859e;font-size:12px;margin-top:25px;line-height:1.6}
@@ -22,7 +22,7 @@ html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;fo
 </head>
 <body>
 <main class="wrap">
-<h1>台股當沖助手 V4.7.1</h1>
+<h1>台股當沖助手 V4.7.2</h1>
 <div class="sub">上市＋上櫃｜200 檔分段輪替雷達｜Top 20 約 5 秒近即時追蹤｜買盤竭盡＋賣盤竭盡</div>
 <div class="card status"><div><b id="status">建立候選池...</b><div id="time" class="small">--</div><div id="session" class="session">正在確認台北盤中時段...</div></div><div class="live">● 近即時</div></div>
 <div class="card"><div class="row"><span>全市場當沖候選池</span><b id="poolCount">--</b></div><div class="small" id="poolInfo">正在讀取上市＋上櫃市場資料</div></div>
@@ -37,7 +37,7 @@ html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;fo
 </div>
 <div class="title">🔥 多方優先 Top 10</div><div id="long"><div class="card small">等待第一次完整掃描...</div></div>
 <div class="title">❄️ 空方優先 Top 10</div><div id="short"><div class="card small">等待第一次完整掃描...</div></div>
-<footer>V4.7.1｜上市＋上櫃盤後日期驗證＋過熱修正＋明日當沖候選｜竭盡模型使用連續價格＋增量成交量推進效率｜非逐筆委託流模型｜行情來源 TWSE MIS｜實際交易請以券商報價確認</footer>
+<footer>V4.7.2｜同日盤後評分＋信心分級＋過熱修正＋明日當沖候選｜竭盡模型使用連續價格＋增量成交量推進效率｜非逐筆委託流模型｜行情來源 TWSE MIS｜實際交易請以券商報價確認</footer>
 </main>
 <script>
 let pool=[],watchList=[];
@@ -379,35 +379,30 @@ function ahEligible(q,side){
  if(side==="short" && (m.pct<=-8.5 || m.pct>=6))return false;
  return true;
 }
-function renderAH(list,id,side){
- const el=document.getElementById(id),title=side==="long"?"🔥 明日多方候選 Top 10":"❄️ 明日空方候選 Top 10";
- el.innerHTML=`<div class="ahTitle">${title}</div>`+list.map((q,i)=>{
-  const s=ahScore(q,side),m=ahMetrics(q);
-  const trigger=side==="long"?m.h:m.l,invalid=m.o||m.p;
-  const heat=Math.abs(m.pct)>=7?"｜⚠️ 過熱":"";
-  return `<div class="ahRow"><div class="row"><b>#${i+1} ${q.name} ${q.symbol}</b><span class="ahScore">${s.toFixed(1)}</span></div>
-  <div class="ahMeta">${q.market==="otc"?"上櫃":"上市"}｜收 ${fmt(m.p)}｜${m.pct>=0?"+":""}${m.pct.toFixed(2)}%｜量 ${Math.round(m.lots).toLocaleString()} 張${heat}<br>
-  <b>隔日確認</b> ${side==="long"?"突破/站穩":"跌破/站不回"} ${fmt(trigger)} 且量能延續｜<b>失效參考</b> ${fmt(invalid)}</div></div>`
- }).join("");
+function ahConfidence(q,side){
+ const sc=ahScore(q,side);
+ if(sc>=8)return {label:"強",cls:"ok"};
+ if(sc>=5)return {label:"中",cls:"wait"};
+ return {label:"弱",cls:"bad"};
 }
 
-function parseTradeDate(s){
- s=String(s||"").trim();
- let d=s.replace(/[^\d]/g,"");
- if(/^1\d{6}$/.test(d))return `${Number(d.slice(0,3))+1911}/${d.slice(3,5)}/${d.slice(5,7)}`;
- if(/^\d{8}$/.test(d))return `${d.slice(0,4)}/${d.slice(4,6)}/${d.slice(6,8)}`;
- let m=s.match(/^(\d{4})[-\/](\d{2})[-\/](\d{2})$/);
- return m?`${m[1]}/${m[2]}/${m[3]}`:null;
-}
-function latestDateFromRows(rows,data){
- const direct=parseTradeDate(data.marketDate); if(direct)return direct;
- const ds=[];
- for(const q of rows){const d=parseTradeDate(q.tradeDate);if(d)ds.push(d)}
- for(const x of (data.payloadDates||data.tradeDates||[])){const d=parseTradeDate(x);if(d)ds.push(d)}
- return ds.sort().at(-1)||null;
-}
-function twToday(){
- return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date()).replaceAll("-","/");
+function renderAH(list,id,side){
+ const el=document.getElementById(id);
+ if(!list.length){
+  el.innerHTML=`<div class="empty">今日同交易日資料不足，暫無可排序候選。</div>`;
+  return;
+ }
+ el.innerHTML=list.map((q,i)=>{
+  const sc=ahScore(q,side),chg=N(q.change),pct=N(q.previousClose)>0?chg/N(q.previousClose)*100:0;
+  const cf=ahConfidence(q,side);
+  const sideText=side==="long"?"偏多":"偏空";
+  return `<div class="stock">
+   <div class="stockTop"><div><div class="name">${i+1}. ${esc(q.name||q.symbol)}</div><div class="code">${esc(q.symbol)}｜${q.market==="otc"?"上櫃":"上市"}｜${esc(parseTradeDate(q.tradeDate)||"")}</div></div><div class="price">${N(q.price).toFixed(2)}</div></div>
+   <div class="metrics"><span>漲跌 ${pct>=0?"+":""}${pct.toFixed(2)}%</span><span>量 ${fmtVol(q.volume)}</span><span>區間 ${N(q.low).toFixed(2)}～${N(q.high).toFixed(2)}</span></div>
+   <div class="signal ${cf.cls}"><b>${sideText}｜信心 ${cf.label}</b>｜盤後分數 ${sc.toFixed(1)}</div>
+   <div class="reason">明日只列為觀察候選；開盤後仍須重新確認量能、價格位置與即時訊號。</div>
+  </div>`;
+ }).join("");
 }
 async function runAfterHours(){
  const st=document.getElementById("afterStatus"),btn=document.getElementById("afterBtn");
@@ -440,8 +435,13 @@ async function runAfterHours(){
     throw new Error(`⚠️ 今日盤後資料尚未就緒｜今天 ${today}｜上市 ${tseDate||"未取得"}｜上櫃 ${otcDate||"未取得"}｜已禁止使用舊資料排名`);
   }
 
-  const longs=rows.filter(q=>ahEligible(q,"long")).sort((a,b)=>ahScore(b,"long")-ahScore(a,"long")).slice(0,10);
-  const shorts=rows.filter(q=>ahEligible(q,"short")).sort((a,b)=>ahScore(b,"short")-ahScore(a,"short")).slice(0,10);
+  const longs=[...rows]
+    .sort((a,b)=>ahScore(b,"long")-ahScore(a,"long"))
+    .slice(0,10);
+
+  const shorts=[...rows]
+    .sort((a,b)=>ahScore(b,"short")-ahScore(a,"short"))
+    .slice(0,10);
 
   renderAH(longs,"tomorrowLong","long");
   renderAH(shorts,"tomorrowShort","short");
@@ -453,7 +453,7 @@ async function runAfterHours(){
   if(otcRows.length)parts.push(`上櫃 ${otcRows.length}`);
   else if(otcDate && otcDate!==today)parts.push(`上櫃更新中（${otcDate}）`);
 
-  st.textContent=`完成｜排名日期 ${today}｜${parts.join("＋")}｜本次使用 ${rows.length} 檔${excluded?`｜已排除不同日期 ${excluded} 檔`:""}｜不同交易日絕不混排｜明日開盤仍需量價確認`;
+  st.textContent=`完成｜排名日期 ${today}｜${parts.join("＋")}｜本次使用 ${rows.length} 檔${excluded?`｜已排除不同日期 ${excluded} 檔`:""}｜依盤後分數排序並標示強／中／弱｜不同交易日絕不混排｜明日開盤仍需量價確認`;
  }catch(e){
   document.getElementById("tomorrowLong").innerHTML="";
   document.getElementById("tomorrowShort").innerHTML="";
