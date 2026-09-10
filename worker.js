@@ -26,6 +26,37 @@ function rocDateISO(s){
   return null;
 }
 
+
+function twDateCompact(d){
+  return `${d.getUTCFullYear()}${String(d.getUTCMonth()+1).padStart(2,"0")}${String(d.getUTCDate()).padStart(2,"0")}`;
+}
+async function getHistory(symbol,market="tse"){
+  if(market!=="tse") return {rows:[],source:"fallback",warning:"OTC multi-day history unavailable in this worker; using single-day levels."};
+  const now=new Date();
+  const months=[];
+  for(let k=0;k<2;k++){
+    const d=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()-k,1));
+    months.push(twDateCompact(d));
+  }
+  const rows=[];
+  for(const date of months){
+    const u=`https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY?date=${date}&stockNo=${encodeURIComponent(symbol)}&response=json`;
+    const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),7000);
+    try{
+      const r=await fetch(u,{signal:ctl.signal,headers:{"Accept":"application/json"}});
+      if(!r.ok)continue;
+      const j=await r.json();
+      if(!Array.isArray(j.data))continue;
+      for(const a of j.data){
+        if(!Array.isArray(a)||a.length<9)continue;
+        const clean=v=>Number(String(v??"").replace(/,/g,""));
+        const open=clean(a[3]),high=clean(a[4]),low=clean(a[5]),close=clean(a[6]),volume=clean(a[1]);
+        if([open,high,low,close].every(Number.isFinite))rows.push({date:String(a[0]),open,high,low,close,volume:Number.isFinite(volume)?volume:null});
+      }
+    }finally{clearTimeout(timer)}
+  }
+  return {rows:rows.slice(-20),source:"TWSE STOCK_DAY",warning:null};
+}
 async function fetchLatestTwseTradeDate(){
   const ctl=new AbortController();
   const timer=setTimeout(()=>ctl.abort(),8000);
@@ -1183,6 +1214,18 @@ export default{
 
           quotes:[]
         },502);
+      }
+    }
+
+    if(u.pathname==="/api/history"){
+      const symbol=(u.searchParams.get("symbol")||"").trim();
+      const market=(u.searchParams.get("market")||"tse").trim().toLowerCase();
+      if(!/^\d{4,6}$/.test(symbol))return json({ok:false,error:"Invalid symbol"},400);
+      try{
+        const out=await getHistory(symbol,market);
+        return json({ok:out.rows.length>0,symbol,market,count:out.rows.length,source:out.source,warning:out.warning,rows:out.rows},200);
+      }catch(e){
+        return json({ok:false,symbol,market,count:0,error:String(e?.message||e),rows:[]},502);
       }
     }
 
