@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="theme-color" content="#07101f">
-<title>台股當沖助手 V5.7.0</title>
+<title>台股當沖助手 V5.8.0</title>
 <style>
 *{box-sizing:border-box}
 html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:900px;margin:auto;padding:22px 14px 80px}h1{margin:0;font-size:29px}.sub{color:#9fb0ca;margin:8px 0 16px;line-height:1.55}.card,.stock{background:#101a2d;border:1px solid #293a55;border-radius:17px;padding:15px;margin-bottom:12px}.row,.status{display:flex;justify-content:space-between;align-items:center;gap:10px}.live{color:#67e394;font-weight:900}.small,.info{color:#9fb0ca;font-size:13px}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}button{width:100%;border:0;border-radius:13px;padding:14px;background:#568cff;color:white;font-size:16px;font-weight:850}button:disabled{opacity:.55}.title{font-size:23px;font-weight:900;margin:23px 0 11px}.name{font-size:19px;font-weight:850}.price{font-size:27px;font-weight:900}.score{font-size:25px;font-weight:900}.scoreLabel{color:#9fb0ca;font-size:11px;text-align:right}.up{color:#ff6969}.down{color:#59dc9c}.flat{color:#eef4ff}.tag{display:inline-block;background:#1e2d49;border-radius:8px;padding:4px 7px;font-size:11px;margin-left:5px}.signal{display:inline-block;margin-top:9px;padding:6px 9px;border-radius:9px;background:#20304d;font-weight:800}.entry{margin-top:11px;border-radius:12px;padding:11px 12px;font-weight:900;font-size:15px}.entry-go{background:#123c2c;color:#74edac;border:1px solid #266c4e}.entry-wait{background:#3d351b;color:#f2cd68;border:1px solid #6f5e2b}.entry-stop{background:#482329;color:#ff8b94;border:1px solid #7c3a44}.entry-neutral{background:#1d2c46;color:#a9bbd6;border:1px solid #354865}.reasonbox{margin-top:10px;padding:10px 12px;background:#17243a;border-radius:11px;color:#b9c9df;font-size:13px;line-height:1.7}.reasonbox b{color:#eef4ff}.exhaustbox{margin-top:10px;padding:11px 12px;background:#111d31;border:1px solid #2a3c59;border-radius:12px;font-size:13px;line-height:1.7}.exhaust-title{font-weight:900}.exhaust-buy{color:#ff8b94}.exhaust-sell{color:#74edac}.exhaust-neutral{color:#a9bbd6}.tradebox{margin-top:10px;padding:11px 12px;background:#0c1527;border:1px solid #233756;border-radius:12px;line-height:1.8;font-size:13px}.tradebox b{color:#eef4ff}.info{line-height:1.7;margin-top:10px}.risk{margin-top:8px;font-size:12px;color:#f0c36a}.session{margin-top:8px;padding:8px 10px;border-radius:10px;background:#17243a;color:#a9bbd6;font-size:12px;line-height:1.5}.pulse{color:#67e394}footer{text-align:center;color:#74859e;font-size:12px;margin-top:25px;line-height:1.6}
@@ -22,7 +22,7 @@ html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;fo
 .ahTitle{font-size:18px;font-weight:900;margin:16px 0 7px}.ahRow{border-top:1px solid #293a55;padding:11px 0}
 .ahScore{font-size:20px;font-weight:900}.ahMeta{color:#9fb0ca;font-size:13px;line-height:1.65;margin-top:4px}
 
-/* V5.7.0 多空色彩區隔：紅=多、綠=空 */
+/* V5.8.0 多空色彩區隔：紅=多、綠=空 */
 .ah-side{
   display:inline-flex;align-items:center;gap:6px;
   font-weight:800;padding:5px 10px;border-radius:999px;
@@ -66,7 +66,7 @@ html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;fo
 .sr-label{font-size:13px;color:#9fb0ca}.sr-price{font-size:22px;font-weight:850;margin-top:2px}
 .sr-note{color:#aebbd0;font-size:13px;line-height:1.55;margin-top:12px}
 
-/* V5.7 simplified UI */
+/* V5.8 simplified UI */
 .simple-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}
 .simple-head h1{font-size:26px;line-height:1.15}
 .ver{font-size:14px;font-weight:700;color:#9fb0ca;vertical-align:middle}
@@ -110,64 +110,108 @@ footer{font-size:11px;opacity:.55;margin-top:20px;line-height:1.5}
  .simple-stock .stockTop{align-items:flex-start}
 }
 
+
+/* V5.8 ultra-simple mobile UI */
+body{background:#08111f}
+.wrap{max-width:760px;padding:18px 14px 68px}
+.appbar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.appbar h1{font-size:25px;margin:0}
+.app-sub{font-size:13px;color:#93a4bf;margin-top:5px;max-width:290px}
+.live-dot{font-size:18px;color:#69e39c;padding-top:4px}
+.main-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#0e192b;padding:5px;border-radius:14px;margin-bottom:14px}
+.main-tabs .tab{margin:0;min-height:44px;border:0;border-radius:10px;background:transparent;color:#8fa2bf;font-size:15px;font-weight:800}
+.main-tabs .tab.active{background:#233555;color:#fff}
+.main-panel.hidden{display:none}
+.hero-btn{width:100%;min-height:54px;border-radius:14px;font-size:17px;font-weight:800;margin:0 0 10px}
+.ghost-btn{min-height:44px;border-radius:12px;background:#152238;color:#aebbd0;border:1px solid #2a3a55}
+.live-actions{display:grid;grid-template-columns:1fr auto;gap:8px}
+.status-line{font-size:13px;color:#93a4bf;margin:2px 2px 14px}
+.status-mini{display:flex;justify-content:space-between;gap:12px;margin:4px 2px}
+.tiny-note{font-size:12px;color:#72829a;margin:3px 2px}
+.section-label{font-size:15px;font-weight:800;margin:16px 2px 8px}
+.long-label{color:#ff7479}
+.short-label{color:#60d99c}
+.ultra-stock{padding:12px 13px;margin:8px 0;border-radius:14px}
+.ultra-row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.ultra-left{display:flex;gap:10px;align-items:flex-start;min-width:0}
+.rank{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9px;background:#17243a;color:#9fb0ca;font-size:13px;font-weight:800;flex:0 0 auto}
+.ultra-stock .name{font-size:18px;line-height:1.2}
+.ultra-stock .code{font-size:12px;margin-top:4px;color:#8191aa}
+.ultra-right{text-align:right}
+.ultra-stock .price{font-size:21px;line-height:1.1}
+.pct{font-size:12px;margin-top:4px}
+.pct.up{color:#ff7479}
+.pct.down{color:#60d99c}
+.ultra-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:#aab8cc}
+.signal-tag{font-weight:800}
+.ultra-key{margin-top:9px;font-size:14px;font-weight:700;line-height:1.4}
+.ultra-more{margin-top:8px;padding-top:7px}
+.ultra-more summary{font-size:12px;color:#7f90aa}
+.ultra-more .op-text,.ultra-more .op-risk{font-size:12px;line-height:1.5;margin-top:7px}
+.empty{padding:18px;text-align:center;color:#6f809a;background:#0e192b;border-radius:14px}
+footer{margin-top:22px;font-size:10px;opacity:.45;text-align:center}
+.card,.more-panel,.simple-head,.quick-actions,.simple-after{box-shadow:none}
+
 </style>
 </head>
 <body>
-<!-- BUILD: DAYTRADE_APP_V5.7.0_20260910 -->
+<!-- BUILD: DAYTRADE_APP_V5.8.0_20260910 -->
 <main class="wrap">
-  <div class="simple-head">
+  <header class="appbar">
     <div>
-      <h1>台股當沖助手 <span class="ver">V5.7</span></h1>
-      <div class="sub">盤中雷達・盤後選股・支撐壓力</div>
+      <h1>台股當沖助手</h1>
+      <div id="session" class="app-sub">讀取市場狀態…</div>
     </div>
-    <div class="live">● 近即時</div>
+    <div class="live-dot" title="近即時">●</div>
+  </header>
+
+  <div class="main-tabs">
+    <button class="tab active" id="tabAfter" onclick="showMainTab('after')">明日候選</button>
+    <button class="tab" id="tabLive" onclick="showMainTab('live')">盤中排行</button>
   </div>
 
-  <div class="card status simple-status">
-    <div>
-      <b id="status">建立候選池...</b>
-      <div id="session" class="session">正在確認台北盤中時段...</div>
-      <div id="time" class="small">--</div>
-    </div>
-  </div>
+  <section id="panelAfter" class="main-panel">
+    <button id="afterBtn" type="button" class="hero-btn">產生明日候選</button>
+    <div id="afterStatus" class="status-line">等待分析</div>
 
-  <div class="quick-actions">
-    <button id="afterBtn" type="button" class="primary-action">明日當沖候選</button>
-    <button id="scanBtn" onclick="fullScan(true)" class="secondary-action">更新盤中排行</button>
-  </div>
-
-  <section class="card simple-after">
-    <div class="simple-section-head">
-      <div>
-        <b>盤後精選</b>
-        <div class="small">紅＝偏多・綠＝偏空｜點股票看支撐壓力</div>
-      </div>
-    </div>
-    <div id="afterStatus" class="small simple-message">等待盤後分析</div>
+    <div class="section-label long-label">偏多</div>
     <div id="tomorrowLong"></div>
+
+    <div class="section-label short-label">偏空</div>
     <div id="tomorrowShort"></div>
   </section>
 
-  <details class="more-panel">
-    <summary>盤中排行與更多功能</summary>
-    <div class="more-inner">
-      <div class="row compact-pool">
-        <span>候選池</span>
-        <b id="poolCount">--</b>
-      </div>
-      <div class="small" id="poolInfo">正在讀取上市＋上櫃市場資料</div>
-      <button onclick="buildPool()" class="mini-btn">重建候選池</button>
-
-      <div class="simple-rank-title">🔥 多方 Top 10</div>
-      <div id="long"><div class="card small">等待第一次完整掃描...</div></div>
-      <div class="simple-rank-title">❄️ 空方 Top 10</div>
-      <div id="short"><div class="card small">等待第一次完整掃描...</div></div>
+  <section id="panelLive" class="main-panel hidden">
+    <div class="live-actions">
+      <button id="scanBtn" onclick="fullScan(true)" class="hero-btn">更新排行</button>
+      <button onclick="buildPool()" class="ghost-btn">重建候選池</button>
     </div>
-  </details>
 
-  <footer>行情來源 TWSE MIS｜實際交易請以券商報價確認</footer>
+    <div class="status-mini">
+      <span id="status">建立候選池...</span>
+      <span id="poolCount">--</span>
+    </div>
+    <div id="poolInfo" class="tiny-note">正在讀取上市＋上櫃市場資料</div>
+    <div id="time" class="tiny-note">--</div>
+
+    <div class="section-label long-label">多方 Top 10</div>
+    <div id="long"><div class="empty">等待更新排行</div></div>
+
+    <div class="section-label short-label">空方 Top 10</div>
+    <div id="short"><div class="empty">等待更新排行</div></div>
+  </section>
+
+  <footer>行情來源 TWSE MIS｜交易請以券商報價確認</footer>
 </main>
 <script>
+
+function showMainTab(which){
+  const after=which==="after";
+  document.getElementById("panelAfter")?.classList.toggle("hidden",!after);
+  document.getElementById("panelLive")?.classList.toggle("hidden",after);
+  document.getElementById("tabAfter")?.classList.toggle("active",after);
+  document.getElementById("tabLive")?.classList.toggle("active",!after);
+}
 let pool=[],watchList=[];
 let backgroundScanning=false,focusScanning=false;
 let lastFullScanAt=0,lastFocusAt=0;
@@ -636,49 +680,42 @@ function fmtPx(v){
   return Number.isFinite(x)&&x>0 ? x.toFixed(2) : "—";
 }
 function renderAH(list,id,side){
-  const sideClass=(side==="long")?"ah-long":"ah-short";
   const cardClass=(side==="long")?"ah-long-card":"ah-short-card";
   const titleClass=(side==="long")?"ah-long-title":"ah-short-title";
   const el=document.getElementById(id);
   if(!list.length){
-    el.innerHTML=`<div class="empty">今日資料不足，暫無候選。</div>`;
+    el.innerHTML=`<div class="empty">暫無候選</div>`;
     return;
   }
   el.innerHTML=list.map((q,i)=>{
     saveDailyOHLC(q);
     const sc=ahScore(q,side),chg=N(q.change),pct=N(q.previousClose)>0?chg/N(q.previousClose)*100:0;
     const cf=ahConfidence(q,side);
-    const x=ahOHLC(q);
     const op=ahOperation(q,side);
-    const sideText=side==="long"?"偏多":"偏空";
-    return `<div class="stock simple-stock ${cardClass}">
-      <div class="stockTop">
-        <div>
-          <div class="name">${i+1}. <span class="sr-stock-btn" onclick=\'showSR(${JSON.stringify(q)})\'>${esc(q.name||q.symbol)}</span></div>
-          <div class="code">${esc(q.symbol)}・${q.market==="otc"?"上櫃":"上市"}</div>
+    return `<div class="stock ultra-stock ${cardClass}">
+      <div class="ultra-row">
+        <div class="ultra-left">
+          <span class="rank">${i+1}</span>
+          <div>
+            <div class="name"><span class="sr-stock-btn" onclick=\'showSR(${JSON.stringify(q)})\'>${esc(q.name||q.symbol)}</span></div>
+            <div class="code">${esc(q.symbol)}・${q.market==="otc"?"上櫃":"上市"}</div>
+          </div>
         </div>
-        <div class="price">${N(q.price).toFixed(2)}</div>
+        <div class="ultra-right">
+          <div class="price">${N(q.price).toFixed(2)}</div>
+          <div class="pct ${pct>=0?"up":"down"}">${pct>=0?"+":""}${pct.toFixed(2)}%</div>
+        </div>
       </div>
-
-      <div class="simple-signal-row">
-        <span class="simple-pill ${titleClass}">${sideText}</span>
+      <div class="ultra-tags">
+        <span class="signal-tag ${titleClass}">${side==="long"?"偏多":"偏空"}</span>
         <span>信心 ${cf.label}</span>
-        <span>${pct>=0?"+":""}${pct.toFixed(2)}%</span>
-        <span>分數 ${sc.toFixed(1)}</span>
+        <span>分數 ${sc.toFixed(0)}</span>
       </div>
-
-      <div class="simple-key">${op.key}</div>
-
-      <details class="stock-more">
-        <summary>查看詳細資訊</summary>
-        <div class="metrics"><span>量 ${fmtVol(q.volume)}</span><span>振幅 ${Number.isFinite(x.amp)?x.amp.toFixed(2)+"%":"—"}</span></div>
-        <div class="simple-ohlc">開 ${fmtPx(x.open)} ｜ 高 ${fmtPx(x.high)} ｜ 低 ${fmtPx(x.low)}</div>
-        <div class="signal ${cf.cls}">${ahReason(q,side)}</div>
-        <div class="op-guide ${side==="long"?"op-long":"op-short"}">
-          <div class="op-title">${op.title}</div>
-          <div class="op-text">${op.text}</div>
-          <div class="op-risk">⚠ ${op.risk}</div>
-        </div>
+      <div class="ultra-key">${op.key}</div>
+      <details class="stock-more ultra-more">
+        <summary>更多</summary>
+        <div class="op-text">${op.text}</div>
+        <div class="op-risk">⚠ ${op.risk}</div>
       </details>
     </div>`;
   }).join("");
