@@ -7,6 +7,7 @@ function nn(v){if(v==null||v===""||v==="--"||v==="---")return null;const x=Numbe
 function afterRow(r,market){
   const symbol=String(pick(r,["Code","SecuritiesCompanyCode","股票代號","代號","code"])||"").trim();
   const name=String(pick(r,["Name","CompanyName","證券名稱","股票名稱","name"])||"").trim();
+  const tradeDate=String(pick(r,["Date","TradeDate","TradingDate","資料日期","日期","date"])||"").trim();
   const price=nn(pick(r,["ClosingPrice","Close","收盤價","收盤","close"]));
   const open=nn(pick(r,["OpeningPrice","Open","開盤價","開盤","open"]));
   const high=nn(pick(r,["HighestPrice","High","最高價","最高","high"]));
@@ -16,7 +17,7 @@ function afterRow(r,market){
   let previousClose=(price!=null&&ch!=null)?price-ch:null;
   const ref=nn(pick(r,["PreviousClose","ReferencePrice","昨收","參考價","previousClose"]));
   if(ref!=null)previousClose=ref;
-  return {symbol,name,market,price,previousClose,open,high,low,volume,change:ch,source:market==="tse"?"TWSE OpenAPI":"TPEx OpenAPI"};
+  return {symbol,name,market,tradeDate,price,previousClose,open,high,low,volume,change:ch,source:market==="tse"?"TWSE OpenAPI":"TPEx OpenAPI"};
 }
 async function fetchAfter(url,market){
   const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),10000);
@@ -122,6 +123,7 @@ export default{
           errors:out.errors,
           elapsedMs:Date.now()-started,
           source:"TWSE + TPEx official after-hours",
+          tradeDates:[...new Set(out.quotes.map(q=>q.tradeDate).filter(Boolean))],
           quotes:out.quotes
         },out.quotes.length?200:502);
       }catch(e){
