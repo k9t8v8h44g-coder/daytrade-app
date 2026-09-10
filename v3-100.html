@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#07101f">
-<title>台股當沖助手 V4.0</title>
+<title>台股當沖助手 V4.1</title>
 
 <style>
 *{box-sizing:border-box}
@@ -67,15 +67,14 @@ button:disabled{opacity:.55}
  background:#1d2c46;color:#a9bbd6;border:1px solid #354865
 }
 .reasonbox{
- margin-top:10px;padding:10px 12px;
- background:#17243a;border-radius:11px;
- color:#b9c9df;font-size:13px;line-height:1.7
+ margin-top:10px;padding:10px 12px;background:#17243a;
+ border-radius:11px;color:#b9c9df;font-size:13px;line-height:1.7
 }
 .reasonbox b{color:#eef4ff}
 .exhaustbox{
- margin-top:10px;padding:11px 12px;
- background:#111d31;border:1px solid #2a3c59;
- border-radius:12px;font-size:13px;line-height:1.7
+ margin-top:10px;padding:11px 12px;background:#111d31;
+ border:1px solid #2a3c59;border-radius:12px;
+ font-size:13px;line-height:1.7
 }
 .exhaust-title{font-weight:900}
 .exhaust-buy{color:#ff8b94}
@@ -103,10 +102,10 @@ footer{
 <body>
 <main class="wrap">
 
-<h1>台股當沖助手 V4.0</h1>
+<h1>台股當沖助手 V4.1</h1>
 
 <div class="sub">
-上市＋上櫃｜200 檔候選池｜可交易性排名｜買盤竭盡＋賣盤竭盡｜完整掃描後更新
+上市＋上櫃｜200 檔背景雷達｜Top 20 約 5 秒近即時追蹤｜買盤竭盡＋賣盤竭盡
 </div>
 
 <div class="card status">
@@ -117,7 +116,7 @@ footer{
    正在確認台北盤中時段...
   </div>
  </div>
- <div class="live">● LIVE</div>
+ <div class="live">● 近即時</div>
 </div>
 
 <div class="card">
@@ -132,7 +131,7 @@ footer{
 
 <div class="buttons">
  <button onclick="buildPool()">重建候選池</button>
- <button id="scanBtn" onclick="scan(true)">立即掃描</button>
+ <button id="scanBtn" onclick="fullScan(true)">立即全掃</button>
 </div>
 
 <div class="title">🔥 多方優先 Top 10</div>
@@ -146,7 +145,7 @@ footer{
 </div>
 
 <footer>
-V4.0｜200 檔完整掃描後才更新 Top 10｜
+V4.1｜200 檔背景掃描＋Top 20 近即時追蹤｜
 竭盡模型使用連續價格＋增量成交量推進效率｜
 非逐筆委託流模型｜
 行情來源 TWSE MIS｜
@@ -158,14 +157,23 @@ V4.0｜200 檔完整掃描後才更新 Top 10｜
 <script>
 
 let pool=[];
-let scanning=false;
-let scanRound=0;
+let watchList=[];
+
+let backgroundScanning=false;
+let focusScanning=false;
+
+let lastFullScanAt=0;
 
 const POOL_SIZE=200;
+const WATCH_SIZE=20;
+const MAX_HISTORY=12;
 const SNAPSHOT_NEED=3;
-const MAX_HISTORY=8;
+
+const FULL_SCAN_MS=60000;
+const FOCUS_MS=5000;
 
 const historyMap=new Map();
+const latestMap=new Map();
 
 const N=x=>{
  const n=Number(x);
@@ -190,6 +198,9 @@ function fmt(x){
 function sleep(ms){
  return new Promise(r=>setTimeout(r,ms));
 }
+
+
+/* ===== 市場資料 ===== */
 
 function rowsOf(data){
 
@@ -306,9 +317,7 @@ function rowMovePct(r){
 }
 
 
-/* =========================
-   台北盤中時間
-========================= */
+/* ===== 盤中時間 ===== */
 
 function taipeiNowParts(){
 
@@ -341,7 +350,6 @@ function taipeiNowParts(){
   second:Number(obj.second||0)
  };
 }
-
 
 function sessionState(){
 
@@ -380,7 +388,7 @@ function sessionState(){
   return{
    open:true,
    code:"open",
-   text:"🟢 一般盤中時段 09:00–13:30｜自動分批掃描"
+   text:"🟢 盤中｜200 檔背景雷達＋Top 20 約 5 秒近即時追蹤"
   };
  }
 
@@ -391,21 +399,19 @@ function sessionState(){
  };
 }
 
-
 function refreshSessionUI(){
 
  const s=sessionState();
 
- document.getElementById("session").textContent=
-  s.text;
+ document.getElementById(
+  "session"
+ ).textContent=s.text;
 
  return s;
 }
 
 
-/* =========================
-   候選池粗篩
-========================= */
+/* ===== 候選池 ===== */
 
 function candidateScore(r){
 
@@ -420,7 +426,9 @@ function candidateScore(r){
  if(liq>0){
 
   score+=
-   Math.log10(liq+1)*15;
+   Math.log10(
+    liq+1
+   )*15;
  }
 
  if(
@@ -464,24 +472,24 @@ function candidateScore(r){
  return score;
 }
 
-
-/* =========================
-   建立候選池
-========================= */
-
 async function buildPool(){
 
  try{
 
-  document.getElementById("status").textContent=
+  document.getElementById(
+   "status"
+  ).textContent=
    "建立 200 檔候選池...";
 
-  document.getElementById("time").textContent=
+  document.getElementById(
+   "time"
+  ).textContent=
    "正在讀取上市＋上櫃全市場資料";
 
   const res=
    await fetch(
-    "./data/market.json?ts="+Date.now(),
+    "./data/market.json?ts="+
+    Date.now(),
     {
      cache:"no-store"
     }
@@ -569,39 +577,51 @@ async function buildPool(){
    );
   }
 
-  document.getElementById("poolCount").textContent=
+  document.getElementById(
+   "poolCount"
+  ).textContent=
    pool.length+
    " 檔";
 
-  document.getElementById("poolInfo").textContent=
-   "全市場粗篩｜流動性優先｜盤中可交易性排名｜每批 8 檔";
+  document.getElementById(
+   "poolInfo"
+  ).textContent=
+   "200 檔背景雷達｜Top 20 高頻追蹤｜單次 API 最多 30 檔";
 
   const s=
    refreshSessionUI();
 
   if(s.open){
 
-   document.getElementById("status").textContent=
-    "候選池完成｜準備盤中掃描";
+   document.getElementById(
+    "status"
+   ).textContent=
+    "候選池完成｜開始背景全掃";
 
-   document.getElementById("time").textContent=
+   document.getElementById(
+    "time"
+   ).textContent=
     "已建立 "+
     pool.length+
     " 檔候選池";
 
    setTimeout(
-    ()=>scan(false),
-    700
+    ()=>fullScan(false),
+    500
    );
 
   }else{
 
-   document.getElementById("status").textContent=
+   document.getElementById(
+    "status"
+   ).textContent=
     s.code==="premarket"
      ?"🌅 盤前等待開盤"
      :"目前非一般盤中時段";
 
-   document.getElementById("time").textContent=
+   document.getElementById(
+    "time"
+   ).textContent=
     "已建立 "+
     pool.length+
     " 檔候選池｜不自動掃描";
@@ -611,10 +631,14 @@ async function buildPool(){
 
   console.error(e);
 
-  document.getElementById("status").textContent=
+  document.getElementById(
+   "status"
+  ).textContent=
    "候選池失敗";
 
-  document.getElementById("time").textContent=
+  document.getElementById(
+   "time"
+  ).textContent=
    String(
     e.message||e
    );
@@ -622,9 +646,7 @@ async function buildPool(){
 }
 
 
-/* =========================
-   行情 API
-========================= */
+/* ===== 行情 API ===== */
 
 function makeQuery(list){
 
@@ -637,7 +659,6 @@ function makeQuery(list){
   )
   .join(",");
 }
-
 
 async function getBatch(list){
 
@@ -694,9 +715,7 @@ async function getBatch(list){
 }
 
 
-/* =========================
-   拆批救援
-========================= */
+/* ===== 拆批救援 ===== */
 
 async function rescueBatch(list){
 
@@ -749,7 +768,7 @@ async function rescueBatch(list){
   );
  }
 
- await sleep(500);
+ await sleep(400);
 
  try{
 
@@ -772,14 +791,11 @@ async function rescueBatch(list){
 }
 
 
-/* =========================
-   200 檔完整掃描
-========================= */
+/* ===== 200 檔背景掃描 ===== */
 
 async function getAllQuotes(){
 
  const size=8;
-
  const batches=[];
 
  for(
@@ -798,7 +814,6 @@ async function getAllQuotes(){
 
  const results=[];
 
- let failedBatches=0;
  let rescued=0;
 
  for(
@@ -807,15 +822,21 @@ async function getAllQuotes(){
   i++
  ){
 
-  document.getElementById("status").textContent=
-   "掃描第 "+
+  document.getElementById(
+   "status"
+  ).textContent=
+   "背景掃描 "+
    (i+1)+
    " / "+
    batches.length+
    " 批";
 
-  document.getElementById("time").textContent=
-   "Top 10 暫不更新｜等待完整掃描";
+  document.getElementById(
+   "time"
+  ).textContent=
+   watchList.length
+    ?"Top 20 仍持續近即時更新"
+    :"等待第一次完整掃描";
 
   try{
 
@@ -830,29 +851,17 @@ async function getAllQuotes(){
 
   }catch(e){
 
-   failedBatches++;
-
-   document.getElementById("time").textContent=
-    "第 "+
-    (i+1)+
-    " 批失敗｜正在拆批救援";
-
-   await sleep(700);
-
    const q=
     await rescueBatch(
      batches[i]
     );
 
-   if(q.length){
+   rescued+=
+    q.length;
 
-    rescued+=
-     q.length;
-
-    results.push(
-     ...q
-    );
-   }
+   results.push(
+    ...q
+   );
   }
 
   if(
@@ -860,7 +869,7 @@ async function getAllQuotes(){
    batches.length-1
   ){
 
-   await sleep(800);
+   await sleep(650);
   }
  }
 
@@ -889,15 +898,12 @@ async function getAllQuotes(){
 
  return{
   quotes:unique,
-  failedBatches,
   rescued
  };
 }
 
 
-/* =========================
-   盤中基本資料
-========================= */
+/* ===== 基本盤中資料 ===== */
 
 function position(q){
 
@@ -928,7 +934,6 @@ function position(q){
  );
 }
 
-
 function rangePct(q){
 
  const hi=
@@ -956,7 +961,6 @@ function rangePct(q){
  );
 }
 
-
 function volumeScore(q){
 
  const v=
@@ -977,9 +981,7 @@ function volumeScore(q){
 }
 
 
-/* =========================
-   原始可交易模型
-========================= */
+/* ===== 可交易模型 ===== */
 
 function rawCalc(q){
 
@@ -1017,8 +1019,6 @@ function rawCalc(q){
  longScore+=vol*1.5;
  shortScore+=vol*1.5;
 
-
- /* 振幅 */
 
  if(
   range>=2 &&
@@ -1061,8 +1061,6 @@ function rawCalc(q){
  }
 
 
- /* 多方漲幅 */
-
  if(
   pct>=1 &&
   pct<=5
@@ -1103,8 +1101,6 @@ function rawCalc(q){
  }
 
 
- /* 空方跌幅 */
-
  if(
   pct<=-1 &&
   pct>=-5
@@ -1144,8 +1140,6 @@ function rawCalc(q){
   shortScore-=12;
  }
 
-
- /* 開盤後 */
 
  if(
   openPct>=0.3 &&
@@ -1212,8 +1206,6 @@ function rawCalc(q){
   shortScore-=10;
  }
 
-
- /* 盤中位置 */
 
  if(
   pos>=55 &&
@@ -1326,11 +1318,6 @@ function rawCalc(q){
  };
 }
 
-
-/* =========================
-   分數校準
-========================= */
-
 function calibratedScore(raw){
 
  let score;
@@ -1372,9 +1359,7 @@ function calibratedScore(raw){
 }
 
 
-/* =========================
-   V4.0 連續行情快照
-========================= */
+/* ===== 近即時快照 ===== */
 
 function historyKey(q){
 
@@ -1384,7 +1369,6 @@ function historyKey(q){
   (q.symbol||"")
  );
 }
-
 
 function addSnapshots(quotes){
 
@@ -1402,7 +1386,7 @@ function addSnapshots(quotes){
    N(q.volume);
 
   if(
-   !price ||
+   !price||
    volume<0
   ){
    continue;
@@ -1414,6 +1398,18 @@ function addSnapshots(quotes){
   const arr=
    historyMap.get(key)||
    [];
+
+  const last=
+   arr[arr.length-1];
+
+  if(
+   last &&
+   last.price===price &&
+   last.volume===volume &&
+   now-last.ts<2500
+  ){
+   continue;
+  }
 
   arr.push({
 
@@ -1430,13 +1426,7 @@ function addSnapshots(quotes){
     N(q.low),
 
    prev:
-    N(q.previousClose),
-
-   open:
-    N(q.open),
-
-   pos:
-    position(q)
+    N(q.previousClose)
 
   });
 
@@ -1455,7 +1445,6 @@ function addSnapshots(quotes){
  }
 }
 
-
 function pctMove(a,b){
 
  if(!a){
@@ -1470,20 +1459,7 @@ function pctMove(a,b){
 }
 
 
-/* =========================
-   V4.0 買賣盤竭盡模型
-
-   使用：
-   1. 盤中位置
-   2. 漲跌幅
-   3. 連續價格推進
-   4. 增量成交量
-   5. 高低點是否延伸
-   6. 高點回落 / 低點反彈
-
-   注意：
-   這不是逐筆五檔委託流模型。
-========================= */
+/* ===== 買賣盤竭盡 ===== */
 
 function exhaustionCalc(q){
 
@@ -1509,22 +1485,19 @@ function exhaustionCalc(q){
    sell:0,
 
    buyReasons:[
-    "累積連續行情資料中"
+    "累積近即時快照中"
    ],
 
    sellReasons:[
-    "累積連續行情資料中"
+    "累積近即時快照中"
    ],
 
    lastMove:0,
 
-   volumeRatio:0,
-
-   pullFromHigh:0,
-
-   reboundFromLow:0
+   volumeRatio:0
   };
  }
+
 
  const a=
   arr[arr.length-3];
@@ -1535,10 +1508,6 @@ function exhaustionCalc(q){
  const c=
   arr[arr.length-1];
 
- const prev=
-  N(q.previousClose)||
-  c.prev||
-  c.price;
 
  const move1=
   pctMove(
@@ -1551,6 +1520,7 @@ function exhaustionCalc(q){
    b.price,
    c.price
   );
+
 
  const dv1=
   Math.max(
@@ -1566,13 +1536,22 @@ function exhaustionCalc(q){
    b.volume
   );
 
+
  const volumeRatio=
   dv1>0
    ?dv2/dv1
    :(dv2>0?2:0);
 
+
  const pos=
   position(q);
+
+
+ const prev=
+  N(q.previousClose)||
+  c.prev||
+  c.price;
+
 
  const dayPct=
   prev
@@ -1584,13 +1563,16 @@ function exhaustionCalc(q){
     100
    :0;
 
+
  const high=
   N(q.high)||
   c.high;
 
+
  const low=
   N(q.low)||
   c.low;
+
 
  const pullFromHigh=
   high>0
@@ -1605,6 +1587,7 @@ function exhaustionCalc(q){
     )
    :0;
 
+
  const reboundFromLow=
   low>0
    ?Math.max(
@@ -1618,6 +1601,7 @@ function exhaustionCalc(q){
     )
    :0;
 
+
  const highAdvance=
   b.high>0
    ?pctMove(
@@ -1625,6 +1609,7 @@ function exhaustionCalc(q){
      c.high
     )
    :0;
+
 
  const lowAdvance=
   b.low>0
@@ -1641,8 +1626,6 @@ function exhaustionCalc(q){
  const buyReasons=[];
  const sellReasons=[];
 
-
- /* ===== 買盤竭盡 ===== */
 
  if(
   pos>=92
@@ -1770,8 +1753,6 @@ function exhaustionCalc(q){
  }
 
 
- /* ===== 賣盤竭盡 ===== */
-
  if(
   pos<=8
  ){
@@ -1898,11 +1879,6 @@ function exhaustionCalc(q){
  }
 
 
- /*
-   方向不符合時降低竭盡權重，
-   避免只因位置產生錯誤高分。
- */
-
  if(
   dayPct<=0
  ){
@@ -1978,18 +1954,10 @@ function exhaustionCalc(q){
   lastMove:
    move2,
 
-  volumeRatio,
-
-  pullFromHigh,
-
-  reboundFromLow
+  volumeRatio
  };
 }
 
-
-/* =========================
-   竭盡扣分
-========================= */
 
 function exhaustionPenalty(score){
 
@@ -2001,10 +1969,6 @@ function exhaustionPenalty(score){
  return 0;
 }
 
-
-/* =========================
-   V4.0 最終分數
-========================= */
 
 function calc(q){
 
@@ -2055,9 +2019,7 @@ function calc(q){
 }
 
 
-/* =========================
-   進場決策
-========================= */
+/* ===== 進場決策 ===== */
 
 function entryDecision(
  q,
@@ -2093,7 +2055,7 @@ function entryDecision(
      "entry-stop",
 
     reason:
-     "連續量價資料顯示買盤推進效率明顯衰退",
+     "近即時量價顯示買盤推進效率明顯衰退",
 
     rank:0
    };
@@ -2113,7 +2075,7 @@ function entryDecision(
      "entry-wait",
 
     reason:
-     "買盤竭盡分偏高，先等待拉回與重新承接",
+     "買盤竭盡分偏高，等待重新承接",
 
     rank:1
    };
@@ -2177,7 +2139,7 @@ function entryDecision(
      "entry-go",
 
     reason:
-     "方向、位置、振幅與量能條件較完整，且未出現高度買盤竭盡",
+     "方向、位置、振幅與量能條件較完整",
 
     rank:4
    };
@@ -2238,8 +2200,6 @@ function entryDecision(
  }
 
 
- /* ===== 空方 ===== */
-
  if(
   ex.ready &&
   ex.sell>=80
@@ -2253,7 +2213,7 @@ function entryDecision(
     "entry-stop",
 
    reason:
-    "連續量價資料顯示賣盤下殺效率明顯衰退",
+    "近即時量價顯示賣盤下殺效率明顯衰退",
 
    rank:0
   };
@@ -2273,7 +2233,7 @@ function entryDecision(
     "entry-wait",
 
    reason:
-    "賣盤竭盡分偏高，先等待反彈後再確認空方",
+    "賣盤竭盡分偏高，等待反彈後確認",
 
    rank:1
   };
@@ -2337,7 +2297,7 @@ function entryDecision(
     "entry-go",
 
    reason:
-    "方向、位置、振幅與量能條件較完整，且未出現高度賣盤竭盡",
+    "方向、位置、振幅與量能條件較完整",
 
    rank:4
   };
@@ -2398,9 +2358,7 @@ function entryDecision(
 }
 
 
-/* =========================
-   入選原因
-========================= */
+/* ===== 入選原因 ===== */
 
 function selectionReasons(
  q,
@@ -2412,6 +2370,7 @@ function selectionReasons(
 
  const v=
   N(q.volume);
+
 
  if(
   v>=12000
@@ -2473,7 +2432,6 @@ function selectionReasons(
    );
   }
 
-
   if(
    x.openPct>0
   ){
@@ -2482,7 +2440,6 @@ function selectionReasons(
     "站上開盤"
    );
   }
-
 
   if(
    x.pos>=55 &&
@@ -2493,7 +2450,6 @@ function selectionReasons(
     "位置適中"
    );
   }
-
 
   if(
    x.ex.ready &&
@@ -2517,7 +2473,6 @@ function selectionReasons(
    );
   }
 
-
   if(
    x.openPct<0
   ){
@@ -2526,7 +2481,6 @@ function selectionReasons(
     "跌破開盤"
    );
   }
-
 
   if(
    x.pos>=20 &&
@@ -2537,7 +2491,6 @@ function selectionReasons(
     "位置適中"
    );
   }
-
 
   if(
    x.ex.ready &&
@@ -2560,7 +2513,6 @@ function selectionReasons(
   );
  }
 
-
  return reasons
   .slice(
    0,
@@ -2570,9 +2522,7 @@ function selectionReasons(
 }
 
 
-/* =========================
-   排名
-========================= */
+/* ===== 排名 ===== */
 
 function rankingData(
  q,
@@ -2602,10 +2552,10 @@ function rankingData(
  };
 }
 
-
 function rankQuotes(
  list,
- side
+ side,
+ count=10
 ){
 
  return list
@@ -2638,7 +2588,7 @@ function rankQuotes(
   )
   .slice(
    0,
-   10
+   count
   )
   .map(
    x=>x.q
@@ -2646,9 +2596,89 @@ function rankQuotes(
 }
 
 
-/* =========================
-   可交易標籤
-========================= */
+/* ===== 產生 Top 20 追蹤池 ===== */
+
+function makeWatchList(list){
+
+ const scored=
+  list
+  .map(q=>{
+
+   const x=
+    calc(q);
+
+   const longDecision=
+    entryDecision(
+     q,
+     x,
+     "long"
+    );
+
+   const shortDecision=
+    entryDecision(
+     q,
+     x,
+     "short"
+    );
+
+   return{
+
+    q,
+
+    rank:
+     Math.max(
+      longDecision.rank,
+      shortDecision.rank
+     ),
+
+    score:
+     Math.max(
+      x.longScore,
+      x.shortScore
+     )
+   };
+  })
+  .sort(
+   (a,b)=>{
+
+    if(
+     b.rank!==
+     a.rank
+    ){
+
+     return(
+      b.rank-
+      a.rank
+     );
+    }
+
+    return(
+     b.score-
+     a.score
+    );
+   }
+  );
+
+ return scored
+  .slice(
+   0,
+   WATCH_SIZE
+  )
+  .map(
+   x=>({
+
+    symbol:
+     x.q.symbol,
+
+    market:
+     x.q.market
+
+   })
+  );
+}
+
+
+/* ===== 標籤 ===== */
 
 function signalText(
  score,
@@ -2674,7 +2704,6 @@ function signalText(
   return "條件普通";
  }
 
-
  if(score>=88){
   return "❄️ 高可交易性";
  }
@@ -2691,9 +2720,7 @@ function signalText(
 }
 
 
-/* =========================
-   進場區
-========================= */
+/* ===== 交易參考 ===== */
 
 function entryZone(
  q,
@@ -2752,7 +2779,6 @@ function entryZone(
  };
 }
 
-
 function cancelLevel(
  q,
  side
@@ -2784,7 +2810,6 @@ function cancelLevel(
   return lo;
  }
 
-
  if(
   open&&hi
  ){
@@ -2797,7 +2822,6 @@ function cancelLevel(
 
  return hi;
 }
-
 
 function plan(
  q,
@@ -2831,7 +2855,6 @@ function plan(
  };
 }
 
-
 function riskText(
  x,
  side
@@ -2847,7 +2870,6 @@ function riskText(
    ?x.ex.buy
    :x.ex.sell;
 
-
  if(
   x.ex.ready &&
   ex>=80
@@ -2859,7 +2881,6 @@ function riskText(
     :"⚠️ 高度賣盤竭盡，不追空"
   );
  }
-
 
  if(
   x.ex.ready &&
@@ -2873,45 +2894,23 @@ function riskText(
   );
  }
 
-
- if(
-  risk>=12
- ){
-
-  return(
-   "⚠️ 極端位置，不適合追價"
-  );
+ if(risk>=12){
+  return "⚠️ 極端位置，不適合追價";
  }
 
-
- if(
-  risk>=7
- ){
-
-  return(
-   "⚠️ 追價風險偏高"
-  );
+ if(risk>=7){
+  return "⚠️ 追價風險偏高";
  }
 
-
- if(
-  risk>=4
- ){
-
-  return(
-   "注意進場位置"
-  );
+ if(risk>=4){
+  return "注意進場位置";
  }
 
- return(
-  "位置與動能正常"
- );
+ return "位置與動能正常";
 }
 
 
-/* =========================
-   竭盡顯示
-========================= */
+/* ===== 竭盡顯示 ===== */
 
 function exhaustionLevel(
  score
@@ -2932,7 +2931,6 @@ function exhaustionLevel(
  return "低";
 }
 
-
 function exhaustionBox(x){
 
  const ex=
@@ -2951,16 +2949,14 @@ function exhaustionBox(x){
   ${ex.samples}/${SNAPSHOT_NEED}
  </div>
 
- 至少需要
+ Top 20 近即時快照累積滿
  ${SNAPSHOT_NEED}
- 輪完整掃描後，
- 才開始判定買賣盤竭盡。
+ 筆後開始判定。
 
 </div>
 
 `;
  }
-
 
  return `
 
@@ -2990,7 +2986,7 @@ function exhaustionBox(x){
 
  <span class="small">
 
-  最近一輪價格變化
+  最近價格變化
 
   ${
    ex.lastMove>0
@@ -3012,9 +3008,7 @@ function exhaustionBox(x){
 }
 
 
-/* =========================
-   顯示股票卡片
-========================= */
+/* ===== 顯示 ===== */
 
 function render(
  list,
@@ -3034,7 +3028,6 @@ function render(
 
   return;
  }
-
 
  el.innerHTML=
   list
@@ -3106,7 +3099,6 @@ function render(
       ?"跌破取消"
       :"突破取消";
 
-
     return `
 
 <div class="stock">
@@ -3126,7 +3118,6 @@ function render(
    </span>
 
   </div>
-
 
   <div>
 
@@ -3299,97 +3290,100 @@ function render(
 }
 
 
-/* =========================
-   完整掃描完成才更新
-========================= */
+/* ===== 行情快取 ===== */
 
-async function scan(
- manual=false
-){
+function mergeQuotes(quotes){
 
- if(scanning){
-  return;
- }
-
-
- refreshSessionUI();
-
- const s=
-  sessionState();
-
-
- /*
-   V4.0
-   盤前、盤後、週末
-   不把沒有成交價當成掃描失敗。
- */
-
- if(
-  !s.open
+ for(
+  const q of quotes
  ){
 
-  document.getElementById("status").textContent=
-   s.code==="premarket"
-    ?"🌅 盤前等待開盤"
-    :"目前非一般盤中時段";
+  if(
+   N(q.price)>0 &&
+   N(q.previousClose)>0
+  ){
 
-  document.getElementById("time").textContent=
-   manual
-    ?"目前不執行盤中掃描｜保留上一輪 Top 10"
-    :"等待下一個一般盤中時段";
-
-  return;
+   latestMap.set(
+    historyKey(q),
+    q
+   );
+  }
  }
+}
 
+function currentWatchQuotes(){
+
+ return watchList
+  .map(
+   x=>
+    latestMap.get(
+     x.market+
+     "_"+
+     x.symbol
+    )
+  )
+  .filter(Boolean);
+}
+
+function renderWatch(){
+
+ const list=
+  currentWatchQuotes();
 
  if(
-  !pool.length
+  !list.length
  ){
-
-  document.getElementById("status").textContent=
-   "尚未建立候選池";
-
   return;
  }
 
-
- scanning=true;
-
- const btn=
-  document.getElementById(
-   "scanBtn"
+ const longs=
+  rankQuotes(
+   list,
+   "long",
+   10
   );
 
- btn.disabled=true;
+ const shorts=
+  rankQuotes(
+   list,
+   "short",
+   10
+  );
 
+ render(
+  longs,
+  "long",
+  "long"
+ );
+
+ render(
+  shorts,
+  "short",
+  "short"
+ );
+}
+
+
+/* ===== Top 20 約 5 秒近即時 ===== */
+
+async function focusScan(){
+
+ if(
+  focusScanning||
+  !watchList.length||
+  !sessionState().open
+ ){
+  return;
+ }
+
+ focusScanning=true;
 
  try{
 
-  document.getElementById("status").textContent=
-   pool.length+
-   " 檔完整掃描中...";
-
-  document.getElementById("time").textContent=
-   "保留上一輪 Top 10｜掃描完成後更新";
-
-
-  const result=
-   await getAllQuotes();
-
-
   const quotes=
-   result.quotes;
-
-
-  if(
-   !quotes.length
-  ){
-
-   throw new Error(
-    "沒有取得任何行情"
+   await getBatch(
+    watchList
    );
-  }
-
 
   const valid=
    quotes.filter(
@@ -3398,6 +3392,122 @@ async function scan(
      N(q.previousClose)>0
    );
 
+  if(
+   valid.length
+  ){
+
+   mergeQuotes(
+    valid
+   );
+
+   addSnapshots(
+    valid
+   );
+
+   renderWatch();
+
+   document.getElementById(
+    "status"
+   ).textContent=
+    "Top 20 近即時追蹤中";
+
+   document.getElementById(
+    "time"
+   ).textContent=
+    "約 5 秒更新｜本次 "+
+    valid.length+
+    " / "+
+    watchList.length+
+    " 檔｜"+
+    new Date()
+    .toLocaleTimeString(
+     "zh-TW"
+    );
+  }
+
+ }catch(e){
+
+  console.log(
+   "focus scan fail",
+   e
+  );
+
+ }finally{
+
+  focusScanning=false;
+ }
+}
+
+
+/* ===== 200 檔全掃 ===== */
+
+async function fullScan(
+ manual=false
+){
+
+ if(
+  backgroundScanning
+ ){
+  return;
+ }
+
+ const s=
+  refreshSessionUI();
+
+ if(
+  !s.open
+ ){
+
+  document.getElementById(
+   "status"
+  ).textContent=
+   s.code==="premarket"
+    ?"🌅 盤前等待開盤"
+    :"目前非一般盤中時段";
+
+  document.getElementById(
+   "time"
+  ).textContent=
+   manual
+    ?"目前不執行盤中掃描｜保留上一輪 Top 10"
+    :"等待下一個一般盤中時段";
+
+  return;
+ }
+
+ if(
+  !pool.length
+ ){
+
+  document.getElementById(
+   "status"
+  ).textContent=
+   "尚未建立候選池";
+
+  return;
+ }
+
+ backgroundScanning=true;
+
+ const btn=
+  document.getElementById(
+   "scanBtn"
+  );
+
+ btn.disabled=true;
+
+ try{
+
+  const result=
+   await getAllQuotes();
+
+  const valid=
+   result.quotes
+   .filter(
+    q=>
+     N(q.price)>0 &&
+     N(q.previousClose)>0
+   );
 
   if(
    !valid.length
@@ -3409,117 +3519,73 @@ async function scan(
   }
 
 
-  /*
-   先保存本輪快照，
-   再做竭盡判斷。
-  */
+  mergeQuotes(
+   valid
+  );
 
   addSnapshots(
    valid
   );
 
-  scanRound++;
 
-
-  const longs=
-   rankQuotes(
-    valid,
-    "long"
+  watchList=
+   makeWatchList(
+    valid
    );
 
 
-  const shorts=
-   rankQuotes(
-    valid,
-    "short"
-   );
+  lastFullScanAt=
+   Date.now();
 
 
-  /*
-   完整掃描後才更新畫面。
-  */
-
-  render(
-   longs,
-   "long",
-   "long"
-  );
+  renderWatch();
 
 
-  render(
-   shorts,
-   "short",
-   "short"
-  );
+  document.getElementById(
+   "status"
+  ).textContent=
+   "背景全掃完成｜Top 20 已鎖定追蹤";
 
 
-  const missing=
-   Math.max(
-    0,
-    pool.length-
-    valid.length
-   );
-
-
-  const exhaustState=
-   scanRound<
-   SNAPSHOT_NEED
-
-    ?"｜竭盡資料 "+
-     scanRound+
-     "/"+
-     SNAPSHOT_NEED
-
-    :"｜竭盡偵測已啟用";
-
-
-  document.getElementById("status").textContent=
-   "掃描完成｜"+
+  document.getElementById(
+   "time"
+  ).textContent=
+   "有效 "+
    valid.length+
    " / "+
    pool.length+
-   " 檔";
-
-
-  document.getElementById("time").textContent=
-
-   "缺少 "+
-   missing+
-   " 檔｜救援取得 "+
-   result.rescued+
-   " 檔｜Top 10 已更新"+
-   exhaustState+
-   "｜"+
+   " 檔｜Top 20 約 5 秒更新｜"+
    new Date()
-    .toLocaleTimeString(
-     "zh-TW"
-    );
+   .toLocaleTimeString(
+    "zh-TW"
+   );
 
+
+  setTimeout(
+   ()=>focusScan(),
+   700
+  );
 
  }catch(e){
 
   console.error(e);
 
+  document.getElementById(
+   "status"
+  ).textContent=
+   "本輪背景掃描失敗";
 
-  /*
-   本輪失敗時，
-   保留上一輪排行榜。
-  */
-
-  document.getElementById("status").textContent=
-   "本輪掃描失敗";
-
-
-  document.getElementById("time").textContent=
+  document.getElementById(
+   "time"
+  ).textContent=
    String(
     e.message||e
    )+
-   "｜保留上一輪 Top 10";
-
+   "｜保留近即時 Top 10";
 
  }finally{
 
-  scanning=false;
+  backgroundScanning=false;
 
   btn.disabled=false;
 
@@ -3528,14 +3594,18 @@ async function scan(
 }
 
 
-/* =========================
-   啟動
-========================= */
+/* ===== 啟動 ===== */
 
 refreshSessionUI();
 
 buildPool();
 
+
+/*
+ 每 5 秒檢查一次，
+ 若背景全掃已超過 60 秒，
+ 啟動新一輪 200 檔雷達。
+*/
 
 setInterval(
  ()=>{
@@ -3546,14 +3616,38 @@ setInterval(
   if(
    s.open &&
    pool.length &&
-   !scanning
+   !backgroundScanning &&
+   Date.now()-
+   lastFullScanAt>=
+   FULL_SCAN_MS
   ){
 
-   scan(false);
+   fullScan(false);
   }
 
  },
- 30000
+ 5000
+);
+
+
+/*
+ Top 20 約每 5 秒近即時更新。
+*/
+
+setInterval(
+ ()=>{
+
+  if(
+   sessionState().open &&
+   watchList.length &&
+   !focusScanning
+  ){
+
+   focusScan();
+  }
+
+ },
+ FOCUS_MS
 );
 
 </script>
