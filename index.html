@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="theme-color" content="#07101f">
-<title>台股當沖助手 V5.8.5.1</title>
+<title>台股當沖助手 V5.9.0.1</title>
 <style>
 *{box-sizing:border-box}
 html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:900px;margin:auto;padding:22px 14px 80px}h1{margin:0;font-size:29px}.sub{color:#9fb0ca;margin:8px 0 16px;line-height:1.55}.card,.stock{background:#101a2d;border:1px solid #293a55;border-radius:17px;padding:15px;margin-bottom:12px}.row,.status{display:flex;justify-content:space-between;align-items:center;gap:10px}.live{color:#67e394;font-weight:900}.small,.info{color:#9fb0ca;font-size:13px}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}button{width:100%;border:0;border-radius:13px;padding:14px;background:#568cff;color:white;font-size:16px;font-weight:850}button:disabled{opacity:.55}.title{font-size:23px;font-weight:900;margin:23px 0 11px}.name{font-size:19px;font-weight:850}.price{font-size:27px;font-weight:900}.score{font-size:25px;font-weight:900}.scoreLabel{color:#9fb0ca;font-size:11px;text-align:right}.up{color:#ff6969}.down{color:#59dc9c}.flat{color:#eef4ff}.tag{display:inline-block;background:#1e2d49;border-radius:8px;padding:4px 7px;font-size:11px;margin-left:5px}.signal{display:inline-block;margin-top:9px;padding:6px 9px;border-radius:9px;background:#20304d;font-weight:800}.entry{margin-top:11px;border-radius:12px;padding:11px 12px;font-weight:900;font-size:15px}.entry-go{background:#123c2c;color:#74edac;border:1px solid #266c4e}.entry-wait{background:#3d351b;color:#f2cd68;border:1px solid #6f5e2b}.entry-stop{background:#482329;color:#ff8b94;border:1px solid #7c3a44}.entry-neutral{background:#1d2c46;color:#a9bbd6;border:1px solid #354865}.reasonbox{margin-top:10px;padding:10px 12px;background:#17243a;border-radius:11px;color:#b9c9df;font-size:13px;line-height:1.7}.reasonbox b{color:#eef4ff}.exhaustbox{margin-top:10px;padding:11px 12px;background:#111d31;border:1px solid #2a3c59;border-radius:12px;font-size:13px;line-height:1.7}.exhaust-title{font-weight:900}.exhaust-buy{color:#ff8b94}.exhaust-sell{color:#74edac}.exhaust-neutral{color:#a9bbd6}.tradebox{margin-top:10px;padding:11px 12px;background:#0c1527;border:1px solid #233756;border-radius:12px;line-height:1.8;font-size:13px}.tradebox b{color:#eef4ff}.info{line-height:1.7;margin-top:10px}.risk{margin-top:8px;font-size:12px;color:#f0c36a}.session{margin-top:8px;padding:8px 10px;border-radius:10px;background:#17243a;color:#a9bbd6;font-size:12px;line-height:1.5}.pulse{color:#67e394}footer{text-align:center;color:#74859e;font-size:12px;margin-top:25px;line-height:1.6}
@@ -22,7 +22,7 @@ html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;fo
 .ahTitle{font-size:18px;font-weight:900;margin:16px 0 7px}.ahRow{border-top:1px solid #293a55;padding:11px 0}
 .ahScore{font-size:20px;font-weight:900}.ahMeta{color:#9fb0ca;font-size:13px;line-height:1.65;margin-top:4px}
 
-/* V5.8.5.1 多空色彩區隔：紅=多、綠=空 */
+/* V5.9.0.1 多空色彩區隔：紅=多、綠=空 */
 .ah-side{
   display:inline-flex;align-items:center;gap:6px;
   font-weight:800;padding:5px 10px;border-radius:999px;
@@ -66,7 +66,7 @@ html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;fo
 .sr-label{font-size:13px;color:#9fb0ca}.sr-price{font-size:22px;font-weight:850;margin-top:2px}
 .sr-note{color:#aebbd0;font-size:13px;line-height:1.55;margin-top:12px}
 
-/* V5.8.5 simplified UI */
+/* V5.9.0 simplified UI */
 .simple-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}
 .simple-head h1{font-size:26px;line-height:1.15}
 .ver{font-size:14px;font-weight:700;color:#9fb0ca;vertical-align:middle}
@@ -111,7 +111,7 @@ footer{font-size:11px;opacity:.55;margin-top:20px;line-height:1.5}
 }
 
 
-/* V5.8.5 ultra-simple mobile UI */
+/* V5.9.0 ultra-simple mobile UI */
 body{background:#08111f}
 .wrap{max-width:760px;padding:18px 14px 68px}
 .appbar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
@@ -153,7 +153,7 @@ footer{margin-top:22px;font-size:10px;opacity:.45;text-align:center}
 .card,.more-panel,.simple-head,.quick-actions,.simple-after{box-shadow:none}
 
 
-/* V5.8.5 restore key OHLC metrics without making cards busy */
+/* V5.9.0 restore key OHLC metrics without making cards busy */
 .ohlc-strip{
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -172,7 +172,7 @@ footer{margin-top:22px;font-size:10px;opacity:.45;text-align:center}
 }
 
 
-/* V5.8.5 simplify status + details */
+/* V5.9.0 simplify status + details */
 .status-line{
   margin:4px 2px 14px;
   font-size:13px;
@@ -207,7 +207,7 @@ footer{margin-top:22px;font-size:10px;opacity:.45;text-align:center}
 }
 
 
-/* V5.8.5 shorter key price line */
+/* V5.9.0 shorter key price line */
 .compact-key{
   font-size:15px;
   line-height:1.35;
@@ -216,7 +216,7 @@ footer{margin-top:22px;font-size:10px;opacity:.45;text-align:center}
 }
 
 
-/* V5.8.5 remove duplicate expanded details */
+/* V5.9.0 remove duplicate expanded details */
 .sr-inline-btn{
   width:100%;
   min-height:36px;
@@ -232,10 +232,59 @@ footer{margin-top:22px;font-size:10px;opacity:.45;text-align:center}
 }
 .sr-inline-btn:active{transform:scale(.995)}
 
+
+/* V5.9 refined intraday signal cards */
+.live-compact{
+  padding:12px 13px;
+  margin:8px 0;
+  border-radius:14px
+}
+.live-long{border-color:#754047}
+.live-short{border-color:#2f6c55}
+.live-signal-row{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:8px;
+  margin-top:9px;
+  font-size:12px;
+  color:#9fb0ca
+}
+.live-signal-row b{font-size:13px}
+.live-plan{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:5px;
+  margin-top:9px
+}
+.live-plan span{
+  padding:7px 4px;
+  border-radius:9px;
+  background:#0d1727;
+  color:#8293ad;
+  font-size:11px;
+  text-align:center
+}
+.live-plan b{
+  display:block;
+  margin-top:2px;
+  color:#e9eff9;
+  font-size:12px
+}
+.live-reason{
+  margin-top:8px;
+  color:#8798b2;
+  font-size:11px;
+  line-height:1.45
+}
+@media(max-width:390px){
+  .live-plan{grid-template-columns:repeat(2,1fr)}
+}
+
 </style>
 </head>
 <body>
-<!-- BUILD: DAYTRADE_APP_V5.8.5.1_20260910 -->
+<!-- BUILD: DAYTRADE_APP_V5.9.0.1_20260910 -->
 <main class="wrap">
   <header class="appbar">
     <div>
@@ -394,58 +443,92 @@ function calibratedScore(raw){let s;if(raw<=60)s=raw;else if(raw<=80)s=60+(raw-6
 function historyKey(q){return(q.market||"")+"_"+(q.symbol||"");}
 function addSnapshots(quotes){const now=Date.now();for(const q of quotes){const price=N(q.price),volume=N(q.volume);if(!price||volume<0)continue;const k=historyKey(q),arr=historyMap.get(k)||[],last=arr[arr.length-1];if(last&&last.price===price&&last.volume===volume&&now-last.ts<2500)continue;arr.push({ts:now,price,volume,high:N(q.high),low:N(q.low),prev:N(q.previousClose)});while(arr.length>MAX_HISTORY)arr.shift();historyMap.set(k,arr);}}
 function pctMove(a,b){return a?(b-a)/a*100:0;}
+function median(a){
+  const x=(a||[]).filter(Number.isFinite).sort((a,b)=>a-b);
+  if(!x.length)return 0;
+  const k=Math.floor(x.length/2);
+  return x.length%2?x[k]:(x[k-1]+x[k])/2;
+}
 function microSignal(q,side){
   const arr=historyMap.get(historyKey(q))||[];
-  const p=N(q.price), o=N(q.open), hi=N(q.high), lo=N(q.low);
-  if(arr.length<4)return{ready:false,confirm:0,vwap:p,dist:0,breakout:false,volOK:false,momentum:false,reasons:["累積確認快照中"]};
+  const p=N(q.price),o=N(q.open);
 
-  const recent=arr.slice(-6);
-  let pv=0, vv=0;
+  if(arr.length<5){
+    return{
+      ready:false,confirm:0,vwap:p,dist:0,
+      breakout:false,breakConfirmed:false,volOK:false,momentum:false,
+      trigger:p,volRatio:0,nearTrigger:false,
+      reasons:[`累積確認快照中 ${arr.length}/5`]
+    };
+  }
+
+  const recent=arr.slice(-8);
+  let pv=0,vv=0;
   for(let i=1;i<recent.length;i++){
     const dv=Math.max(0,recent[i].volume-recent[i-1].volume);
     if(dv>0){pv+=recent[i].price*dv;vv+=dv;}
   }
-  const vwap=vv>0?pv/vv:recent.reduce((s,x)=>s+x.price,0)/recent.length;
-  const dist=vwap?((p-vwap)/vwap*100):0;
+  const vwap=vv>0?pv/vv:recent.reduce((a,b)=>a+b.price,0)/recent.length;
+  const dist=vwap?(p-vwap)/vwap*100:0;
 
-  const prev=recent.slice(0,-1);
-  const prevHigh=Math.max(...prev.map(x=>x.price));
-  const prevLow=Math.min(...prev.map(x=>x.price));
-  const breakout=side==="long"?p>prevHigh:p<prevLow;
+  // Use earlier snapshots as the reference zone, then require two snapshots to hold the break.
+  const base=recent.slice(0,-2);
+  const last2=recent.slice(-2);
+  const refHigh=Math.max(...base.map(x=>x.price));
+  const refLow=Math.min(...base.map(x=>x.price));
+  const bufferPct=.0006;      // 0.06% anti-noise buffer
+  const holdPct=.0003;        // previous snapshot must also hold 0.03% beyond reference
+  const trigger=side==="long"?refHigh*(1+bufferPct):refLow*(1-bufferPct);
+  const breakout=side==="long"?p>=trigger:p<=trigger;
+  const previousHeld=side==="long"
+    ?last2[0].price>=refHigh*(1+holdPct)
+    :last2[0].price<=refLow*(1-holdPct);
+  const breakConfirmed=breakout&&previousHeld;
 
   const dvs=[];
   for(let i=1;i<recent.length;i++)dvs.push(Math.max(0,recent[i].volume-recent[i-1].volume));
-  const lastDv=dvs[dvs.length-1]||0;
-  const baseDvs=dvs.slice(0,-1).filter(x=>x>0);
-  const avgDv=baseDvs.length?baseDvs.reduce((a,b)=>a+b,0)/baseDvs.length:0;
-  const volOK=lastDv>0 && (avgDv===0 || lastDv>=avgDv*.9);
+  const lastDv=dvs.at(-1)||0;
+  const baseline=median(dvs.slice(0,-1).filter(x=>x>0));
+  const volRatio=baseline>0?lastDv/baseline:(lastDv>0?1:0);
+  const volOK=lastDv>0&&volRatio>=.80;
 
   const moves=[];
-  for(let i=Math.max(1,recent.length-3);i<recent.length;i++)moves.push(pctMove(recent[i-1].price,recent[i].price));
-  const directional=moves.filter(m=>side==="long"?m>0:m<0).length;
-  const momentum=directional>=2;
+  for(let i=Math.max(1,recent.length-4);i<recent.length;i++){
+    moves.push(pctMove(recent[i-1].price,recent[i].price));
+  }
+  const directional=moves.filter(v=>side==="long"?v>0:v<0).length;
+  const net=recent.length>=4?pctMove(recent.at(-4).price,recent.at(-1).price):0;
+  const momentum=directional>=2&&(side==="long"?net>=.05:net<=-.05);
 
-  const vwapOK=side==="long"?p>=vwap:p<=vwap;
+  const vwapOK=side==="long"?p>vwap:p<vwap;
   const openOK=side==="long"?p>o:p<o;
-  const notChasing=side==="long"?dist<=1.15:dist>=-1.15;
-  const positionOK=side==="long"?position(q)>=55&&position(q)<=88:position(q)<=45&&position(q)>=12;
+  const notChasing=side==="long"?dist<=.80:dist>=-.80;
+  const pos=position(q);
+  const positionOK=side==="long"?pos>=52&&pos<=90:pos<=48&&pos>=10;
+  const nearTrigger=side==="long"?p>=trigger*.998:p<=trigger*1.002;
 
   let confirm=0;
   if(vwapOK)confirm++;
   if(openOK)confirm++;
   if(momentum)confirm++;
   if(volOK)confirm++;
-  if(breakout)confirm++;
+  if(breakConfirmed)confirm++;
   if(positionOK)confirm++;
 
   const reasons=[];
-  reasons.push(vwapOK?(side==="long"?"價格在近即時VWAP上方":"價格在近即時VWAP下方"):"VWAP方向未確認");
-  if(momentum)reasons.push("連續動能確認");
-  if(volOK)reasons.push("增量成交未衰退");
-  if(breakout)reasons.push(side==="long"?"突破近端高點":"跌破近端低點");
-  if(!notChasing)reasons.push(side==="long"?"偏離VWAP過遠，不追多":"偏離VWAP過遠，不追空");
+  if(vwapOK)reasons.push(side==="long"?"VWAP上方":"VWAP下方");
+  if(momentum)reasons.push("連續動能");
+  if(volOK)reasons.push(`量能 ${volRatio.toFixed(1)}x`);
+  if(breakConfirmed)reasons.push(side==="long"?"突破二次確認":"跌破二次確認");
+  else if(breakout)reasons.push("等待二次確認");
+  if(!notChasing)reasons.push("偏離VWAP過遠");
 
-  return{ready:true,confirm,vwap,dist,breakout,volOK,momentum,vwapOK,openOK,notChasing,positionOK,reasons};
+  return{
+    ready:true,confirm,vwap,dist,
+    breakout,breakConfirmed,volOK,momentum,
+    vwapOK,openOK,notChasing,positionOK,
+    trigger,volRatio,nearTrigger,reasons
+  };
 }
 
 function exhaustionCalc(q){const arr=historyMap.get(historyKey(q))||[];if(arr.length<SNAPSHOT_NEED)return{ready:false,samples:arr.length,buy:0,sell:0,buyReasons:["累積近即時快照中"],sellReasons:["累積近即時快照中"],lastMove:0,volumeRatio:0};const a=arr[arr.length-3],b=arr[arr.length-2],c=arr[arr.length-1],move1=pctMove(a.price,b.price),move2=pctMove(b.price,c.price),dv1=Math.max(0,b.volume-a.volume),dv2=Math.max(0,c.volume-b.volume),vr=dv1>0?dv2/dv1:(dv2>0?2:0),pos=position(q),y=N(q.previousClose)||c.prev||c.price,dayPct=y?(c.price-y)/y*100:0,hi=N(q.high)||c.high,lo=N(q.low)||c.low,pull=hi?Math.max(0,(hi-c.price)/hi*100):0,bounce=lo?Math.max(0,(c.price-lo)/lo*100):0,highAdvance=b.high?pctMove(b.high,c.high):0,lowAdvance=b.low?pctMove(b.low,c.low):0;let buy=0,sell=0;const br=[],sr=[];if(pos>=92){buy+=24;br.push("接近盤中高檔")}else if(pos>=84){buy+=16;br.push("位於盤中高位")}else if(pos>=76)buy+=8;if(dayPct>=5){buy+=15;br.push("當日漲幅已大")}else if(dayPct>=2)buy+=9;if(dv2>0){if(move1>.08&&move2<=move1*.35){buy+=22;br.push("成交持續但上攻效率下降")}if(move2<=0){buy+=14;br.push("新增成交未能繼續推高")}if(vr>=1.15&&move2<.12){buy+=14;br.push("增量放大但價格推進有限")}if(highAdvance<=.03){buy+=10;br.push("高點延伸停滯")}}if(pull>=.45){buy+=12;br.push("價格已自高點回落")}if(move1>.20&&move2<0){buy+=8;br.push("短線由攻轉弱")}
@@ -454,24 +537,70 @@ function exhaustionPenalty(s){if(s>=85)return 20;if(s>=75)return 14;if(s>=65)ret
 function calc(q){const x=rawCalc(q),ex=exhaustionCalc(q),longBase=calibratedScore(x.longRaw),shortBase=calibratedScore(x.shortRaw);return{...x,ex,longBase,shortBase,longScore:clamp(longBase-exhaustionPenalty(ex.buy),0,95),shortScore:clamp(shortBase-exhaustionPenalty(ex.sell),0,95)};}
 
 function entryDecision(q,x,side){
-  const score=side==="long"?x.longScore:x.shortScore, ex=x.ex, m=microSignal(q,side);
+  const score=side==="long"?x.longScore:x.shortScore;
+  const ex=x.ex,m=microSignal(q,side);
   const exhaust=side==="long"?ex.buy:ex.sell;
 
-  if(ex.ready&&exhaust>=80)return{text:side==="long"?"⛔ 買盤竭盡｜停止追多":"⛔ 賣盤竭盡｜停止追空",cls:"entry-stop",reason:"竭盡風險過高，取消追價",rank:0,stage:"stop",micro:m};
-  if(!m.ready)return{text:"⚪ 觀察｜累積訊號",cls:"entry-neutral",reason:"等待至少 4 筆近即時快照後再判定",rank:1,stage:"watch",micro:m};
-  if(!m.notChasing)return{text:side==="long"?"⛔ 不追多｜等拉回":"⛔ 不追空｜等反彈",cls:"entry-stop",reason:`偏離近即時 VWAP ${Math.abs(m.dist).toFixed(2)}%，風險報酬不佳`,rank:0,stage:"stop",micro:m};
-  if(score<68)return{text:"⚪ 觀察｜分數不足",cls:"entry-neutral",reason:"可交易分尚未達精準訊號門檻",rank:1,stage:"watch",micro:m};
+  if(ex.ready&&exhaust>=75){
+    return{
+      text:side==="long"?"⛔ 停止追多":"⛔ 停止追空",
+      cls:"entry-stop",reason:"竭盡風險偏高",rank:0,stage:"stop",micro:m
+    };
+  }
 
-  if(m.confirm>=6 && m.breakout && m.volOK && m.momentum && exhaust<55)
-    return{text:side==="long"?"🟢 進場確認｜多":"🟢 進場確認｜空",cls:"entry-go",reason:"VWAP、方向、突破、增量與連續動能同步成立",rank:5,stage:"entry",micro:m};
+  if(!m.ready){
+    return{
+      text:"⚪ 累積訊號",
+      cls:"entry-neutral",reason:"需至少 5 筆近即時快照",rank:1,stage:"watch",micro:m
+    };
+  }
 
-  if(m.confirm>=5 && m.momentum && exhaust<65)
-    return{text:"🟡 確認｜等待突破",cls:"entry-wait",reason:"主要條件已成立，但仍等待突破與成交量同步確認",rank:4,stage:"confirm",micro:m};
+  if(!m.notChasing){
+    return{
+      text:side==="long"?"⛔ 等拉回":"⛔ 等反彈",
+      cls:"entry-stop",reason:`偏離 VWAP ${Math.abs(m.dist).toFixed(2)}%`,rank:0,stage:"stop",micro:m
+    };
+  }
 
-  if(m.confirm>=4)
-    return{text:"🟡 觀察｜接近確認",cls:"entry-wait",reason:"方向逐步成形，尚未達進場確認標準",rank:3,stage:"watch",micro:m};
+  if(score<70){
+    return{
+      text:"⚪ 分數不足",
+      cls:"entry-neutral",reason:"可交易分未達 70",rank:1,stage:"watch",micro:m
+    };
+  }
 
-  return{text:"⚪ 觀察｜暫不進場",cls:"entry-neutral",reason:"VWAP、動能、突破或量能尚未形成共振",rank:2,stage:"watch",micro:m};
+  if(m.breakout&&!m.breakConfirmed){
+    return{
+      text:"🟡 等二次確認",
+      cls:"entry-wait",reason:"已突破第一層，但需下一筆快照仍守住",rank:4,stage:"confirm",micro:m
+    };
+  }
+
+  if(m.breakConfirmed&&m.vwapOK&&m.openOK&&m.momentum&&m.volOK&&m.positionOK&&exhaust<55){
+    return{
+      text:side==="long"?"🟢 多方確認":"🟢 空方確認",
+      cls:"entry-go",reason:"突破、VWAP、動能、量能與位置同步成立",rank:5,stage:"entry",micro:m
+    };
+  }
+
+  if(m.nearTrigger&&m.confirm>=4){
+    return{
+      text:"🟡 接近觸發",
+      cls:"entry-wait",reason:"接近關鍵價，等待突破與量能共同確認",rank:3,stage:"confirm",micro:m
+    };
+  }
+
+  if(m.confirm>=4){
+    return{
+      text:"🟡 方向成形",
+      cls:"entry-wait",reason:"條件逐步成立，尚未完成突破確認",rank:2,stage:"watch",micro:m
+    };
+  }
+
+  return{
+    text:"⚪ 暫不進場",
+    cls:"entry-neutral",reason:"突破、VWAP、動能或量能尚未共振",rank:1,stage:"watch",micro:m
+  };
 }
 function selectionReasons(q,x,side){const r=[],v=N(q.volume);if(v>=12000)r.push("量能強");else if(v>=5000)r.push("量能佳");else if(v>=1500)r.push("成交活躍");if(x.range>=2&&x.range<=5)r.push("振幅佳");else if(x.range>=1&&x.range<=7)r.push("振幅可交易");if(side==="long"){if(x.pct>=1&&x.pct<=5)r.push("漲幅適中");if(x.openPct>0)r.push("站上開盤");if(x.pos>=55&&x.pos<=80)r.push("位置適中");if(x.ex.ready&&x.ex.buy<55)r.push("未見高度買盤竭盡")}else{if(x.pct<=-1&&x.pct>=-5)r.push("跌幅適中");if(x.openPct<0)r.push("跌破開盤");if(x.pos>=20&&x.pos<=45)r.push("位置適中");if(x.ex.ready&&x.ex.sell<55)r.push("未見高度賣盤竭盡")}if(!r.length)r.push("綜合條件入選");return r.slice(0,5).join("｜");}
 function rankingData(q,side){const x=calc(q),decision=entryDecision(q,x,side),score=side==="long"?x.longScore:x.shortScore;return{q,x,decision,score};}
@@ -524,16 +653,63 @@ function precisionBox(q,side){
   if(!m.ready)return`<div class="precisionbox"><b>精準訊號</b><br>快照累積中｜至少 4 筆後啟用</div>`;
   return`<div class="precisionbox"><b>精準訊號 ${m.confirm}/6</b><br>近即時 VWAP ${fmt(m.vwap)}｜偏離 ${m.dist>0?"+":""}${m.dist.toFixed(2)}%<br>${m.reasons.slice(0,4).join("｜")}</div>`;
 }
-function render(list,id,side){const viewportAnchor=captureViewportAnchor();const el=document.getElementById(id);if(!list.length){el.innerHTML='<div class="card">目前沒有符合資料</div>';restoreViewportAnchor(viewportAnchor);return}el.innerHTML=list.map((q,i)=>{
-  saveDailyOHLC(q);const x=calc(q),pct=x.pct,score=side==="long"?x.longScore:x.shortScore,base=side==="long"?x.longBase:x.shortBase,cls=pct>0?"up":pct<0?"down":"flat",market=q.market==="otc"?"上櫃":"上市",p=plan(q,side),d=entryDecision(q,x,side),z=entryZone(q,side),c=cancelLevel(q,side),reasons=selectionReasons(q,x,side),ct=side==="long"?"跌破取消":"突破取消";return`<div class="stock" data-stock-key="${side}-${q.symbol||i}"><div class="row"><div class="name">#${i+1} ${q.name||""} ${q.symbol||""}<span class="tag">${market}</span></div><div><div class="score">${score.toFixed(1)}</div><div class="scoreLabel">精準訊號分</div></div></div><div class="row" style="margin-top:10px"><div class="price ${cls}">${q.price??"--"}</div><div class="${cls}">${pct>0?"+":""}${pct.toFixed(2)}%</div></div><div class="signal">${signalText(score,side)}</div><div class="entry ${d.cls}">${d.text}</div>${precisionBox(q,side)}${exhaustionBox(x)}<div class="reasonbox"><b>入選原因</b><br>${reasons}<br><span class="small">基礎可交易分 ${base.toFixed(1)}</span></div><div class="tradebox"><b>進場判斷</b><br>${d.reason}<br><b>參考進場區</b> ${fmt(z.low)} ～ ${fmt(z.high)}<br><b>${ct}</b> ${fmt(c)}<br><b>參考停損</b> ${fmt(p.stop)}　<b>參考目標</b> ${fmt(p.target)}</div><div class="info">開 ${q.open??"--"}　高 ${q.high??"--"}　低 ${q.low??"--"}<br>成交量 ${q.volume??"--"}　盤中位置 ${x.pos.toFixed(0)}%<br>開盤後 ${x.openPct>0?"+":""}${x.openPct.toFixed(2)}%　振幅 ${x.range.toFixed(2)}%<br>行情時間 ${q.tradeTime||"--"}</div><div class="risk">${riskText(x,side)}</div></div>`;}).join("");restoreViewportAnchor(viewportAnchor);}
-function mergeQuotes(quotes){for(const q of quotes){if(N(q.price)>0&&N(q.previousClose)>0)latestMap.set(historyKey(q),q);}}
-function currentWatchQuotes(){return watchList.map(x=>latestMap.get(x.market+"_"+x.symbol)).filter(Boolean);}
-let pendingVisualUpdate=false;
-const VIEW_LOCK_Y=220;
+function render(list,id,side){
+  const viewportAnchor=captureViewportAnchor();
+  const el=document.getElementById(id);
 
-function showRankUpdateButton(show){
-  const b=document.getElementById("rankUpdateBtn");
-  if(b)b.style.display=show?"block":"none";
+  if(!list.length){
+    el.innerHTML='<div class="empty">目前沒有符合資料</div>';
+    restoreViewportAnchor(viewportAnchor);
+    return;
+  }
+
+  el.innerHTML=list.map((q,i)=>{
+    saveDailyOHLC(q);
+    const x=calc(q),pct=x.pct,score=side==="long"?x.longScore:x.shortScore;
+    const d=entryDecision(q,x,side),m=d.micro||microSignal(q,side),op=liveOperation(q,side);
+    const market=q.market==="otc"?"上櫃":"上市";
+    const cls=pct>0?"up":pct<0?"down":"flat";
+
+    return`<div class="stock live-compact ${side==="long"?"live-long":"live-short"}" data-stock-key="${side}-${q.symbol||i}">
+      <div class="ultra-row">
+        <div class="ultra-left">
+          <span class="rank">${i+1}</span>
+          <div>
+            <div class="name">${q.name||q.symbol||""}</div>
+            <div class="code">${q.symbol||""}・${market}</div>
+          </div>
+        </div>
+        <div class="ultra-right">
+          <div class="price">${q.price??"--"}</div>
+          <div class="pct ${cls}">${pct>0?"+":""}${pct.toFixed(2)}%</div>
+        </div>
+      </div>
+
+      <div class="live-signal-row">
+        <b class="${d.cls}">${d.text}</b>
+        <span>分數 ${score.toFixed(0)}</span>
+        <span>${m.ready?`確認 ${m.confirm}/6`:"快照累積中"}</span>
+      </div>
+
+      <div class="ohlc-strip">
+        <span>開 ${fmtPx(N(q.open))}</span>
+        <span>高 ${fmtPx(N(q.high))}</span>
+        <span>低 ${fmtPx(N(q.low))}</span>
+        <span>振幅 ${rangePct(q).toFixed(2)}%</span>
+      </div>
+
+      <div class="live-plan">
+        <span>觸發 <b>${op.trigger?fmtPx(op.trigger):"—"}</b></span>
+        <span>停損 <b>${op.stop?fmtPx(op.stop):"—"}</b></span>
+        <span>TP1 <b>${op.tp1?fmtPx(op.tp1):"—"}</b></span>
+        <span>TP2 <b>${op.tp2?fmtPx(op.tp2):"—"}</b></span>
+      </div>
+
+      <div class="live-reason">${d.reason}${m.ready?`｜VWAP ${fmtPx(m.vwap)}｜量能 ${m.volRatio.toFixed(1)}x`:""}</div>
+    </div>`;
+  }).join("");
+
+  restoreViewportAnchor(viewportAnchor);
 }
 
 function renderWatch(force=false){
@@ -693,31 +869,53 @@ function ahReason(q,side){
  }
  return r.slice(0,3).join("｜")||"量價中性";
 }
+function twTick(p){
+  p=N(p);
+  if(p<10)return .01;
+  if(p<50)return .05;
+  if(p<100)return .1;
+  if(p<500)return .5;
+  if(p<1000)return 1;
+  return 5;
+}
+function snapTick(v){
+  const t=twTick(v);
+  return t?Math.round(v/t)*t:v;
+}
 function liveOperation(q,side){
- const p=N(q.price),o=N(q.open),h=N(q.high),l=N(q.low),y=N(q.previousClose);
- const px=v=>Number.isFinite(v)&&v>0?v.toFixed(2):"—";
- if(!Number.isFinite(p)||!Number.isFinite(o)||o<=0)
-   return {state:"等待開盤",entry:"等待今日開盤價與即時成交資料",stop:"—",tp1:"—",tp2:"—",rr:"—"};
- const riskPct=.008;
- let entry=p,stop,tp1,tp2,state,text;
- if(side==="long"){
-   const structural=(Number.isFinite(l)&&l>0)?l:o;
-   stop=Math.max(structural,entry*(1-riskPct));
-   if(stop>=entry)stop=entry*(1-riskPct);
-   const risk=entry-stop; tp1=entry+risk*1.5; tp2=entry+risk*2;
-   if(p>o&&(!Number.isFinite(y)||p>=y)){state="即時偏多";text=`現價 ${px(p)} 站上今開 ${px(o)}；量價續強或突破盤中高 ${px(h)} 後，等回踩不破再進。`;}
-   else if(p<o){state="偏多失效觀察";text=`現價 ${px(p)} 低於今開 ${px(o)}，先不做多。`;}
-   else{state="多方等待";text=`現價在今開 ${px(o)} 附近，等待方向與量能確認。`;}
- }else{
-   const structural=(Number.isFinite(h)&&h>0)?h:o;
-   stop=Math.min(structural,entry*(1+riskPct));
-   if(stop<=entry)stop=entry*(1+riskPct);
-   const risk=stop-entry; tp1=entry-risk*1.5; tp2=entry-risk*2;
-   if(p<o&&(!Number.isFinite(y)||p<=y)){state="即時偏空";text=`現價 ${px(p)} 跌破今開 ${px(o)}；賣壓續強或跌破盤中低 ${px(l)} 後，等反彈不過再進。`;}
-   else if(p>o){state="偏空失效觀察";text=`現價 ${px(p)} 高於今開 ${px(o)}，先不做空。`;}
-   else{state="空方等待";text=`現價在今開 ${px(o)} 附近，等待方向與量能確認。`;}
- }
- return {state,entry:text,stop:`動態停損參考 ${px(stop)}`,tp1:`第一停利 ${px(tp1)}（約 1.5R）`,tp2:`第二停利 ${px(tp2)}（約 2R）`,rr:"風報比至少 1:1.5；未觸發進場條件時不使用這組價位"};
+  const p=N(q.price),m=microSignal(q,side);
+  const arr=historyMap.get(historyKey(q))||[];
+
+  if(!p||!m.ready){
+    return{trigger:m.trigger||p,stop:0,tp1:0,tp2:0,riskPct:0};
+  }
+
+  const recent=arr.slice(-4).map(x=>N(x.price)).filter(x=>x>0);
+  const hardRisk=side==="long"?p*.992:p*1.008;
+  let stop;
+
+  if(side==="long"){
+    const swing=recent.length?Math.min(...recent):p*.996;
+    const vwapGuard=m.vwap*.9975;
+    stop=Math.max(hardRisk,Math.min(swing,vwapGuard));
+    if(stop>=p)stop=p*.996;
+  }else{
+    const swing=recent.length?Math.max(...recent):p*1.004;
+    const vwapGuard=m.vwap*1.0025;
+    stop=Math.min(hardRisk,Math.max(swing,vwapGuard));
+    if(stop<=p)stop=p*1.004;
+  }
+
+  stop=snapTick(stop);
+  const risk=Math.abs(p-stop);
+  const tp1=snapTick(side==="long"?p+risk*1.5:p-risk*1.5);
+  const tp2=snapTick(side==="long"?p+risk*2:p-risk*2);
+
+  return{
+    trigger:snapTick(m.trigger),
+    stop,tp1,tp2,
+    riskPct:p?risk/p*100:0
+  };
 }
 
 function ahOperation(q,side){
