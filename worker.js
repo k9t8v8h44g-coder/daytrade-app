@@ -985,11 +985,16 @@ export default{
             .filter(x=>/^\d{4,6}$/.test(x))
             .slice(0,60);
 
+        const otcMerged=[
+          ...new Set([
+            ...DEFAULT_OTC_AFTER_SYMBOLS,
+            ...otcParam
+          ])
+        ].slice(0,60);
+
         const out=
           await getAfterHours(
-            otcParam.length
-              ?otcParam
-              :DEFAULT_OTC_AFTER_SYMBOLS,
+            otcMerged,
             tseParam
           );
 
@@ -1097,13 +1102,7 @@ export default{
           },
 
           otcRequested:
-            (
-              (u.searchParams.get("otc")||"")
-                .split(",")
-                .map(x=>x.trim())
-                .filter(x=>/^\d{4,6}$/.test(x))
-                .length
-            ) || DEFAULT_OTC_AFTER_SYMBOLS.length,
+            otcMerged.length,
 
           otcMode:
             "TWSE MIS watchlist",
