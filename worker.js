@@ -1,7 +1,26 @@
 const TWSE_URL="https://mis.twse.com.tw/stock/api/getStockInfo.jsp";
 
 const TWSE_AFTER="https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL";
-const TPEX_AFTER="https://www.tpex.org.tw/openapi/v1/tpex_mainboard_quotes";
+const TWSE_MARKET_DATES="https://openapi.twse.com.tw/v1/exchangeReport/FMTQIK";
+const TPEX_AFTER="https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes";
+
+function rocDateISO(s){
+  s=String(s||"").trim().replace(/[^\d]/g,"");
+  if(/^1\d{6}$/.test(s)){const y=Number(s.slice(0,3))+1911;return `${y}-${s.slice(3,5)}-${s.slice(5,7)}`}
+  if(/^\d{8}$/.test(s))return `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`;
+  return null;
+}
+async function fetchLatestTwseTradeDate(){
+  const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),8000);
+  try{
+    const r=await fetch(TWSE_MARKET_DATES,{signal:ctl.signal,headers:{"Accept":"application/json"}});
+    if(!r.ok)throw new Error("TWSE date HTTP "+r.status);
+    const a=await r.json(); if(!Array.isArray(a)||!a.length)return null;
+    const dates=a.map(x=>rocDateISO(x.Date)).filter(Boolean).sort();
+    return dates.at(-1)||null;
+  }finally{clearTimeout(timer)}
+}
+
 function pick(o,keys){for(const k of keys)if(o&&o[k]!=null&&o[k]!=="")return o[k];return null}
 function nn(v){if(v==null||v===""||v==="--"||v==="---")return null;const x=Number(String(v).replace(/,/g,"").replace(/[＋+]/g,""));return Number.isFinite(x)?x:null}
 function afterRow(r,market){
@@ -116,6 +135,10 @@ export default{
       const started=Date.now();
       try{
         const out=await getAfterHours();
+        let marketDate=null;
+        try{marketDate=await fetchLatestTwseTradeDate()}catch(e){out.errors.push("TWSE date: "+String(e?.message||e))}
+        const payloadDates=[...new Set(out.quotes.map(q=>rocDateISO(q.tradeDate)).filter(Boolean))].sort();
+        if(!marketDate && payloadDates.length)marketDate=payloadDates.at(-1);
         return json({
           ok:out.quotes.length>0,
           count:out.quotes.length,
@@ -123,7 +146,12 @@ export default{
           errors:out.errors,
           elapsedMs:Date.now()-started,
           source:"TWSE + TPEx official after-hours",
-          tradeDates:[...new Set(out.quotes.map(q=>q.tradeDate).filter(Boolean))],
+          marketDate,
+          payloadDates,
+          marketCounts:{
+            tse:out.quotes.filter(q=>q.market==="tse").length,
+            otc:out.quotes.filter(q=>q.market==="otc").length
+          },
           quotes:out.quotes
         },out.quotes.length?200:502);
       }catch(e){
