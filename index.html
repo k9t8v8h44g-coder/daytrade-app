@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#07101f">
-<title>台股當沖助手 V4.3.2</title>
+<title>台股當沖助手 V4.4</title>
 <style>
 *{box-sizing:border-box}
 html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:900px;margin:auto;padding:22px 14px 80px}h1{margin:0;font-size:29px}.sub{color:#9fb0ca;margin:8px 0 16px;line-height:1.55}.card,.stock{background:#101a2d;border:1px solid #293a55;border-radius:17px;padding:15px;margin-bottom:12px}.row,.status{display:flex;justify-content:space-between;align-items:center;gap:10px}.live{color:#67e394;font-weight:900}.small,.info{color:#9fb0ca;font-size:13px}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}button{width:100%;border:0;border-radius:13px;padding:14px;background:#568cff;color:white;font-size:16px;font-weight:850}button:disabled{opacity:.55}.title{font-size:23px;font-weight:900;margin:23px 0 11px}.name{font-size:19px;font-weight:850}.price{font-size:27px;font-weight:900}.score{font-size:25px;font-weight:900}.scoreLabel{color:#9fb0ca;font-size:11px;text-align:right}.up{color:#ff6969}.down{color:#59dc9c}.flat{color:#eef4ff}.tag{display:inline-block;background:#1e2d49;border-radius:8px;padding:4px 7px;font-size:11px;margin-left:5px}.signal{display:inline-block;margin-top:9px;padding:6px 9px;border-radius:9px;background:#20304d;font-weight:800}.entry{margin-top:11px;border-radius:12px;padding:11px 12px;font-weight:900;font-size:15px}.entry-go{background:#123c2c;color:#74edac;border:1px solid #266c4e}.entry-wait{background:#3d351b;color:#f2cd68;border:1px solid #6f5e2b}.entry-stop{background:#482329;color:#ff8b94;border:1px solid #7c3a44}.entry-neutral{background:#1d2c46;color:#a9bbd6;border:1px solid #354865}.reasonbox{margin-top:10px;padding:10px 12px;background:#17243a;border-radius:11px;color:#b9c9df;font-size:13px;line-height:1.7}.reasonbox b{color:#eef4ff}.exhaustbox{margin-top:10px;padding:11px 12px;background:#111d31;border:1px solid #2a3c59;border-radius:12px;font-size:13px;line-height:1.7}.exhaust-title{font-weight:900}.exhaust-buy{color:#ff8b94}.exhaust-sell{color:#74edac}.exhaust-neutral{color:#a9bbd6}.tradebox{margin-top:10px;padding:11px 12px;background:#0c1527;border:1px solid #233756;border-radius:12px;line-height:1.8;font-size:13px}.tradebox b{color:#eef4ff}.info{line-height:1.7;margin-top:10px}.risk{margin-top:8px;font-size:12px;color:#f0c36a}.session{margin-top:8px;padding:8px 10px;border-radius:10px;background:#17243a;color:#a9bbd6;font-size:12px;line-height:1.5}.pulse{color:#67e394}footer{text-align:center;color:#74859e;font-size:12px;margin-top:25px;line-height:1.6}
@@ -19,14 +19,14 @@ html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;fo
 </head>
 <body>
 <main class="wrap">
-<h1>台股當沖助手 V4.3.2</h1>
-<div class="sub">上市＋上櫃｜200 檔極速背景雷達｜Top 20 約 5 秒近即時追蹤｜買盤竭盡＋賣盤竭盡</div>
+<h1>台股當沖助手 V4.4</h1>
+<div class="sub">上市＋上櫃｜200 檔分段輪替雷達｜Top 20 約 5 秒近即時追蹤｜買盤竭盡＋賣盤竭盡</div>
 <div class="card status"><div><b id="status">建立候選池...</b><div id="time" class="small">--</div><div id="session" class="session">正在確認台北盤中時段...</div></div><div class="live">● 近即時</div></div>
 <div class="card"><div class="row"><span>全市場當沖候選池</span><b id="poolCount">--</b></div><div class="small" id="poolInfo">正在讀取上市＋上櫃市場資料</div></div>
 <div class="buttons"><button onclick="buildPool()">重建候選池</button><button id="scanBtn" onclick="fullScan(true)">立即全掃</button></div>
 <div class="title">🔥 多方優先 Top 10</div><div id="long"><div class="card small">等待第一次完整掃描...</div></div>
 <div class="title">❄️ 空方優先 Top 10</div><div id="short"><div class="card small">等待第一次完整掃描...</div></div>
-<footer>V4.3.2｜精準訊號引擎＋安全容錯＋閱讀鎖定＋Cloudflare 即時行情＋Top 20 近即時追蹤｜竭盡模型使用連續價格＋增量成交量推進效率｜非逐筆委託流模型｜行情來源 TWSE MIS｜實際交易請以券商報價確認</footer>
+<footer>V4.4｜分段輪替雷達＋Top 20 近即時＋精準訊號＋閱讀鎖定＋Top 20 近即時追蹤｜竭盡模型使用連續價格＋增量成交量推進效率｜非逐筆委託流模型｜行情來源 TWSE MIS｜實際交易請以券商報價確認</footer>
 </main>
 <script>
 let pool=[],watchList=[];
@@ -53,10 +53,10 @@ function rowMovePct(r){const p=rowClose(r),y=rowPrev(r);return(!p||!y)?0:(p-y)/y
 function candidateScore(r){const liq=liquidity(r),range=rowRangePct(r),move=Math.abs(rowMovePct(r));let s=0;if(liq>0)s+=Math.log10(liq+1)*15;if(range>=2&&range<=5)s+=8;else if(range>=1&&range<2)s+=4;else if(range>5&&range<=7)s+=5;else if(range>7&&range<=9)s+=2;if(move>=1&&move<=5)s+=4;else if(move>5&&move<=7)s+=2;return s;}
 
 function taipeiNowParts(){const ps=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",weekday:"short",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).formatToParts(new Date()),o={};for(const p of ps)if(p.type!=="literal")o[p.type]=p.value;return{weekday:o.weekday||"",hour:Number(o.hour||0),minute:Number(o.minute||0),second:Number(o.second||0)};}
-function sessionState(){const t=taipeiNowParts(),m=t.hour*60+t.minute,w=!['Sat','Sun'].includes(t.weekday);if(!w)return{open:false,code:"weekend",text:"🌙 非一般盤中時段｜週末不自動掃描"};if(m<540)return{open:false,code:"premarket",text:"🌅 盤前等待 09:00 開盤｜目前不自動掃描"};if(m>=540&&m<=810)return{open:true,code:"open",text:"🟢 盤中｜200 檔背景雷達＋Top 20 約 5 秒近即時追蹤"};return{open:false,code:"closed",text:"🌙 一般盤後時段｜保留最後一輪 Top 10"};}
+function sessionState(){const t=taipeiNowParts(),m=t.hour*60+t.minute,w=!['Sat','Sun'].includes(t.weekday);if(!w)return{open:false,code:"weekend",text:"🌙 非一般盤中時段｜週末不自動掃描"};if(m<540)return{open:false,code:"premarket",text:"🌅 盤前等待 09:00 開盤｜目前不自動掃描"};if(m>=540&&m<=810)return{open:true,code:"open",text:"🟢 盤中｜200 檔分段輪替雷達＋Top 20 約 5 秒近即時追蹤"};return{open:false,code:"closed",text:"🌙 一般盤後時段｜保留最後一輪 Top 10"};}
 function refreshSessionUI(){const s=sessionState();document.getElementById("session").textContent=s.text;return s;}
 
-async function buildPool(){try{document.getElementById("status").textContent="建立 200 檔候選池...";document.getElementById("time").textContent="正在讀取上市＋上櫃全市場資料";const res=await fetch("./data/market.json?ts="+Date.now(),{cache:"no-store"});if(!res.ok)throw new Error("市場資料 HTTP "+res.status);let rows=rowsOf(await res.json());if(!rows.length)throw new Error("market.json 沒有股票資料");rows=rows.filter(r=>/^\d{4}$/.test(codeOf(r))&&liquidity(r)>0).sort((a,b)=>candidateScore(b)-candidateScore(a));const seen=new Set();pool=rows.filter(r=>{const k=marketOf(r)+"_"+codeOf(r);if(seen.has(k))return false;seen.add(k);return true;}).slice(0,POOL_SIZE).map(r=>({symbol:codeOf(r),market:marketOf(r)}));if(!pool.length)throw new Error("找不到符合條件股票");document.getElementById("poolCount").textContent=pool.length+" 檔";document.getElementById("poolInfo").textContent="200 檔背景雷達｜Top 20 高頻追蹤｜單次 API 最多 20 檔";const s=refreshSessionUI();if(s.open){document.getElementById("status").textContent="候選池完成｜開始背景全掃";document.getElementById("time").textContent="已建立 "+pool.length+" 檔候選池";setTimeout(()=>fullScan(false),500);}else{document.getElementById("status").textContent=s.code==="premarket"?"🌅 盤前等待開盤":"目前非一般盤中時段";document.getElementById("time").textContent="已建立 "+pool.length+" 檔候選池｜不自動掃描";}}catch(e){console.error(e);document.getElementById("status").textContent="候選池失敗";document.getElementById("time").textContent=String(e.message||e);}}
+async function buildPool(){try{document.getElementById("status").textContent="建立 200 檔候選池...";document.getElementById("time").textContent="正在讀取上市＋上櫃全市場資料";const res=await fetch("./data/market.json?ts="+Date.now(),{cache:"no-store"});if(!res.ok)throw new Error("市場資料 HTTP "+res.status);let rows=rowsOf(await res.json());if(!rows.length)throw new Error("market.json 沒有股票資料");rows=rows.filter(r=>/^\d{4}$/.test(codeOf(r))&&liquidity(r)>0).sort((a,b)=>candidateScore(b)-candidateScore(a));const seen=new Set();pool=rows.filter(r=>{const k=marketOf(r)+"_"+codeOf(r);if(seen.has(k))return false;seen.add(k);return true;}).slice(0,POOL_SIZE).map(r=>({symbol:codeOf(r),market:marketOf(r)}));if(!pool.length)throw new Error("找不到符合條件股票");document.getElementById("poolCount").textContent=pool.length+" 檔";document.getElementById("poolInfo").textContent="200 檔分段輪替雷達｜Top 20 高頻追蹤｜單次 API 最多 20 檔";const s=refreshSessionUI();if(s.open){document.getElementById("status").textContent="候選池完成｜開始分段輪替掃描";document.getElementById("time").textContent="已建立 "+pool.length+" 檔候選池";setTimeout(()=>fullScan(false),500);}else{document.getElementById("status").textContent=s.code==="premarket"?"🌅 盤前等待開盤":"目前非一般盤中時段";document.getElementById("time").textContent="已建立 "+pool.length+" 檔候選池｜不自動掃描";}}catch(e){console.error(e);document.getElementById("status").textContent="候選池失敗";document.getElementById("time").textContent=String(e.message||e);}}
 
 function makeQuery(list){return list.map(x=>x.market+":"+x.symbol).join(",");}
 async function getBatch(list){
@@ -73,42 +73,29 @@ async function getBatch(list){
 }
 async function rescueBatch(list){if(list.length<=1){try{return await getBatch(list)}catch(e){return[]}}const mid=Math.ceil(list.length/2),left=list.slice(0,mid),right=list.slice(mid),out=[];try{out.push(...await getBatch(left))}catch(e){}await sleep(400);try{out.push(...await getBatch(right))}catch(e){}return out;}
 async function getAllQuotesCore(){
-  const batches=[];
-  for(let i=0;i<pool.length;i+=BATCH_SIZE_FAST)batches.push(pool.slice(i,i+BATCH_SIZE_FAST));
-  const out=[];
-  let rescued=0,completed=0,nextIndex=0;
+  // V4.4: low-pressure rotating radar.
+  // Scan only 5 candidates at a time, sequentially, and merge into a rolling cache.
+  if(!window.__radarCache)window.__radarCache=new Map();
+  if(!Number.isInteger(window.__radarCursor))window.__radarCursor=0;
+  const pool=(typeof candidatePool!=="undefined"&&Array.isArray(candidatePool))?candidatePool:[];
+  if(!pool.length)return [...window.__radarCache.values()];
 
-  async function worker(){
-    while(true){
-      const idx=nextIndex++;
-      if(idx>=batches.length)return;
-      const batch=batches[idx];
-      let q=[];
-      try{q=await getBatch(batch);}
-      catch(e){q=await rescueBatch(batch);rescued+=q.length;}
-      if(q.length)out.push(...q);
-      completed++;
-
-      document.getElementById("status").textContent=`⚡ 穩定極速掃描 ${completed} / ${batches.length} 批`;
-      document.getElementById("time").textContent=`${SCAN_CONCURRENCY} 路穩定並行｜已取得 ${out.length} 檔｜${new Date().toLocaleTimeString("zh-TW")}`;
-
-      const valid=out.filter(x=>N(x.price)>0&&N(x.previousClose)>0);
-      if(valid.length>=20){
-        mergeQuotes(valid);
-        addSnapshots(valid);
-        watchList=makeWatchList(valid);
-        renderWatch();
-      }
-    }
+  const slice=[];
+  for(let i=0;i<5;i++){
+    const item=pool[(window.__radarCursor+i)%pool.length];
+    const sym=typeof item==="string"?item:(item.symbol||item.code);
+    if(sym)slice.push(String(sym));
   }
+  window.__radarCursor=(window.__radarCursor+5)%pool.length;
 
-  await Promise.all(Array.from({length:Math.min(SCAN_CONCURRENCY,batches.length)},()=>worker()));
-  const unique=[],seen=new Set();
-  for(const q of out){
-    const k=(q.market||"")+"_"+(q.symbol||"");
-    if(!seen.has(k)){seen.add(k);unique.push(q);}
+  for(const sym of slice){
+    try{
+      const rows=await getBatch([sym]);
+      for(const q of rows)if(q&&q.symbol)window.__radarCache.set(q.symbol,q);
+    }catch(e){}
+    await sleep(140);
   }
-  return{quotes:unique,rescued};
+  return [...window.__radarCache.values()];
 }
 let lastGoodAllQuotes=[];
 async function getAllQuotes(){
@@ -312,9 +299,36 @@ document.addEventListener("DOMContentLoaded",()=>{
   if(b)b.addEventListener("click",()=>renderWatch(true));
 });
 
-async function focusScan(){if(focusScanning||!watchList.length||!sessionState().open)return;focusScanning=true;try{const q=await getBatch(watchList);const valid=q.filter(x=>N(x.price)>0&&N(x.previousClose)>0);if(valid.length){mergeQuotes(valid);addSnapshots(valid);lastFocusAt=Date.now();renderWatch();document.getElementById("status").textContent="Top 20 近即時追蹤中";document.getElementById("time").textContent=`約 5 秒更新｜本次 ${valid.length}/${watchList.length} 檔｜${new Date().toLocaleTimeString("zh-TW")}`;}}catch(e){console.log("focus scan fail",e)}finally{focusScanning=false;}}
+async function focusScan(){
+  if(focusBusy)return;
+  focusBusy=true;
+  try{
+    const syms=Array.isArray(watchSymbols)?watchSymbols:[];
+    if(!syms.length)return;
+    if(!Number.isInteger(window.__focusCursor))window.__focusCursor=0;
+    const part=[];
+    for(let i=0;i<4&&i<syms.length;i++)part.push(syms[(window.__focusCursor+i)%syms.length]);
+    window.__focusCursor=(window.__focusCursor+4)%syms.length;
 
-async function fullScan(manual=false){if(backgroundScanning)return;const s=refreshSessionUI();if(!s.open){document.getElementById("status").textContent=s.code==="premarket"?"🌅 盤前等待開盤":"目前非一般盤中時段";document.getElementById("time").textContent=manual?"目前不執行盤中掃描｜保留上一輪 Top 10":"等待下一個一般盤中時段";return}if(!pool.length){document.getElementById("status").textContent="尚未建立候選池";return}backgroundScanning=true;const btn=document.getElementById("scanBtn");btn.disabled=true;try{const result=await getAllQuotes(),valid=result.quotes.filter(q=>N(q.price)>0&&N(q.previousClose)>0);if(!valid.length)throw new Error("沒有有效成交價");mergeQuotes(valid);addSnapshots(valid);watchList=makeWatchList(valid);lastFullScanAt=Date.now();renderWatch();document.getElementById("status").textContent="背景全掃完成｜Top 20 已鎖定追蹤";document.getElementById("time").textContent=`有效 ${valid.length}/${pool.length} 檔｜Top 20 約 5 秒更新｜${new Date().toLocaleTimeString("zh-TW")}`;setTimeout(()=>focusScan(),700);}catch(e){console.error(e);document.getElementById("status").textContent="行情暫時重試中";document.getElementById("time").textContent=String(e.message||e)+"｜保留近即時 Top 10";}finally{backgroundScanning=false;btn.disabled=false;refreshSessionUI();}}
+    for(const sym of part){
+      try{
+        const rows=await getBatch([sym]);
+        for(const q of rows){
+          if(!q||!q.symbol)continue;
+          quoteMap.set(q.symbol,q);
+          pushHistory(q);
+        }
+      }catch(e){}
+      await sleep(100);
+    }
+    renderWatch();
+    setLive(true);
+  }finally{
+    focusBusy=false;
+  }
+}
+
+async function fullScan(manual=false){if(backgroundScanning)return;const s=refreshSessionUI();if(!s.open){document.getElementById("status").textContent=s.code==="premarket"?"🌅 盤前等待開盤":"目前非一般盤中時段";document.getElementById("time").textContent=manual?"目前不執行盤中掃描｜保留上一輪 Top 10":"等待下一個一般盤中時段";return}if(!pool.length){document.getElementById("status").textContent="尚未建立候選池";return}backgroundScanning=true;const btn=document.getElementById("scanBtn");btn.disabled=true;try{const result=await getAllQuotes(),valid=result.quotes.filter(q=>N(q.price)>0&&N(q.previousClose)>0);if(!valid.length)throw new Error("沒有有效成交價");mergeQuotes(valid);addSnapshots(valid);watchList=makeWatchList(valid);lastFullScanAt=Date.now();renderWatch();document.getElementById("status").textContent="分段雷達更新完成｜Top 20 已鎖定追蹤";document.getElementById("time").textContent=`有效 ${valid.length}/${pool.length} 檔｜Top 20 約 5 秒更新｜${new Date().toLocaleTimeString("zh-TW")}`;setTimeout(()=>focusScan(),700);}catch(e){console.error(e);document.getElementById("status").textContent="行情暫時重試中";document.getElementById("time").textContent=String(e.message||e)+"｜保留近即時 Top 10";}finally{backgroundScanning=false;btn.disabled=false;refreshSessionUI();}}
 
 refreshSessionUI();buildPool();
 setInterval(()=>{const s=refreshSessionUI();if(s.open&&pool.length&&!backgroundScanning&&Date.now()-lastFullScanAt>=FULL_SCAN_MS)fullScan(false);},5000);

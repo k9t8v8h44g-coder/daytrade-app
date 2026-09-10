@@ -1,4 +1,4 @@
-const CACHE='daytrade-v432';
+const CACHE='daytrade-v44';
 const STATIC=['./manifest.json'];
 
 self.addEventListener('install',e=>{
