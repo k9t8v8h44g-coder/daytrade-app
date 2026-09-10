@@ -54,7 +54,7 @@ html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;fo
 
 <div class="card">
  <div class="row"><div><b style="font-size:20px">🌙 盤後分析・明日當沖候選</b>
- <div class="small" style="margin-top:5px">上市 TWSE OpenAPI＋上櫃擴充池 TWSE MIS｜最多 60 檔 OTC｜同交易日才排名</div></div></div>
+ <div class="small" style="margin-top:5px">上市 MIS 當日覆蓋＋TWSE OpenAPI 備援｜上櫃 MIS｜同交易日才排名</div></div></div>
  
 <div class="ah-legend">
   <span><i class="ah-dot ah-dot-long"></i>紅色＝偏多</span>
@@ -502,9 +502,11 @@ async function runAfterHours(){
   let res;
   try{res=await fetch(API_BASE+"/api/afterhours?"+(()=>{
     const otcPool=[...new Set((pool||[]).filter(x=>x&&x.market==="otc").map(x=>x.symbol))].slice(0,60);
+    const tsePool=[...new Set((pool||[]).filter(x=>x&&x.market==="tse").map(x=>x.symbol))].slice(0,60);
     const p=new URLSearchParams();
     p.set("ts",Date.now());
     if(otcPool.length)p.set("otc",otcPool.join(","));
+    if(tsePool.length)p.set("tse",tsePool.join(","));
     return p.toString();
   })(),{cache:"no-store",signal:c.signal})}
   finally{clearTimeout(timer)}

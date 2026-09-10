@@ -461,7 +461,7 @@ async function fetchTpexFallback(){
   }
 }
 
-async function getAfterHours(otcSymbols=DEFAULT_OTC_AFTER_SYMBOLS){
+async function getAfterHours(otcSymbols=DEFAULT_OTC_AFTER_SYMBOLS,tseSymbols=[]){
 
   const quotes=[];
   const errors=[];
@@ -489,6 +489,28 @@ async function getAfterHours(otcSymbols=DEFAULT_OTC_AFTER_SYMBOLS){
         e
       )
     );
+  }
+
+  /*
+    1b) Current-day TSE MIS overlay:
+        the bulk TWSE OpenAPI can lag one trading day after close.
+        Pull the app's listed candidate symbols from MIS and replace stale
+        bulk rows for the same symbols. Date filtering in the app remains final guard.
+  */
+  if((tseSymbols||[]).length){
+    try{
+      const tseMis=await getAfterHoursByMis(tseSymbols,"tse",60);
+      const freshBySymbol=new Map(tseMis.quotes.map(q=>[q.symbol,q]));
+      for(let i=quotes.length-1;i>=0;i--){
+        if(quotes[i].market==="tse" && freshBySymbol.has(quotes[i].symbol)){
+          quotes.splice(i,1);
+        }
+      }
+      quotes.push(...tseMis.quotes);
+      errors.push(...tseMis.errors);
+    }catch(e){
+      errors.push("TSE MIS: "+String(e?.message||e));
+    }
   }
 
   /*
@@ -731,6 +753,50 @@ async function oneSymbol(symbol){
   return null;
 }
 
+
+async function getAfterHoursByMis(symbols,market,limit=60){
+
+  const out=[];
+  const errors=[];
+  const unique=[
+    ...new Set(
+      (symbols||[])
+        .map(x=>String(x||"").trim())
+        .filter(x=>/^\d{4,6}$/.test(x))
+    )
+  ].slice(0,limit);
+
+  let cursor=0;
+
+  async function runner(){
+    while(true){
+      const i=cursor++;
+      if(i>=unique.length)return;
+      const symbol=unique[i];
+      try{
+        const q=await oneExchange(symbol,market);
+        if(q){
+          out.push({
+            ...q,
+            market,
+            source:"TWSE MIS "+market.toUpperCase()
+          });
+        }else{
+          errors.push(market.toUpperCase()+" "+symbol+": no quote");
+        }
+      }catch(e){
+        errors.push(market.toUpperCase()+" "+symbol+": "+String(e?.message||e));
+      }
+    }
+  }
+
+  await Promise.all(
+    Array.from({length:Math.min(8,unique.length)},runner)
+  );
+
+  return {quotes:out,errors};
+}
+
 async function getOtcAfterHoursByMis(symbols){
 
   const out=[];
@@ -892,7 +958,7 @@ export default{
 
         otcAfterMode:"TWSE MIS symbol watchlist",
 
-        version:"4.8.1"
+        version:"4.9.3"
       });
     }
 
@@ -912,11 +978,19 @@ export default{
             .map(x=>x.trim())
             .filter(x=>/^\d{4,6}$/.test(x));
 
+        const tseParam=
+          (u.searchParams.get("tse")||"")
+            .split(",")
+            .map(x=>x.trim())
+            .filter(x=>/^\d{4,6}$/.test(x))
+            .slice(0,60);
+
         const out=
           await getAfterHours(
             otcParam.length
               ?otcParam
-              :DEFAULT_OTC_AFTER_SYMBOLS
+              :DEFAULT_OTC_AFTER_SYMBOLS,
+            tseParam
           );
 
         const payloadDates=[
@@ -980,7 +1054,7 @@ export default{
             Date.now()-started,
 
           source:
-            "TWSE OpenAPI + OTC TWSE MIS",
+            "TWSE OpenAPI + TSE/OTC TWSE MIS overlay",
 
           marketDate,
 
@@ -1033,6 +1107,12 @@ export default{
 
           otcMode:
             "TWSE MIS watchlist",
+
+          tseMisRequested:
+            tseParam.length,
+
+          tseMode:
+            "TWSE MIS current-day overlay + OpenAPI fallback",
 
           quotes:
             out.quotes
