@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="theme-color" content="#07101f">
-<title>台股當沖助手 V5.6.2</title>
+<title>台股當沖助手 V5.7.0</title>
 <style>
 *{box-sizing:border-box}
 html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:900px;margin:auto;padding:22px 14px 80px}h1{margin:0;font-size:29px}.sub{color:#9fb0ca;margin:8px 0 16px;line-height:1.55}.card,.stock{background:#101a2d;border:1px solid #293a55;border-radius:17px;padding:15px;margin-bottom:12px}.row,.status{display:flex;justify-content:space-between;align-items:center;gap:10px}.live{color:#67e394;font-weight:900}.small,.info{color:#9fb0ca;font-size:13px}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}button{width:100%;border:0;border-radius:13px;padding:14px;background:#568cff;color:white;font-size:16px;font-weight:850}button:disabled{opacity:.55}.title{font-size:23px;font-weight:900;margin:23px 0 11px}.name{font-size:19px;font-weight:850}.price{font-size:27px;font-weight:900}.score{font-size:25px;font-weight:900}.scoreLabel{color:#9fb0ca;font-size:11px;text-align:right}.up{color:#ff6969}.down{color:#59dc9c}.flat{color:#eef4ff}.tag{display:inline-block;background:#1e2d49;border-radius:8px;padding:4px 7px;font-size:11px;margin-left:5px}.signal{display:inline-block;margin-top:9px;padding:6px 9px;border-radius:9px;background:#20304d;font-weight:800}.entry{margin-top:11px;border-radius:12px;padding:11px 12px;font-weight:900;font-size:15px}.entry-go{background:#123c2c;color:#74edac;border:1px solid #266c4e}.entry-wait{background:#3d351b;color:#f2cd68;border:1px solid #6f5e2b}.entry-stop{background:#482329;color:#ff8b94;border:1px solid #7c3a44}.entry-neutral{background:#1d2c46;color:#a9bbd6;border:1px solid #354865}.reasonbox{margin-top:10px;padding:10px 12px;background:#17243a;border-radius:11px;color:#b9c9df;font-size:13px;line-height:1.7}.reasonbox b{color:#eef4ff}.exhaustbox{margin-top:10px;padding:11px 12px;background:#111d31;border:1px solid #2a3c59;border-radius:12px;font-size:13px;line-height:1.7}.exhaust-title{font-weight:900}.exhaust-buy{color:#ff8b94}.exhaust-sell{color:#74edac}.exhaust-neutral{color:#a9bbd6}.tradebox{margin-top:10px;padding:11px 12px;background:#0c1527;border:1px solid #233756;border-radius:12px;line-height:1.8;font-size:13px}.tradebox b{color:#eef4ff}.info{line-height:1.7;margin-top:10px}.risk{margin-top:8px;font-size:12px;color:#f0c36a}.session{margin-top:8px;padding:8px 10px;border-radius:10px;background:#17243a;color:#a9bbd6;font-size:12px;line-height:1.5}.pulse{color:#67e394}footer{text-align:center;color:#74859e;font-size:12px;margin-top:25px;line-height:1.6}
@@ -22,7 +22,7 @@ html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;fo
 .ahTitle{font-size:18px;font-weight:900;margin:16px 0 7px}.ahRow{border-top:1px solid #293a55;padding:11px 0}
 .ahScore{font-size:20px;font-weight:900}.ahMeta{color:#9fb0ca;font-size:13px;line-height:1.65;margin-top:4px}
 
-/* V5.6.2 多空色彩區隔：紅=多、綠=空 */
+/* V5.7.0 多空色彩區隔：紅=多、綠=空 */
 .ah-side{
   display:inline-flex;align-items:center;gap:6px;
   font-weight:800;padding:5px 10px;border-radius:999px;
@@ -65,32 +65,107 @@ html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;fo
 .sr-r{border-left:4px solid #ff5b62}.sr-s{border-left:4px solid #39d98a}
 .sr-label{font-size:13px;color:#9fb0ca}.sr-price{font-size:22px;font-weight:850;margin-top:2px}
 .sr-note{color:#aebbd0;font-size:13px;line-height:1.55;margin-top:12px}
+
+/* V5.7 simplified UI */
+.simple-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}
+.simple-head h1{font-size:26px;line-height:1.15}
+.ver{font-size:14px;font-weight:700;color:#9fb0ca;vertical-align:middle}
+.simple-head .sub{margin:6px 0 0;font-size:14px}
+.simple-status{padding:13px 15px;margin-bottom:12px}
+.simple-status #status{font-size:17px}
+.simple-status .session{margin-top:4px;font-size:13px}
+.simple-status #time{margin-top:3px;font-size:12px}
+.quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 12px}
+.quick-actions button{min-height:54px;margin:0;border-radius:14px;font-size:16px}
+.primary-action{font-weight:800}
+.secondary-action{opacity:.9}
+.simple-after{padding:14px}
+.simple-section-head b{font-size:20px}
+.simple-message{margin:9px 0 2px}
+.simple-stock{padding:13px;margin:10px 0}
+.simple-stock .name{font-size:19px}
+.simple-stock .price{font-size:23px}
+.simple-signal-row{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-top:10px;color:#b7c4d9;font-size:13px}
+.simple-pill{padding:4px 8px;border-radius:999px;background:#17243a;font-weight:800}
+.simple-key{margin-top:10px;font-size:15px;font-weight:700;line-height:1.45}
+.stock-more{margin-top:10px;border-top:1px solid #293a55;padding-top:9px}
+.stock-more summary,.more-panel summary{cursor:pointer;color:#9fb0ca;font-weight:700}
+.stock-more[open] summary{margin-bottom:10px}
+.simple-ohlc{margin:8px 0;color:#b7c4d9;font-size:13px}
+.more-panel{background:#101a2d;border:1px solid #293a55;border-radius:17px;padding:14px;margin:12px 0}
+.more-panel>summary{font-size:16px;list-style:none}
+.more-panel>summary::-webkit-details-marker{display:none}
+.more-panel>summary:after{content:"＋";float:right;font-size:20px}
+.more-panel[open]>summary:after{content:"－"}
+.more-inner{padding-top:14px}
+.compact-pool{margin-bottom:4px}
+.mini-btn{margin:10px 0 16px;min-height:42px}
+.simple-rank-title{font-size:18px;font-weight:800;margin:16px 0 8px}
+.ah-legend,.title{display:none!important}
+footer{font-size:11px;opacity:.55;margin-top:20px;line-height:1.5}
+@media(max-width:520px){
+ .wrap{padding:18px 12px 70px}
+ .simple-head h1{font-size:25px}
+ .quick-actions{grid-template-columns:1fr 1fr}
+ .simple-stock .stockTop{align-items:flex-start}
+}
+
 </style>
 </head>
 <body>
-<!-- BUILD: DAYTRADE_APP_V5.6.2_20260910 -->
+<!-- BUILD: DAYTRADE_APP_V5.7.0_20260910 -->
 <main class="wrap">
-<h1>台股當沖助手 V5.6.2</h1>
-<div class="sub">上市＋上櫃｜200 檔分段輪替雷達｜Top 20 約 5 秒近即時追蹤｜買盤竭盡＋賣盤竭盡</div>
-<div class="card status"><div><b id="status">建立候選池...</b><div id="time" class="small">--</div><div id="session" class="session">正在確認台北盤中時段...</div></div><div class="live">● 近即時</div></div>
-<div class="card"><div class="row"><span>全市場當沖候選池</span><b id="poolCount">--</b></div><div class="small" id="poolInfo">正在讀取上市＋上櫃市場資料</div></div>
-<div class="buttons"><button onclick="buildPool()">重建候選池</button><button id="scanBtn" onclick="fullScan(true)">立即全掃</button></div>
+  <div class="simple-head">
+    <div>
+      <h1>台股當沖助手 <span class="ver">V5.7</span></h1>
+      <div class="sub">盤中雷達・盤後選股・支撐壓力</div>
+    </div>
+    <div class="live">● 近即時</div>
+  </div>
 
-<div class="card">
- <div class="row"><div><b style="font-size:20px">🌙 盤後分析・明日當沖候選</b>
- <div class="small" style="margin-top:5px">V5.6.2 精準評分｜點個股看近20日支撐壓力｜量能・K棒・突破/跌破</div></div></div>
- 
-<div class="ah-legend">
-  <span><i class="ah-dot ah-dot-long"></i>紅色＝偏多</span>
-  <span><i class="ah-dot ah-dot-short"></i>綠色＝偏空</span>
-</div>
-<button id="afterBtn" type="button" style="margin-top:12px">產生明日當沖候選</button>
- <div id="afterStatus" class="small" style="margin-top:10px">等待盤後分析</div>
- <div id="tomorrowLong"></div><div id="tomorrowShort"></div>
-</div>
-<div class="title">🔥 多方優先 Top 10</div><div id="long"><div class="card small">等待第一次完整掃描...</div></div>
-<div class="title">❄️ 空方優先 Top 10</div><div id="short"><div class="card small">等待第一次完整掃描...</div></div>
-<footer>V5.6.2｜V5.6.2 精準評分＋操作方向＋關鍵價位｜快取防護＋過熱修正＋明日當沖候選｜竭盡模型使用連續價格＋增量成交量推進效率｜非逐筆委託流模型｜行情來源 TWSE MIS｜實際交易請以券商報價確認</footer>
+  <div class="card status simple-status">
+    <div>
+      <b id="status">建立候選池...</b>
+      <div id="session" class="session">正在確認台北盤中時段...</div>
+      <div id="time" class="small">--</div>
+    </div>
+  </div>
+
+  <div class="quick-actions">
+    <button id="afterBtn" type="button" class="primary-action">明日當沖候選</button>
+    <button id="scanBtn" onclick="fullScan(true)" class="secondary-action">更新盤中排行</button>
+  </div>
+
+  <section class="card simple-after">
+    <div class="simple-section-head">
+      <div>
+        <b>盤後精選</b>
+        <div class="small">紅＝偏多・綠＝偏空｜點股票看支撐壓力</div>
+      </div>
+    </div>
+    <div id="afterStatus" class="small simple-message">等待盤後分析</div>
+    <div id="tomorrowLong"></div>
+    <div id="tomorrowShort"></div>
+  </section>
+
+  <details class="more-panel">
+    <summary>盤中排行與更多功能</summary>
+    <div class="more-inner">
+      <div class="row compact-pool">
+        <span>候選池</span>
+        <b id="poolCount">--</b>
+      </div>
+      <div class="small" id="poolInfo">正在讀取上市＋上櫃市場資料</div>
+      <button onclick="buildPool()" class="mini-btn">重建候選池</button>
+
+      <div class="simple-rank-title">🔥 多方 Top 10</div>
+      <div id="long"><div class="card small">等待第一次完整掃描...</div></div>
+      <div class="simple-rank-title">❄️ 空方 Top 10</div>
+      <div id="short"><div class="card small">等待第一次完整掃描...</div></div>
+    </div>
+  </details>
+
+  <footer>行情來源 TWSE MIS｜實際交易請以券商報價確認</footer>
 </main>
 <script>
 let pool=[],watchList=[];
@@ -564,32 +639,49 @@ function renderAH(list,id,side){
   const sideClass=(side==="long")?"ah-long":"ah-short";
   const cardClass=(side==="long")?"ah-long-card":"ah-short-card";
   const titleClass=(side==="long")?"ah-long-title":"ah-short-title";
- const el=document.getElementById(id);
- if(!list.length){
-  el.innerHTML=`<div class="empty">今日同交易日資料不足，暫無可排序候選。</div>`;
-  return;
- }
- el.innerHTML=list.map((q,i)=>{
-  const sc=ahScore(q,side),chg=N(q.change),pct=N(q.previousClose)>0?chg/N(q.previousClose)*100:0;
-  const cf=ahConfidence(q,side);
-  const sideText=side==="long"?"偏多":"偏空";
-  return `<div class="stock ${cardClass}">
-   <div class="stockTop"><div><div class="name">${i+1}. <span class="sr-stock-btn" onclick=\'showSR(${JSON.stringify(q)})\'>${esc(q.name||q.symbol)}</span></div><div class="code">${esc(q.symbol)}｜${q.market==="otc"?"上櫃":"上市"}｜${esc(parseTradeDate(q.tradeDate)||"")}</div></div><div class="price">${N(q.price).toFixed(2)}</div></div>
-   <div class="metrics"><span>漲跌 ${pct>=0?"+":""}${pct.toFixed(2)}%</span><span>量 ${fmtVol(q.volume)}</span><span>區間 ${N(q.low).toFixed(2)}～${N(q.high).toFixed(2)}</span></div>
-   ${(()=>{const x=ahOHLC(q);return `開 ${fmtPx(x.open)} ｜ 高 ${fmtPx(x.high)} ｜ 低 ${fmtPx(x.low)} ｜ 振幅 ${Number.isFinite(x.amp)?x.amp.toFixed(2)+"%":"—"}`})()}
-   <div class="signal ${cf.cls}"><b class="${titleClass}">${sideText}｜信心 ${cf.label}</b>｜盤後分數 ${sc.toFixed(1)}｜${ahReason(q,side)}</div>
- ${(()=>{
-   const op=ahOperation(q,side);
-   return `<div class="op-guide ${side==="long"?"op-long":"op-short"}">
-     <div class="op-title">${op.title}</div>
-     <div class="op-text">${op.text}</div>
-     <div class="op-key">${op.key}</div>
-     <div class="op-risk">⚠ ${op.risk}</div>
-   </div>`;
- })()}
-   <div class="reason">盤後只建立明日劇本；前一日高低是結構失效參考，不是實際停損。開盤後改用今日開盤價、即時價、盤中高低計算動態停損與 1.5R／2R 停利。</div>
-  </div>`;
- }).join("");
+  const el=document.getElementById(id);
+  if(!list.length){
+    el.innerHTML=`<div class="empty">今日資料不足，暫無候選。</div>`;
+    return;
+  }
+  el.innerHTML=list.map((q,i)=>{
+    saveDailyOHLC(q);
+    const sc=ahScore(q,side),chg=N(q.change),pct=N(q.previousClose)>0?chg/N(q.previousClose)*100:0;
+    const cf=ahConfidence(q,side);
+    const x=ahOHLC(q);
+    const op=ahOperation(q,side);
+    const sideText=side==="long"?"偏多":"偏空";
+    return `<div class="stock simple-stock ${cardClass}">
+      <div class="stockTop">
+        <div>
+          <div class="name">${i+1}. <span class="sr-stock-btn" onclick=\'showSR(${JSON.stringify(q)})\'>${esc(q.name||q.symbol)}</span></div>
+          <div class="code">${esc(q.symbol)}・${q.market==="otc"?"上櫃":"上市"}</div>
+        </div>
+        <div class="price">${N(q.price).toFixed(2)}</div>
+      </div>
+
+      <div class="simple-signal-row">
+        <span class="simple-pill ${titleClass}">${sideText}</span>
+        <span>信心 ${cf.label}</span>
+        <span>${pct>=0?"+":""}${pct.toFixed(2)}%</span>
+        <span>分數 ${sc.toFixed(1)}</span>
+      </div>
+
+      <div class="simple-key">${op.key}</div>
+
+      <details class="stock-more">
+        <summary>查看詳細資訊</summary>
+        <div class="metrics"><span>量 ${fmtVol(q.volume)}</span><span>振幅 ${Number.isFinite(x.amp)?x.amp.toFixed(2)+"%":"—"}</span></div>
+        <div class="simple-ohlc">開 ${fmtPx(x.open)} ｜ 高 ${fmtPx(x.high)} ｜ 低 ${fmtPx(x.low)}</div>
+        <div class="signal ${cf.cls}">${ahReason(q,side)}</div>
+        <div class="op-guide ${side==="long"?"op-long":"op-short"}">
+          <div class="op-title">${op.title}</div>
+          <div class="op-text">${op.text}</div>
+          <div class="op-risk">⚠ ${op.risk}</div>
+        </div>
+      </details>
+    </div>`;
+  }).join("");
 }
 
 function srLevels(q){
@@ -699,7 +791,7 @@ async function showSR(q){
    <div class="sr-box sr-s"><div class="sr-label">第一支撐 S1${x.s1Touches?`｜測試 ${x.s1Touches} 次`:""}</div><div class="sr-price">${px(x.s1)}</div></div>
    <div class="sr-box sr-s"><div class="sr-label">第二支撐 S2${x.s2Estimated?"（波動延伸）":x.s2Touches?`｜測試 ${x.s2Touches} 次`:""}</div><div class="sr-price">${px(x.s2)}</div></div>
   </div>
-  <div class="sr-note">上市／上櫃每日 OHLC 會自動保存在本機；累積滿 5 日即啟用多日高低點聚類，最多使用近 20 日，0.6% 內視為同一價位，重複測試次數較多者優先；資料不足時自動退回單日 OHLC／波動延伸。支撐壓力僅供交易規劃，不代表一定反轉。</div>`;
+  <div class="sr-note">累積滿 5 個交易日後自動改用近 20 日支撐壓力；資料不足時使用單日價位。</div>`;
 }
 function closeSR(){document.getElementById("srModal")?.classList.remove("show")}
 function parseTradeDate(s){
