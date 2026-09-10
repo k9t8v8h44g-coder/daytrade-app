@@ -461,93 +461,138 @@ async function fetchTpexFallback(){
   }
 }
 
+
+async function getCombinedMisAfterHours(tseSymbols=[],otcSymbols=[]){
+
+  const pairs=[
+    ...[...new Set(tseSymbols||[])].slice(0,60).map(symbol=>({symbol,market:"tse"})),
+    ...[...new Set(otcSymbols||[])].slice(0,60).map(symbol=>({symbol,market:"otc"}))
+  ];
+
+  const quotes=[];
+  const errors=[];
+  const chunks=[];
+
+  for(let i=0;i<pairs.length;i+=20){
+    chunks.push(pairs.slice(i,i+20));
+  }
+
+  let cursor=0;
+
+  async function runner(){
+    while(true){
+      const idx=cursor++;
+      if(idx>=chunks.length)return;
+      const chunk=chunks[idx];
+
+      const ex_ch=chunk
+        .map(x=>`${x.market}_${x.symbol}.tw`)
+        .join("|");
+
+      const u=
+        TWSE_URL+
+        "?ex_ch="+encodeURIComponent(ex_ch)+
+        "&json=1&delay=0&_="+Date.now();
+
+      const ctl=new AbortController();
+      const timer=setTimeout(()=>ctl.abort(),6500);
+
+      try{
+        const r=await fetch(u,{
+          signal:ctl.signal,
+          headers:{
+            "Accept":"application/json,text/plain,*/*",
+            "Referer":"https://mis.twse.com.tw/stock/fibest.jsp"
+          }
+        });
+
+        if(!r.ok)throw new Error("TWSE HTTP "+r.status);
+
+        const j=await r.json();
+        const arr=Array.isArray(j.msgArray)?j.msgArray:[];
+
+        const found=new Set();
+
+        for(const row of arr){
+          const symbol=String(row.c||"").trim();
+          if(!symbol)continue;
+
+          const req=chunk.find(x=>x.symbol===symbol);
+          if(!req)continue;
+
+          const q=normalize(row);
+          if(q.price==null)continue;
+
+          quotes.push({
+            ...q,
+            market:req.market,
+            source:"TWSE MIS combined batch"
+          });
+          found.add(req.market+"_"+symbol);
+        }
+
+        for(const x of chunk){
+          const k=x.market+"_"+x.symbol;
+          if(!found.has(k)){
+            errors.push(x.market.toUpperCase()+" "+x.symbol+": no quote");
+          }
+        }
+
+      }catch(e){
+        for(const x of chunk){
+          errors.push(x.market.toUpperCase()+" "+x.symbol+": "+String(e?.message||e));
+        }
+      }finally{
+        clearTimeout(timer);
+      }
+    }
+  }
+
+  await Promise.all(
+    Array.from({length:Math.min(3,chunks.length)},runner)
+  );
+
+  return {quotes,errors};
+}
+
 async function getAfterHours(otcSymbols=DEFAULT_OTC_AFTER_SYMBOLS,tseSymbols=[]){
 
   const quotes=[];
   const errors=[];
 
-  /*
-    1) TWSE listed stocks:
-       keep the already-working official bulk OpenAPI.
-  */
+  // 1) Full TWSE OpenAPI remains the listed-market fallback.
   try{
-
-    const tse=
-      await fetchAfter(
-        TWSE_AFTER,
-        "tse"
-      );
-
+    const tse=await fetchAfter(TWSE_AFTER,"tse");
     quotes.push(...tse);
-
   }catch(e){
-
-    errors.push(
-      "TWSE: "+
-      String(
-        e?.message||
-        e
-      )
-    );
+    errors.push("TWSE: "+String(e?.message||e));
   }
 
-  /*
-    1b) Current-day TSE MIS overlay:
-        the bulk TWSE OpenAPI can lag one trading day after close.
-        Pull the app's listed candidate symbols from MIS and replace stale
-        bulk rows for the same symbols. Date filtering in the app remains final guard.
-  */
-  if((tseSymbols||[]).length){
-    try{
-      const tseMis=await getAfterHoursByMis(tseSymbols,"tse",60);
-      const freshBySymbol=new Map(tseMis.quotes.map(q=>[q.symbol,q]));
-      for(let i=quotes.length-1;i>=0;i--){
-        if(quotes[i].market==="tse" && freshBySymbol.has(quotes[i].symbol)){
-          quotes.splice(i,1);
-        }
-      }
-      quotes.push(...tseMis.quotes);
-      errors.push(...tseMis.errors);
-    }catch(e){
-      errors.push("TSE MIS: "+String(e?.message||e));
-    }
-  }
-
-  /*
-    2) OTC watch / recommendation symbols:
-       do NOT call TPEx from the Worker, because TPEx currently
-       redirects Cloudflare Worker traffic to /errors.
-       Fetch only the OTC symbols the app actually needs through
-       TWSE MIS using otc_<symbol>.tw.
-  */
+  // 2) Fetch current-day TSE + OTC candidates together from MIS.
+  // This avoids serial TSE-first requests starving/rate-limiting OTC.
   try{
+    const mis=await getCombinedMisAfterHours(tseSymbols,otcSymbols);
 
-    const otc=
-      await getOtcAfterHoursByMis(
-        otcSymbols
-      );
-
-    quotes.push(...otc.quotes);
-
-    errors.push(
-      ...otc.errors
+    // Replace stale bulk TSE rows for symbols that MIS returned.
+    const freshKeys=new Set(
+      mis.quotes.map(q=>q.market+"_"+q.symbol)
     );
+
+    for(let i=quotes.length-1;i>=0;i--){
+      const k=quotes[i].market+"_"+quotes[i].symbol;
+      if(freshKeys.has(k)){
+        quotes.splice(i,1);
+      }
+    }
+
+    quotes.push(...mis.quotes);
+    errors.push(...mis.errors);
 
   }catch(e){
-
-    errors.push(
-      "OTC MIS: "+
-      String(
-        e?.message||
-        e
-      )
-    );
+    errors.push("MIS combined: "+String(e?.message||e));
   }
 
-  return {
-    quotes,
-    errors
-  };
+  return {quotes,errors};
 }
 const CORS={
   "Access-Control-Allow-Origin":"*",
@@ -958,7 +1003,7 @@ export default{
 
         otcAfterMode:"TWSE MIS symbol watchlist",
 
-        version:"4.9.3"
+        version:"4.9.5"
       });
     }
 
@@ -1059,7 +1104,7 @@ export default{
             Date.now()-started,
 
           source:
-            "TWSE OpenAPI + TSE/OTC TWSE MIS overlay",
+            "TWSE OpenAPI + combined TSE/OTC TWSE MIS batch",
 
           marketDate,
 
@@ -1105,13 +1150,13 @@ export default{
             otcMerged.length,
 
           otcMode:
-            "TWSE MIS watchlist",
+            "TWSE MIS combined batch",
 
           tseMisRequested:
             tseParam.length,
 
           tseMode:
-            "TWSE MIS current-day overlay + OpenAPI fallback",
+            "TWSE MIS combined batch + OpenAPI fallback",
 
           quotes:
             out.quotes
