@@ -49,7 +49,7 @@ async function getHistory(symbol,market="tse"){
       ];
       let done=false;
       for(const u of urls){
-        const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),7000);
+        const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),4500);
         try{
           const r=await fetch(u,{signal:ctl.signal,redirect:"follow",headers:{
             "Accept":"application/json,text/plain,*/*",
@@ -78,7 +78,7 @@ async function getHistory(symbol,market="tse"){
 
   for(const date of months){
     const u=`https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY?date=${date}&stockNo=${encodeURIComponent(symbol)}&response=json`;
-    const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),7000);
+    const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),4500);
     try{
       const r=await fetch(u,{signal:ctl.signal,headers:{"Accept":"application/json"}});
       if(!r.ok)continue;
@@ -1258,11 +1258,30 @@ export default{
       const symbol=(u.searchParams.get("symbol")||"").trim();
       const market=(u.searchParams.get("market")||"tse").trim().toLowerCase();
       if(!/^\d{4,6}$/.test(symbol))return json({ok:false,error:"Invalid symbol"},400);
+
+      const cache=typeof caches!=="undefined"?caches.default:null;
+      const cacheKey=new Request(`${u.origin}/__history_cache/${market}/${symbol}`,{method:"GET"});
+      if(cache){
+        const hit=await cache.match(cacheKey);
+        if(hit){
+          const payload=await hit.json();
+          return json({...payload,cached:true},200);
+        }
+      }
+
       try{
         const out=await getHistory(symbol,market);
-        return json({ok:out.rows.length>0,symbol,market,count:out.rows.length,source:out.source,warning:out.warning,rows:out.rows},200);
+        const payload={ok:out.rows.length>0,symbol,market,count:out.rows.length,source:out.source,
+          warning:out.warning,rows:out.rows,cached:false};
+        if(cache&&out.rows.length>=5){
+          const cachedResp=new Response(JSON.stringify(payload),{
+            status:200,headers:{"content-type":"application/json;charset=UTF-8","cache-control":"public,max-age=21600"}
+          });
+          await cache.put(cacheKey,cachedResp);
+        }
+        return json(payload,200);
       }catch(e){
-        return json({ok:false,symbol,market,count:0,error:String(e?.message||e),rows:[]},502);
+        return json({ok:false,symbol,market,count:0,error:"歷史資料暫時無法取得，已使用單日支撐壓力",rows:[]},200);
       }
     }
 
