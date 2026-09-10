@@ -31,14 +31,51 @@ function twDateCompact(d){
   return `${d.getUTCFullYear()}${String(d.getUTCMonth()+1).padStart(2,"0")}${String(d.getUTCDate()).padStart(2,"0")}`;
 }
 async function getHistory(symbol,market="tse"){
-  if(market!=="tse") return {rows:[],source:"fallback",warning:"OTC multi-day history unavailable in this worker; using single-day levels."};
   const now=new Date();
   const months=[];
   for(let k=0;k<2;k++){
     const d=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()-k,1));
     months.push(twDateCompact(d));
   }
-  const rows=[];
+  const rows=[],errors=[];
+  if(market==="otc"){
+    for(const date of months){
+      // TPEx official individual-stock daily history endpoint.
+      const rocYear=Number(date.slice(0,4))-1911;
+      const rocDate=`${rocYear}/${date.slice(4,6)}/01`;
+      const urls=[
+        `https://www.tpex.org.tw/www/zh-tw/afterTrading/tradingStock?code=${encodeURIComponent(symbol)}&date=${encodeURIComponent(rocDate)}&response=json`,
+        `https://www.tpex.org.tw/web/stock/aftertrading/daily_trading_info/st43_result.php?l=zh-tw&d=${encodeURIComponent(rocDate)}&stkno=${encodeURIComponent(symbol)}`
+      ];
+      let done=false;
+      for(const u of urls){
+        const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),7000);
+        try{
+          const r=await fetch(u,{signal:ctl.signal,redirect:"follow",headers:{
+            "Accept":"application/json,text/plain,*/*",
+            "User-Agent":"Mozilla/5.0",
+            "Referer":"https://www.tpex.org.tw/zh-tw/mainboard/trading/info/stock-pricing.html"
+          }});
+          if(!r.ok)throw new Error("HTTP "+r.status);
+          const j=await r.json();
+          const data=Array.isArray(j.data)?j.data:(Array.isArray(j.aaData)?j.aaData:[]);
+          if(!data.length)continue;
+          for(const a of data){
+            if(!Array.isArray(a)||a.length<7)continue;
+            const clean=v=>Number(String(v??"").replace(/,/g,"").replace(/[＋+]/g,""));
+            // TPEx rows: date, shares, amount, open, high, low, close, change, trades
+            const open=clean(a[3]),high=clean(a[4]),low=clean(a[5]),close=clean(a[6]),volume=clean(a[1]);
+            if([open,high,low,close].every(Number.isFinite))rows.push({date:String(a[0]),open,high,low,close,volume:Number.isFinite(volume)?volume:null});
+          }
+          done=true; break;
+        }catch(e){errors.push(String(e?.message||e))}
+        finally{clearTimeout(timer)}
+      }
+      if(!done)errors.push("TPEx month unavailable "+date);
+    }
+    return {rows:rows.slice(-20),source:"TPEx 個股日成交資訊",warning:rows.length?null:errors.slice(-2).join(" | ")};
+  }
+
   for(const date of months){
     const u=`https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY?date=${date}&stockNo=${encodeURIComponent(symbol)}&response=json`;
     const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),7000);
