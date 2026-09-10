@@ -249,95 +249,132 @@ function parseTpexTables(j){
 
 async function fetchAfter(url,market){
 
-  const ctl=new AbortController();
+  if(market==="tse"){
 
-  const timer=setTimeout(
-    ()=>ctl.abort(),
-    market==="otc" ? 8000 : 12000
-  );
-
-  try{
-
-    const fetchOptions =
-      market==="tse"
-        ?{
-            signal:ctl.signal,
-            headers:{
-              "Accept":"application/json",
-              "User-Agent":"Mozilla/5.0"
-            }
-          }
-        :{
-            signal:ctl.signal,
-            redirect:"manual",
-            headers:{
-              "Accept":"application/json,text/plain,*/*",
-              "User-Agent":"Mozilla/5.0",
-              "Referer":"https://www.tpex.org.tw/"
-            }
-          };
-
-    const r=await fetch(url,fetchOptions);
-
-    if(
-      market==="otc" &&
-      r.status>=300 &&
-      r.status<400
-    ){
-      throw new Error(
-        "TPEx redirect "+r.status+
-        (r.headers.get("location")
-          ?" -> "+r.headers.get("location")
-          :"")
-      );
-    }
-
-    if(!r.ok){
-      throw new Error(
-        (market==="tse"?"TWSE":"TPEx")
-        +" HTTP "
-        +r.status
-      );
-    }
-
-    const text=await r.text();
-
-    let j;
+    const ctl=new AbortController();
+    const timer=setTimeout(()=>ctl.abort(),12000);
 
     try{
-      j=JSON.parse(text);
-    }catch(e){
-      throw new Error(
-        (market==="tse"?"TWSE":"TPEx")
-        +" invalid JSON"
-      );
+
+      const r=await fetch(url,{
+        signal:ctl.signal,
+        headers:{
+          "Accept":"application/json",
+          "User-Agent":"Mozilla/5.0"
+        }
+      });
+
+      if(!r.ok){
+        throw new Error("TWSE HTTP "+r.status);
+      }
+
+      const j=await r.json();
+
+      const arr=
+        Array.isArray(j)
+          ?j
+          :(
+            Array.isArray(j?.data)
+              ?j.data
+              :[]
+          );
+
+      return arr
+        .map(x=>afterRow(x,market))
+        .filter(q=>
+          /^\d{4}$/.test(q.symbol) &&
+          q.price!=null &&
+          q.price>0 &&
+          q.previousClose!=null &&
+          q.previousClose>0
+        );
+
+    }finally{
+      clearTimeout(timer);
     }
-
-    let arr=[];
-
-    if(Array.isArray(j)){
-      arr=j;
-    }else if(Array.isArray(j?.data)){
-      arr=j.data;
-    }else if(Array.isArray(j?.tables)){
-      arr=parseTpexTables(j);
-    }
-
-    return arr
-      .map(x=>afterRow(x,market))
-      .filter(q=>
-        /^\d{4}$/.test(q.symbol) &&
-        q.price!=null &&
-        q.price>0 &&
-        q.previousClose!=null &&
-        q.previousClose>0
-      );
-
-  }finally{
-    clearTimeout(timer);
   }
-}
 
+  const candidates=[
+    url,
+    url+"?l=zh-tw"
+  ];
+
+  const failures=[];
+
+  for(const target of candidates){
+
+    const ctl=new AbortController();
+    const timer=setTimeout(()=>ctl.abort(),12000);
+
+    try{
+
+      const r=await fetch(target,{
+        signal:ctl.signal
+      });
+
+      if(!r.ok){
+        throw new Error("HTTP "+r.status);
+      }
+
+      const finalUrl=String(r.url||"");
+
+      if(finalUrl.includes("/errors")){
+        throw new Error("redirected to TPEx /errors");
+      }
+
+      const text=await r.text();
+
+      let j;
+
+      try{
+        j=JSON.parse(text);
+      }catch(e){
+        throw new Error("invalid JSON");
+      }
+
+      const arr=
+        Array.isArray(j)
+          ?j
+          :Array.isArray(j?.data)
+            ?j.data
+            :Array.isArray(j?.tables)
+              ?parseTpexTables(j)
+              :[];
+
+      const rows=
+        arr
+          .map(x=>afterRow(x,"otc"))
+          .filter(q=>
+            /^\d{4}$/.test(q.symbol) &&
+            q.price!=null &&
+            q.price>0 &&
+            q.previousClose!=null &&
+            q.previousClose>0
+          );
+
+      if(rows.length){
+        return rows;
+      }
+
+      throw new Error("0 valid rows");
+
+    }catch(e){
+
+      failures.push(
+        target+" => "+
+        String(e?.message||e)
+      );
+
+    }finally{
+      clearTimeout(timer);
+    }
+  }
+
+  throw new Error(
+    "all bare TPEx attempts failed: "+
+    failures.join(" | ")
+  );
+}
 async function fetchTpexFallback(){
 
   const ctl=
@@ -464,39 +501,6 @@ async function getAfterHours(){
     );
   }
 
-  if(!otc.length){
-
-    try{
-
-      otc=
-        await fetchTpexFallback();
-
-      if(otc.length){
-
-        const i=
-          errors.findIndex(
-            x=>x.startsWith(
-              "TPEx OpenAPI:"
-            )
-          );
-
-        if(i>=0){
-          errors.splice(i,1);
-        }
-      }
-
-    }catch(e){
-
-      errors.push(
-        "TPEx fallback: "+
-        String(
-          e?.message||
-          e
-        )
-      );
-    }
-  }
-
   quotes.push(...otc);
 
   return {
@@ -504,7 +508,6 @@ async function getAfterHours(){
     errors
   };
 }
-
 const CORS={
   "Access-Control-Allow-Origin":"*",
   "Access-Control-Allow-Methods":"GET,OPTIONS",
@@ -789,7 +792,7 @@ export default{
 
         afterhoursTimeoutMs:12000,
 
-        version:"4.6.0"
+        version:"4.6.1"
       });
     }
 
