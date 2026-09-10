@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="theme-color" content="#07101f">
-<title>台股當沖助手 V5.8.2.1</title>
+<title>台股當沖助手 V5.8.3.1</title>
 <style>
 *{box-sizing:border-box}
 html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:900px;margin:auto;padding:22px 14px 80px}h1{margin:0;font-size:29px}.sub{color:#9fb0ca;margin:8px 0 16px;line-height:1.55}.card,.stock{background:#101a2d;border:1px solid #293a55;border-radius:17px;padding:15px;margin-bottom:12px}.row,.status{display:flex;justify-content:space-between;align-items:center;gap:10px}.live{color:#67e394;font-weight:900}.small,.info{color:#9fb0ca;font-size:13px}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}button{width:100%;border:0;border-radius:13px;padding:14px;background:#568cff;color:white;font-size:16px;font-weight:850}button:disabled{opacity:.55}.title{font-size:23px;font-weight:900;margin:23px 0 11px}.name{font-size:19px;font-weight:850}.price{font-size:27px;font-weight:900}.score{font-size:25px;font-weight:900}.scoreLabel{color:#9fb0ca;font-size:11px;text-align:right}.up{color:#ff6969}.down{color:#59dc9c}.flat{color:#eef4ff}.tag{display:inline-block;background:#1e2d49;border-radius:8px;padding:4px 7px;font-size:11px;margin-left:5px}.signal{display:inline-block;margin-top:9px;padding:6px 9px;border-radius:9px;background:#20304d;font-weight:800}.entry{margin-top:11px;border-radius:12px;padding:11px 12px;font-weight:900;font-size:15px}.entry-go{background:#123c2c;color:#74edac;border:1px solid #266c4e}.entry-wait{background:#3d351b;color:#f2cd68;border:1px solid #6f5e2b}.entry-stop{background:#482329;color:#ff8b94;border:1px solid #7c3a44}.entry-neutral{background:#1d2c46;color:#a9bbd6;border:1px solid #354865}.reasonbox{margin-top:10px;padding:10px 12px;background:#17243a;border-radius:11px;color:#b9c9df;font-size:13px;line-height:1.7}.reasonbox b{color:#eef4ff}.exhaustbox{margin-top:10px;padding:11px 12px;background:#111d31;border:1px solid #2a3c59;border-radius:12px;font-size:13px;line-height:1.7}.exhaust-title{font-weight:900}.exhaust-buy{color:#ff8b94}.exhaust-sell{color:#74edac}.exhaust-neutral{color:#a9bbd6}.tradebox{margin-top:10px;padding:11px 12px;background:#0c1527;border:1px solid #233756;border-radius:12px;line-height:1.8;font-size:13px}.tradebox b{color:#eef4ff}.info{line-height:1.7;margin-top:10px}.risk{margin-top:8px;font-size:12px;color:#f0c36a}.session{margin-top:8px;padding:8px 10px;border-radius:10px;background:#17243a;color:#a9bbd6;font-size:12px;line-height:1.5}.pulse{color:#67e394}footer{text-align:center;color:#74859e;font-size:12px;margin-top:25px;line-height:1.6}
@@ -22,7 +22,7 @@ html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;fo
 .ahTitle{font-size:18px;font-weight:900;margin:16px 0 7px}.ahRow{border-top:1px solid #293a55;padding:11px 0}
 .ahScore{font-size:20px;font-weight:900}.ahMeta{color:#9fb0ca;font-size:13px;line-height:1.65;margin-top:4px}
 
-/* V5.8.2.1 多空色彩區隔：紅=多、綠=空 */
+/* V5.8.3.1 多空色彩區隔：紅=多、綠=空 */
 .ah-side{
   display:inline-flex;align-items:center;gap:6px;
   font-weight:800;padding:5px 10px;border-radius:999px;
@@ -66,7 +66,7 @@ html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;fo
 .sr-label{font-size:13px;color:#9fb0ca}.sr-price{font-size:22px;font-weight:850;margin-top:2px}
 .sr-note{color:#aebbd0;font-size:13px;line-height:1.55;margin-top:12px}
 
-/* V5.8.2 simplified UI */
+/* V5.8.3 simplified UI */
 .simple-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}
 .simple-head h1{font-size:26px;line-height:1.15}
 .ver{font-size:14px;font-weight:700;color:#9fb0ca;vertical-align:middle}
@@ -111,7 +111,7 @@ footer{font-size:11px;opacity:.55;margin-top:20px;line-height:1.5}
 }
 
 
-/* V5.8.2 ultra-simple mobile UI */
+/* V5.8.3 ultra-simple mobile UI */
 body{background:#08111f}
 .wrap{max-width:760px;padding:18px 14px 68px}
 .appbar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
@@ -153,7 +153,7 @@ footer{margin-top:22px;font-size:10px;opacity:.45;text-align:center}
 .card,.more-panel,.simple-head,.quick-actions,.simple-after{box-shadow:none}
 
 
-/* V5.8.2 restore key OHLC metrics without making cards busy */
+/* V5.8.3 restore key OHLC metrics without making cards busy */
 .ohlc-strip{
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -172,7 +172,7 @@ footer{margin-top:22px;font-size:10px;opacity:.45;text-align:center}
 }
 
 
-/* V5.8.2 simplify status + details */
+/* V5.8.3 simplify status + details */
 .status-line{
   margin:4px 2px 14px;
   font-size:13px;
@@ -209,7 +209,7 @@ footer{margin-top:22px;font-size:10px;opacity:.45;text-align:center}
 </style>
 </head>
 <body>
-<!-- BUILD: DAYTRADE_APP_V5.8.2.1_20260910 -->
+<!-- BUILD: DAYTRADE_APP_V5.8.3.1_20260910 -->
 <main class="wrap">
   <header class="appbar">
     <div>
@@ -918,76 +918,95 @@ function twToday(){
  return `${v.year}-${v.month}-${v.day}`;
 }
 
+
+const AH_CACHE_KEY="daytrade_afterhours_lastgood_v1";
+function saveAfterHoursCache(date,rows){
+  try{
+    localStorage.setItem(AH_CACHE_KEY,JSON.stringify({
+      date,
+      savedAt:Date.now(),
+      rows:Array.isArray(rows)?rows:[]
+    }));
+  }catch(e){}
+}
+function loadAfterHoursCache(date){
+  try{
+    const x=JSON.parse(localStorage.getItem(AH_CACHE_KEY)||"null");
+    if(!x||x.date!==date||!Array.isArray(x.rows)||!x.rows.length)return null;
+    return x;
+  }catch(e){return null}
+}
 async function runAfterHours(){
  const st=document.getElementById("afterStatus"),btn=document.getElementById("afterBtn");
- btn.disabled=true;st.textContent="正在由 Worker 讀取上市／上櫃盤後資料…";
+ btn.disabled=true;
+ st.textContent="正在更新盤後資料…";
+ const today=twToday();
+
  try{
   const c=new AbortController(),timer=setTimeout(()=>c.abort(),22000);
   let res;
-  try{res=await fetch(API_BASE+"/api/afterhours?"+(()=>{
-    const otcPool=[...new Set((pool||[]).filter(x=>x&&x.market==="otc").map(x=>x.symbol))].slice(0,60);
-    const tsePool=[...new Set((pool||[]).filter(x=>x&&x.market==="tse").map(x=>x.symbol))].slice(0,60);
-    const p=new URLSearchParams();
-    p.set("ts",Date.now());
-    if(otcPool.length)p.set("otc",otcPool.join(","));
-    if(tsePool.length)p.set("tse",tsePool.join(","));
-    return p.toString();
-  })(),{cache:"no-store",signal:c.signal})}
-  finally{clearTimeout(timer)}
+  try{
+    res=await fetch(API_BASE+"/api/afterhours?"+(()=>{
+      const otcPool=[...new Set((pool||[]).filter(x=>x&&x.market==="otc").map(x=>x.symbol))].slice(0,60);
+      const tsePool=[...new Set((pool||[]).filter(x=>x&&x.market==="tse").map(x=>x.symbol))].slice(0,60);
+      const p=new URLSearchParams();
+      p.set("ts",Date.now());
+      if(otcPool.length)p.set("otc",otcPool.join(","));
+      if(tsePool.length)p.set("tse",tsePool.join(","));
+      return p.toString();
+    })(),{cache:"no-store",signal:c.signal});
+  }finally{
+    clearTimeout(timer);
+  }
+
   const data=await res.json().catch(()=>({}));
   if(!res.ok||!data.ok)throw new Error(data.error||(data.errors||[]).join("｜")||("盤後 API HTTP "+res.status));
 
   const allRows=Array.isArray(data.quotes)?data.quotes.filter(q=>N(q.price)>0&&N(q.previousClose)>0):[];
-  if(!allRows.length)throw new Error("Worker 已連線，但沒有可分析盤後個股");
-
-  const today=twToday();
-  const marketDates=data.marketDates||{};
-  const tseDate=parseTradeDate(marketDates.tse);
-  const otcDate=parseTradeDate(marketDates.otc);
-
-  // Critical rule: never mix different trade dates in tomorrow's ranking.
   const rows=allRows.filter(q=>parseTradeDate(q.tradeDate)===today);
-  const tseRows=rows.filter(q=>q.market==="tse");
-  const otcRows=rows.filter(q=>q.market==="otc");
-
-  document.getElementById("tomorrowLong").innerHTML="";
-  document.getElementById("tomorrowShort").innerHTML="";
 
   if(!rows.length){
-    throw new Error(`⚠️ 今日盤後資料尚未就緒｜今天 ${today}｜上市 ${tseDate||"未取得"}｜上櫃 ${otcDate||"未取得"}｜已禁止使用舊資料排名`);
+    const cached=loadAfterHoursCache(today);
+    if(cached){
+      const longs=[...cached.rows].sort((a,b)=>ahScore(b,"long")-ahScore(a,"long")).slice(0,10);
+      const shorts=[...cached.rows].sort((a,b)=>ahScore(b,"short")-ahScore(a,"short")).slice(0,10);
+      renderAH(longs,"tomorrowLong","long");
+      renderAH(shorts,"tomorrowShort","short");
+      const tm=new Date(cached.savedAt).toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"});
+      st.textContent=`${today.slice(5).replace("-","/")}｜${cached.rows.length} 檔｜使用 ${tm} 資料`;
+      return;
+    }
+
+    const marketDates=data.marketDates||{};
+    const tseDate=parseTradeDate(marketDates.tse);
+    const otcDate=parseTradeDate(marketDates.otc);
+    throw new Error(`今日盤後資料尚未就緒｜上市 ${tseDate||"未取得"}｜上櫃 ${otcDate||"未取得"}`);
   }
 
-  const longs=[...rows]
-    .sort((a,b)=>ahScore(b,"long")-ahScore(a,"long"))
-    .slice(0,10);
-
-  const shorts=[...rows]
-    .sort((a,b)=>ahScore(b,"short")-ahScore(a,"short"))
-    .slice(0,10);
+  // Only replace cards after a valid same-day dataset is confirmed.
+  const longs=[...rows].sort((a,b)=>ahScore(b,"long")-ahScore(a,"long")).slice(0,10);
+  const shorts=[...rows].sort((a,b)=>ahScore(b,"short")-ahScore(a,"short")).slice(0,10);
 
   renderAH(longs,"tomorrowLong","long");
   renderAH(shorts,"tomorrowShort","short");
-
-  const excluded=allRows.length-rows.length;
-  const parts=[];
-  if(tseRows.length)parts.push(`上市 ${tseRows.length}`);
-  else if(tseDate && tseDate!==today)parts.push(`上市更新中（${tseDate}）`);
-  if(otcRows.length)parts.push(`上櫃 ${otcRows.length}`);
-  else if(otcDate && otcDate!==today)parts.push(`上櫃更新中（${otcDate}）`);
+  saveAfterHoursCache(today,rows);
 
   st.textContent=`${today.slice(5).replace("-","/")}｜${rows.length} 檔｜已更新`;
-  console.info("盤後分析",{
-    date:today,
-    market:parts.join("＋"),
-    selected:rows.length,
-    excluded,
-    note:"多空 Top 10 共同排名；不同交易日不混排"
-  });
  }catch(e){
-  document.getElementById("tomorrowLong").innerHTML="";
-  document.getElementById("tomorrowShort").innerHTML="";
-  st.textContent="盤後資料暫時無法完成："+(e.message||e);
- }finally{btn.disabled=false}
+  const cached=loadAfterHoursCache(today);
+  if(cached){
+    const longs=[...cached.rows].sort((a,b)=>ahScore(b,"long")-ahScore(a,"long")).slice(0,10);
+    const shorts=[...cached.rows].sort((a,b)=>ahScore(b,"short")-ahScore(a,"short")).slice(0,10);
+    renderAH(longs,"tomorrowLong","long");
+    renderAH(shorts,"tomorrowShort","short");
+    const tm=new Date(cached.savedAt).toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"});
+    st.textContent=`${today.slice(5).replace("-","/")}｜${cached.rows.length} 檔｜使用 ${tm} 資料`;
+  }else{
+    st.textContent="盤後資料暫時無法完成："+(e.message||e);
+  }
+ }finally{
+  btn.disabled=false;
+ }
 }
 document.addEventListener("DOMContentLoaded",()=>{const ab=document.getElementById("afterBtn");if(ab)ab.addEventListener("click",runAfterHours);
   const b=document.getElementById("rankUpdateBtn");
