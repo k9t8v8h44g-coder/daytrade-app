@@ -4,6 +4,9 @@ const TWSE_AFTER="https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL";
 const TWSE_MARKET_DATES="https://openapi.twse.com.tw/v1/exchangeReport/FMTQIK";
 const TPEX_AFTER="https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes";
 
+const TPEX_FALLBACK=
+  "https://www.tpex.org.tw/www/zh-tw/afterTrading/otc?date=&id=&response=json";
+
 function rocDateISO(s){
   s=String(s||"").trim().replace(/[^\d]/g,"");
   if(/^1\d{6}$/.test(s)){
@@ -81,6 +84,7 @@ function afterRow(r,market){
       "SecuritiesCompanyCode",
       "股票代號",
       "代號",
+      "證券代號",
       "code"
     ])||""
   ).trim();
@@ -91,6 +95,7 @@ function afterRow(r,market){
       "CompanyName",
       "證券名稱",
       "股票名稱",
+      "名稱",
       "name"
     ])||""
   ).trim();
@@ -204,24 +209,84 @@ function afterRow(r,market){
   };
 }
 
+function parseTpexTables(j){
+  const out=[];
+
+  const tables=
+    Array.isArray(j?.tables)
+      ?j.tables
+      :[];
+
+  for(const table of tables){
+
+    if(!Array.isArray(table?.data)){
+      continue;
+    }
+
+    const fields=
+      Array.isArray(table?.fields)
+        ?table.fields
+        :[];
+
+    for(const row of table.data){
+
+      if(!Array.isArray(row)){
+        continue;
+      }
+
+      const obj={};
+
+      fields.forEach((f,i)=>{
+        obj[f]=row[i];
+      });
+
+      out.push(obj);
+    }
+  }
+
+  return out;
+}
+
 async function fetchAfter(url,market){
 
   const ctl=new AbortController();
 
   const timer=setTimeout(
     ()=>ctl.abort(),
-    5000
+    market==="otc" ? 8000 : 5000
   );
 
   try{
 
     const r=await fetch(url,{
       signal:ctl.signal,
+      redirect:
+        market==="otc"
+          ?"manual"
+          :"follow",
       headers:{
-        "Accept":"application/json",
-        "User-Agent":"Mozilla/5.0"
+        "Accept":"application/json,text/plain,*/*",
+        "User-Agent":
+          "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1",
+        "Referer":
+          market==="otc"
+            ?"https://www.tpex.org.tw/"
+            :"https://www.twse.com.tw/"
       }
     });
+
+    if(
+      market==="otc" &&
+      r.status>=300 &&
+      r.status<400
+    ){
+      throw new Error(
+        "TPEx redirect "+r.status+
+        (r.headers.get("location")
+          ?" -> "+r.headers.get("location")
+          :"")
+      );
+    }
 
     if(!r.ok){
       throw new Error(
@@ -231,16 +296,28 @@ async function fetchAfter(url,market){
       );
     }
 
-    const j=await r.json();
+    const text=await r.text();
 
-    const arr=
-      Array.isArray(j)
-        ?j
-        :(
-          Array.isArray(j?.data)
-            ?j.data
-            :[]
-        );
+    let j;
+
+    try{
+      j=JSON.parse(text);
+    }catch(e){
+      throw new Error(
+        (market==="tse"?"TWSE":"TPEx")
+        +" invalid JSON"
+      );
+    }
+
+    let arr=[];
+
+    if(Array.isArray(j)){
+      arr=j;
+    }else if(Array.isArray(j?.data)){
+      arr=j.data;
+    }else if(Array.isArray(j?.tables)){
+      arr=parseTpexTables(j);
+    }
 
     return arr
       .map(x=>afterRow(x,market))
@@ -257,38 +334,166 @@ async function fetchAfter(url,market){
   }
 }
 
-async function getAfterHours(){
+async function fetchTpexFallback(){
 
-  const settled=
-    await Promise.allSettled([
-      fetchAfter(TWSE_AFTER,"tse"),
-      fetchAfter(TPEX_AFTER,"otc")
-    ]);
+  const ctl=
+    new AbortController();
+
+  const timer=
+    setTimeout(
+      ()=>ctl.abort(),
+      8000
+    );
+
+  try{
+
+    const r=
+      await fetch(
+        TPEX_FALLBACK,
+        {
+          signal:ctl.signal,
+          redirect:"follow",
+          headers:{
+            "Accept":
+              "application/json,text/plain,*/*",
+            "User-Agent":
+              "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1",
+            "Referer":
+              "https://www.tpex.org.tw/zh-tw/mainboard/trading/info/mi-pricing.html"
+          }
+        }
+      );
+
+    if(!r.ok){
+
+      throw new Error(
+        "TPEx fallback HTTP "+
+        r.status
+      );
+    }
+
+    const text=await r.text();
+
+    let j;
+
+    try{
+      j=JSON.parse(text);
+    }catch(e){
+      throw new Error(
+        "TPEx fallback invalid JSON"
+      );
+    }
+
+    const arr=
+      Array.isArray(j)
+        ?j
+        :Array.isArray(j?.data)
+          ?j.data
+          :parseTpexTables(j);
+
+    const quotes=
+      arr
+        .map(x=>afterRow(x,"otc"))
+        .filter(q=>
+          /^\d{4}$/.test(q.symbol) &&
+          q.price!=null &&
+          q.price>0 &&
+          q.previousClose!=null &&
+          q.previousClose>0
+        );
+
+    return quotes.map(q=>({
+      ...q,
+      source:"TPEx official fallback"
+    }));
+
+  }finally{
+
+    clearTimeout(timer);
+  }
+}
+
+async function getAfterHours(){
 
   const quotes=[];
   const errors=[];
 
-  for(let i=0;i<settled.length;i++){
+  try{
 
-    const x=settled[i];
+    const tse=
+      await fetchAfter(
+        TWSE_AFTER,
+        "tse"
+      );
 
-    const label=
-      i===0
-        ?"TWSE"
-        :"TPEx";
+    quotes.push(...tse);
 
-    if(x.status==="fulfilled"){
-      quotes.push(...x.value);
-    }else{
+  }catch(e){
+
+    errors.push(
+      "TWSE: "+
+      String(
+        e?.message||
+        e
+      )
+    );
+  }
+
+  let otc=[];
+
+  try{
+
+    otc=
+      await fetchAfter(
+        TPEX_AFTER,
+        "otc"
+      );
+
+  }catch(e){
+
+    errors.push(
+      "TPEx OpenAPI: "+
+      String(
+        e?.message||
+        e
+      )
+    );
+  }
+
+  if(!otc.length){
+
+    try{
+
+      otc=
+        await fetchTpexFallback();
+
+      if(otc.length){
+
+        const i=
+          errors.findIndex(
+            x=>x.startsWith(
+              "TPEx OpenAPI:"
+            )
+          );
+
+        if(i>=0){
+          errors.splice(i,1);
+        }
+      }
+
+    }catch(e){
+
       errors.push(
-        label+": "+
+        "TPEx fallback: "+
         String(
-          x.reason?.message||
-          x.reason
+          e?.message||
+          e
         )
       );
     }
   }
+
+  quotes.push(...otc);
 
   return {
     quotes,
@@ -578,9 +783,9 @@ export default{
 
         timeoutMs:4500,
 
-        afterhoursTimeoutMs:5000,
+        afterhoursTimeoutMs:8000,
 
-        version:"4.5.8"
+        version:"4.5.9"
       });
     }
 
