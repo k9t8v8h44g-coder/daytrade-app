@@ -1,35 +1,146 @@
 <!doctype html>
-<html lang="zh-Hant"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#07101f"><title>台股當沖助手 V2.2</title>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#07101f">
+<title>台股當沖助手 V4.2</title>
 <style>
-:root{--bg:#07101f;--panel:#101a2d;--line:#263750;--muted:#93a4bf;--up:#31d17c;--down:#ff626b;--accent:#19aee8}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#f7f9fd;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
-.wrap{max-width:900px;margin:auto;padding:30px 18px 90px}h1{font-size:38px;margin:8px 0}.sub,.small{color:var(--muted)}
-.card,.stock{background:var(--panel);border:1px solid var(--line);border-radius:18px}.card{padding:17px;margin:20px 0}
-.toolbar,.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}select,button{width:100%;padding:15px;border-radius:15px;border:1px solid var(--line);background:var(--panel);color:white;font-size:17px}
-button{background:var(--accent);font-weight:750;margin:12px 0 18px}.stats .card{margin:0}.num{font-size:30px;font-weight:800}
-.list{display:grid;gap:14px;margin-top:18px}.stock{padding:18px}.top{display:flex;justify-content:space-between}.name,.price{font-size:21px;font-weight:800}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}.mini{background:#0b1425;border-radius:12px;padding:10px}.label{font-size:13px;color:var(--muted)}.val{font-weight:800;margin-top:4px}
-.up{color:var(--up)}.down{color:var(--down)}.ok{color:var(--up)}.err{color:#ff7b83}.tag{display:inline-block;margin-top:8px;padding:5px 10px;border-radius:99px;background:#143c32;color:var(--up);font-weight:700}
-footer{position:fixed;bottom:0;left:0;right:0;padding:10px;text-align:center;background:#07101fee;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
-@media(max-width:600px){h1{font-size:32px}.grid{grid-template-columns:1fr 1fr}}
-</style></head><body><main class="wrap">
-<h1>台股當沖助手 V2.2</h1><div class="sub">盤後掃描 × GitHub Actions 資料中介 × 多空排序</div>
-<div id="status" class="card"><b>準備讀取資料</b><div class="small">V2.2 不再由 iPhone 直接連官方 API。</div></div>
-<div class="toolbar"><select id="sig"><option value="all">全部訊號</option><option value="long">偏多</option><option value="short">偏空</option><option value="watch">觀望</option></select>
-<select id="sort"><option value="amount">依成交金額</option><option value="change">依漲跌幅</option></select></div>
-<button onclick="load()">重新取得市場資料</button>
-<section class="stats"><div class="card"><div class="small">掃描檔數</div><div id="n" class="num">—</div></div><div class="card"><div class="small">偏多</div><div id="l" class="num">—</div></div><div class="card"><div class="small">偏空</div><div id="s" class="num">—</div></div><div class="card"><div class="small">觀望</div><div id="w" class="num">—</div></div></section>
-<div id="list" class="list"></div></main><footer>V2.2 盤後掃描版｜非券商即時報價；交易前請以券商行情確認。</footer>
+*{box-sizing:border-box}body{margin:0;background:#07101f;color:#eef4ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:900px;margin:auto;padding:22px 14px 80px}h1{margin:0;font-size:29px}.sub{color:#9fb0ca;margin:8px 0 16px;line-height:1.55}.card,.stock{background:#101a2d;border:1px solid #293a55;border-radius:17px;padding:15px;margin-bottom:12px}.row,.status{display:flex;justify-content:space-between;align-items:center;gap:10px}.live{color:#67e394;font-weight:900}.small,.info{color:#9fb0ca;font-size:13px}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}button{width:100%;border:0;border-radius:13px;padding:14px;background:#568cff;color:white;font-size:16px;font-weight:850}button:disabled{opacity:.55}.title{font-size:23px;font-weight:900;margin:23px 0 11px}.name{font-size:19px;font-weight:850}.price{font-size:27px;font-weight:900}.score{font-size:25px;font-weight:900}.scoreLabel{color:#9fb0ca;font-size:11px;text-align:right}.up{color:#ff6969}.down{color:#59dc9c}.flat{color:#eef4ff}.tag{display:inline-block;background:#1e2d49;border-radius:8px;padding:4px 7px;font-size:11px;margin-left:5px}.signal{display:inline-block;margin-top:9px;padding:6px 9px;border-radius:9px;background:#20304d;font-weight:800}.entry{margin-top:11px;border-radius:12px;padding:11px 12px;font-weight:900;font-size:15px}.entry-go{background:#123c2c;color:#74edac;border:1px solid #266c4e}.entry-wait{background:#3d351b;color:#f2cd68;border:1px solid #6f5e2b}.entry-stop{background:#482329;color:#ff8b94;border:1px solid #7c3a44}.entry-neutral{background:#1d2c46;color:#a9bbd6;border:1px solid #354865}.reasonbox{margin-top:10px;padding:10px 12px;background:#17243a;border-radius:11px;color:#b9c9df;font-size:13px;line-height:1.7}.reasonbox b{color:#eef4ff}.exhaustbox{margin-top:10px;padding:11px 12px;background:#111d31;border:1px solid #2a3c59;border-radius:12px;font-size:13px;line-height:1.7}.exhaust-title{font-weight:900}.exhaust-buy{color:#ff8b94}.exhaust-sell{color:#74edac}.exhaust-neutral{color:#a9bbd6}.tradebox{margin-top:10px;padding:11px 12px;background:#0c1527;border:1px solid #233756;border-radius:12px;line-height:1.8;font-size:13px}.tradebox b{color:#eef4ff}.info{line-height:1.7;margin-top:10px}.risk{margin-top:8px;font-size:12px;color:#f0c36a}.session{margin-top:8px;padding:8px 10px;border-radius:10px;background:#17243a;color:#a9bbd6;font-size:12px;line-height:1.5}.pulse{color:#67e394}footer{text-align:center;color:#74859e;font-size:12px;margin-top:25px;line-height:1.6}
+</style>
+</head>
+<body>
+<main class="wrap">
+<h1>台股當沖助手 V4.2</h1>
+<div class="sub">上市＋上櫃｜200 檔極速背景雷達｜Top 20 約 5 秒近即時追蹤｜買盤竭盡＋賣盤竭盡</div>
+<div class="card status"><div><b id="status">建立候選池...</b><div id="time" class="small">--</div><div id="session" class="session">正在確認台北盤中時段...</div></div><div class="live">● 近即時</div></div>
+<div class="card"><div class="row"><span>全市場當沖候選池</span><b id="poolCount">--</b></div><div class="small" id="poolInfo">正在讀取上市＋上櫃市場資料</div></div>
+<div class="buttons"><button onclick="buildPool()">重建候選池</button><button id="scanBtn" onclick="fullScan(true)">立即全掃</button></div>
+<div class="title">🔥 多方優先 Top 10</div><div id="long"><div class="card small">等待第一次完整掃描...</div></div>
+<div class="title">❄️ 空方優先 Top 10</div><div id="short"><div class="card small">等待第一次完整掃描...</div></div>
+<footer>V4.2｜極速並行背景掃描＋Top 20 近即時追蹤｜竭盡模型使用連續價格＋增量成交量推進效率｜非逐筆委託流模型｜行情來源 TWSE MIS｜實際交易請以券商報價確認</footer>
+</main>
 <script>
-let rows=[];const $=x=>document.getElementById(x),num=x=>Number(String(x??0).replace(/,/g,""))||0;
-async function load(){try{$("status").innerHTML="<b>正在讀取 data/market.json…</b>";
-let r=await fetch("./data/market.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw Error("HTTP "+r.status);
-let j=await r.json();rows=j.stocks||[];render();$("status").innerHTML=`<b class="ok">● 資料讀取成功</b><div class="small">資料日期：${j.market_date||"未知"}　更新：${j.updated_at||"未知"}</div>`;
-}catch(e){rows=[];render();$("status").innerHTML=`<b class="err">● 尚無市場資料</b><div class="small">請先讓 GitHub Actions 執行「Update market data」。錯誤：${e.message}</div>`}}
-function render(){let q=$("sig").value==="all"?rows:rows.filter(x=>x.signal===$("sig").value);q=[...q].sort((a,b)=>$("sort").value==="change"?Math.abs(b.change_pct)-Math.abs(a.change_pct):b.amount-a.amount).slice(0,100);
-$("n").textContent=rows.length||"—";$("l").textContent=rows.length?rows.filter(x=>x.signal==="long").length:"—";$("s").textContent=rows.length?rows.filter(x=>x.signal==="short").length:"—";$("w").textContent=rows.length?rows.filter(x=>x.signal==="watch").length:"—";
-$("list").innerHTML=q.map(x=>`<article class="stock"><div class="top"><div><div class="name">${x.name} <span class="small">${x.code}</span></div><span class="tag">${x.signal==="long"?"偏多":x.signal==="short"?"偏空":"觀望"}</span></div><div><div class="price">${num(x.close).toFixed(2)}</div><div class="${x.change_pct>=0?"up":"down"}">${x.change_pct>=0?"+":""}${num(x.change_pct).toFixed(2)}%</div></div></div><div class="grid"><div class="mini"><div class="label">成交量</div><div class="val">${Math.round(num(x.volume)/1000).toLocaleString()} 張</div></div><div class="mini"><div class="label">成交金額</div><div class="val">${(num(x.amount)/1e8).toFixed(1)} 億</div></div><div class="mini"><div class="label">參考停損</div><div class="val">${(num(x.close)*.98).toFixed(2)}</div></div><div class="mini"><div class="label">參考目標</div><div class="val">${(num(x.close)*1.03).toFixed(2)}</div></div></div></article>`).join("")||'<div class="card small">目前沒有可顯示資料。</div>'}
-$("sig").onchange=render;$("sort").onchange=render;load();
-</script></body></html>
+let pool=[],watchList=[];
+let backgroundScanning=false,focusScanning=false;
+let lastFullScanAt=0,lastFocusAt=0;
+const BATCH_SIZE_FAST=30,SCAN_CONCURRENCY=3,API_TIMEOUT_MS=6000;
+const POOL_SIZE=200,WATCH_SIZE=20,MAX_HISTORY=12,SNAPSHOT_NEED=3;
+const FULL_SCAN_MS=60000,FOCUS_MS=5000;
+const historyMap=new Map(),latestMap=new Map();
+const N=x=>{const n=Number(x);return Number.isFinite(n)?n:0;};
+const clamp=(x,min,max)=>Math.max(min,Math.min(max,x));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function fmt(x){const n=N(x);if(!n)return"--";if(n>=1000)return n.toFixed(0);if(n>=100)return n.toFixed(1);return n.toFixed(2);}
+function rowsOf(d){if(Array.isArray(d))return d;if(d&&Array.isArray(d.rows))return d.rows;if(d&&Array.isArray(d.stocks))return d.stocks;if(d&&Array.isArray(d.data))return d.data;return[];}
+function codeOf(r){return String(r.code??r.symbol??r.stock_id??r.stockNo??r.c??"").trim();}
+function marketOf(r){const x=String(r.market??r.exchange??r.ex??r.type??"").toLowerCase();return(x.includes("otc")||x.includes("tpex")||x.includes("上櫃"))?"otc":"tse";}
+function liquidity(r){return N(r.amount??r.tradeValue??r.trade_value??r.value??r.turnover??r.volume??r.v??0);}
+function rowClose(r){return N(r.close??r.price??r.last??r.z??r.cprice??0);}
+function rowPrev(r){return N(r.previousClose??r.prevClose??r.previous_close??r.reference??r.y??0);}
+function rowHigh(r){return N(r.high??r.h??0);}function rowLow(r){return N(r.low??r.l??0);}
+function rowRangePct(r){const h=rowHigh(r),l=rowLow(r),b=rowPrev(r)||rowClose(r);return(!h||!l||!b||h<=l)?0:(h-l)/b*100;}
+function rowMovePct(r){const p=rowClose(r),y=rowPrev(r);return(!p||!y)?0:(p-y)/y*100;}
+function candidateScore(r){const liq=liquidity(r),range=rowRangePct(r),move=Math.abs(rowMovePct(r));let s=0;if(liq>0)s+=Math.log10(liq+1)*15;if(range>=2&&range<=5)s+=8;else if(range>=1&&range<2)s+=4;else if(range>5&&range<=7)s+=5;else if(range>7&&range<=9)s+=2;if(move>=1&&move<=5)s+=4;else if(move>5&&move<=7)s+=2;return s;}
+
+function taipeiNowParts(){const ps=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",weekday:"short",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).formatToParts(new Date()),o={};for(const p of ps)if(p.type!=="literal")o[p.type]=p.value;return{weekday:o.weekday||"",hour:Number(o.hour||0),minute:Number(o.minute||0),second:Number(o.second||0)};}
+function sessionState(){const t=taipeiNowParts(),m=t.hour*60+t.minute,w=!['Sat','Sun'].includes(t.weekday);if(!w)return{open:false,code:"weekend",text:"🌙 非一般盤中時段｜週末不自動掃描"};if(m<540)return{open:false,code:"premarket",text:"🌅 盤前等待 09:00 開盤｜目前不自動掃描"};if(m>=540&&m<=810)return{open:true,code:"open",text:"🟢 盤中｜200 檔背景雷達＋Top 20 約 5 秒近即時追蹤"};return{open:false,code:"closed",text:"🌙 一般盤後時段｜保留最後一輪 Top 10"};}
+function refreshSessionUI(){const s=sessionState();document.getElementById("session").textContent=s.text;return s;}
+
+async function buildPool(){try{document.getElementById("status").textContent="建立 200 檔候選池...";document.getElementById("time").textContent="正在讀取上市＋上櫃全市場資料";const res=await fetch("./data/market.json?ts="+Date.now(),{cache:"no-store"});if(!res.ok)throw new Error("市場資料 HTTP "+res.status);let rows=rowsOf(await res.json());if(!rows.length)throw new Error("market.json 沒有股票資料");rows=rows.filter(r=>/^\d{4}$/.test(codeOf(r))&&liquidity(r)>0).sort((a,b)=>candidateScore(b)-candidateScore(a));const seen=new Set();pool=rows.filter(r=>{const k=marketOf(r)+"_"+codeOf(r);if(seen.has(k))return false;seen.add(k);return true;}).slice(0,POOL_SIZE).map(r=>({symbol:codeOf(r),market:marketOf(r)}));if(!pool.length)throw new Error("找不到符合條件股票");document.getElementById("poolCount").textContent=pool.length+" 檔";document.getElementById("poolInfo").textContent="200 檔背景雷達｜Top 20 高頻追蹤｜單次 API 最多 30 檔";const s=refreshSessionUI();if(s.open){document.getElementById("status").textContent="候選池完成｜開始背景全掃";document.getElementById("time").textContent="已建立 "+pool.length+" 檔候選池";setTimeout(()=>fullScan(false),500);}else{document.getElementById("status").textContent=s.code==="premarket"?"🌅 盤前等待開盤":"目前非一般盤中時段";document.getElementById("time").textContent="已建立 "+pool.length+" 檔候選池｜不自動掃描";}}catch(e){console.error(e);document.getElementById("status").textContent="候選池失敗";document.getElementById("time").textContent=String(e.message||e);}}
+
+function makeQuery(list){return list.map(x=>x.market+":"+x.symbol).join(",");}
+async function getBatch(list){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),API_TIMEOUT_MS);
+  try{
+    const res=await fetch("/api/quotes?symbols="+encodeURIComponent(makeQuery(list)),{cache:"no-store",signal:controller.signal});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok)throw new Error(data.error||("行情 HTTP "+res.status));
+    if(!data.ok)throw new Error(data.error||"行情取得失敗");
+    if(!Array.isArray(data.quotes))throw new Error("API 沒有回傳 quotes");
+    return data.quotes;
+  }finally{clearTimeout(timer);}
+}
+async function rescueBatch(list){if(list.length<=1){try{return await getBatch(list)}catch(e){return[]}}const mid=Math.ceil(list.length/2),left=list.slice(0,mid),right=list.slice(mid),out=[];try{out.push(...await getBatch(left))}catch(e){}await sleep(400);try{out.push(...await getBatch(right))}catch(e){}return out;}
+async function getAllQuotes(){
+  const batches=[];
+  for(let i=0;i<pool.length;i+=BATCH_SIZE_FAST)batches.push(pool.slice(i,i+BATCH_SIZE_FAST));
+  const out=[];
+  let rescued=0,completed=0,nextIndex=0;
+
+  async function worker(){
+    while(true){
+      const idx=nextIndex++;
+      if(idx>=batches.length)return;
+      const batch=batches[idx];
+      let q=[];
+      try{q=await getBatch(batch);}
+      catch(e){q=await rescueBatch(batch);rescued+=q.length;}
+      if(q.length)out.push(...q);
+      completed++;
+
+      document.getElementById("status").textContent=`⚡ 極速背景掃描 ${completed} / ${batches.length} 批`;
+      document.getElementById("time").textContent=`${SCAN_CONCURRENCY} 路並行｜已取得 ${out.length} 檔｜${new Date().toLocaleTimeString("zh-TW")}`;
+
+      const valid=out.filter(x=>N(x.price)>0&&N(x.previousClose)>0);
+      if(valid.length>=20){
+        mergeQuotes(valid);
+        addSnapshots(valid);
+        watchList=makeWatchList(valid);
+        renderWatch();
+      }
+    }
+  }
+
+  await Promise.all(Array.from({length:Math.min(SCAN_CONCURRENCY,batches.length)},()=>worker()));
+  const unique=[],seen=new Set();
+  for(const q of out){
+    const k=(q.market||"")+"_"+(q.symbol||"");
+    if(!seen.has(k)){seen.add(k);unique.push(q);}
+  }
+  return{quotes:unique,rescued};
+}
+
+function position(q){const h=N(q.high),l=N(q.low),p=N(q.price);return(!h||!l||h===l)?50:clamp((p-l)/(h-l)*100,0,100);}
+function rangePct(q){const h=N(q.high),l=N(q.low),y=N(q.previousClose);return(!h||!l||!y)?0:(h-l)/y*100;}
+function volumeScore(q){const v=N(q.volume);if(v>=50000)return 10;if(v>=30000)return 9;if(v>=20000)return 8;if(v>=12000)return 7;if(v>=8000)return 6;if(v>=5000)return 5;if(v>=3000)return 4;if(v>=1500)return 3;if(v>=800)return 2;if(v>0)return 1;return 0;}
+function rawCalc(q){const p=N(q.price),y=N(q.previousClose),o=N(q.open),pct=y?(p-y)/y*100:0,openPct=o?(p-o)/o*100:0,pos=position(q),range=rangePct(q),vol=volumeScore(q);let L=35,S=35;L+=vol*1.5;S+=vol*1.5;if(range>=2&&range<=5){L+=10;S+=10}else if(range>=1&&range<2){L+=5;S+=5}else if(range>5&&range<=7){L+=6;S+=6}else if(range>7&&range<=9){L+=2;S+=2}else if(range>9){L-=5;S-=5}if(pct>=1&&pct<=5)L+=15;else if(pct>0&&pct<1)L+=7;else if(pct>5&&pct<=7)L+=6;else if(pct>7&&pct<9)L-=4;else if(pct>=9)L-=15;else L-=12;if(pct<=-1&&pct>=-5)S+=15;else if(pct<0&&pct>-1)S+=7;else if(pct<-5&&pct>=-7)S+=6;else if(pct<-7&&pct>-9)S-=4;else if(pct<=-9)S-=15;else S-=12;if(openPct>=.3&&openPct<=3)L+=12;else if(openPct>0&&openPct<.3)L+=5;else if(openPct>3&&openPct<=5)L+=5;else if(openPct>5)L-=7;else L-=10;if(openPct<=-.3&&openPct>=-3)S+=12;else if(openPct<0&&openPct>-.3)S+=5;else if(openPct<-3&&openPct>=-5)S+=5;else if(openPct<-5)S-=7;else S-=10;if(pos>=55&&pos<=80)L+=18;else if(pos>80&&pos<=85)L+=9;else if(pos>=45&&pos<55)L+=4;else if(pos>85&&pos<=92)L-=5;else if(pos>92)L-=18;else L-=10;if(pos>=20&&pos<=45)S+=18;else if(pos>=15&&pos<20)S+=9;else if(pos>45&&pos<=55)S+=4;else if(pos>=8&&pos<15)S-=5;else if(pos<8)S-=18;else S-=10;let lr=0,sr=0;if(pos>=90)lr+=5;if(pos>=95)lr+=8;if(pct>=7)lr+=5;if(pct>=9)lr+=8;if(openPct>=5)lr+=5;if(pos<=10)sr+=5;if(pos<=5)sr+=8;if(pct<=-7)sr+=5;if(pct<=-9)sr+=8;if(openPct<=-5)sr+=5;L-=lr;S-=sr;return{pct,openPct,pos,range,vol,longRisk:lr,shortRisk:sr,longRaw:L,shortRaw:S};}
+function calibratedScore(raw){let s;if(raw<=60)s=raw;else if(raw<=80)s=60+(raw-60)*.70;else if(raw<=100)s=74+(raw-80)*.45;else s=83+(raw-100)*.25;return clamp(s,0,95);}
+
+function historyKey(q){return(q.market||"")+"_"+(q.symbol||"");}
+function addSnapshots(quotes){const now=Date.now();for(const q of quotes){const price=N(q.price),volume=N(q.volume);if(!price||volume<0)continue;const k=historyKey(q),arr=historyMap.get(k)||[],last=arr[arr.length-1];if(last&&last.price===price&&last.volume===volume&&now-last.ts<2500)continue;arr.push({ts:now,price,volume,high:N(q.high),low:N(q.low),prev:N(q.previousClose)});while(arr.length>MAX_HISTORY)arr.shift();historyMap.set(k,arr);}}
+function pctMove(a,b){return a?(b-a)/a*100:0;}
+function exhaustionCalc(q){const arr=historyMap.get(historyKey(q))||[];if(arr.length<SNAPSHOT_NEED)return{ready:false,samples:arr.length,buy:0,sell:0,buyReasons:["累積近即時快照中"],sellReasons:["累積近即時快照中"],lastMove:0,volumeRatio:0};const a=arr[arr.length-3],b=arr[arr.length-2],c=arr[arr.length-1],move1=pctMove(a.price,b.price),move2=pctMove(b.price,c.price),dv1=Math.max(0,b.volume-a.volume),dv2=Math.max(0,c.volume-b.volume),vr=dv1>0?dv2/dv1:(dv2>0?2:0),pos=position(q),y=N(q.previousClose)||c.prev||c.price,dayPct=y?(c.price-y)/y*100:0,hi=N(q.high)||c.high,lo=N(q.low)||c.low,pull=hi?Math.max(0,(hi-c.price)/hi*100):0,bounce=lo?Math.max(0,(c.price-lo)/lo*100):0,highAdvance=b.high?pctMove(b.high,c.high):0,lowAdvance=b.low?pctMove(b.low,c.low):0;let buy=0,sell=0;const br=[],sr=[];if(pos>=92){buy+=24;br.push("接近盤中高檔")}else if(pos>=84){buy+=16;br.push("位於盤中高位")}else if(pos>=76)buy+=8;if(dayPct>=5){buy+=15;br.push("當日漲幅已大")}else if(dayPct>=2)buy+=9;if(dv2>0){if(move1>.08&&move2<=move1*.35){buy+=22;br.push("成交持續但上攻效率下降")}if(move2<=0){buy+=14;br.push("新增成交未能繼續推高")}if(vr>=1.15&&move2<.12){buy+=14;br.push("增量放大但價格推進有限")}if(highAdvance<=.03){buy+=10;br.push("高點延伸停滯")}}if(pull>=.45){buy+=12;br.push("價格已自高點回落")}if(move1>.20&&move2<0){buy+=8;br.push("短線由攻轉弱")}
+if(pos<=8){sell+=24;sr.push("接近盤中低檔")}else if(pos<=16){sell+=16;sr.push("位於盤中低位")}else if(pos<=24)sell+=8;if(dayPct<=-5){sell+=15;sr.push("當日跌幅已大")}else if(dayPct<=-2)sell+=9;if(dv2>0){if(move1<-.08&&move2>=move1*.35){sell+=22;sr.push("成交持續但下殺效率下降")}if(move2>=0){sell+=14;sr.push("新增成交未能繼續壓低")}if(vr>=1.15&&move2>-.12){sell+=14;sr.push("增量放大但價格下殺有限")}if(lowAdvance>=-.03){sell+=10;sr.push("低點延伸停滯")}}if(bounce>=.45){sell+=12;sr.push("價格已自低點反彈")}if(move1<-.20&&move2>0){sell+=8;sr.push("短線由殺轉穩")}if(dayPct<=0)buy*=.65;if(dayPct>=0)sell*=.65;buy=clamp(buy,0,95);sell=clamp(sell,0,95);if(!br.length)br.push("尚未出現明顯買盤竭盡");if(!sr.length)sr.push("尚未出現明顯賣盤竭盡");return{ready:true,samples:arr.length,buy,sell,buyReasons:br.slice(0,4),sellReasons:sr.slice(0,4),lastMove:move2,volumeRatio:vr};}
+function exhaustionPenalty(s){if(s>=85)return 20;if(s>=75)return 14;if(s>=65)return 9;if(s>=55)return 5;return 0;}
+function calc(q){const x=rawCalc(q),ex=exhaustionCalc(q),longBase=calibratedScore(x.longRaw),shortBase=calibratedScore(x.shortRaw);return{...x,ex,longBase,shortBase,longScore:clamp(longBase-exhaustionPenalty(ex.buy),0,95),shortScore:clamp(shortBase-exhaustionPenalty(ex.sell),0,95)};}
+
+function entryDecision(q,x,side){const score=side==="long"?x.longScore:x.shortScore,pos=x.pos,pct=x.pct,openPct=x.openPct,ex=x.ex;if(side==="long"){if(ex.ready&&ex.buy>=80)return{text:"⛔ 買盤竭盡｜停止追多",cls:"entry-stop",reason:"近即時量價顯示買盤推進效率明顯衰退",rank:0};if(ex.ready&&ex.buy>=65)return{text:"🟡 買盤轉弱｜等拉回",cls:"entry-wait",reason:"買盤竭盡分偏高，等待重新承接",rank:1};if(pos>=95||pct>=9||openPct>=6)return{text:"⛔ 禁止追高",cls:"entry-stop",reason:"價格過度延伸，不符合目前風險報酬",rank:0};if(score<60)return{text:"⚪ 暫不進場",cls:"entry-neutral",reason:"目前多方可交易性不足",rank:1};if(score>=72&&pos>=55&&pos<=82&&pct>0&&pct<=6&&openPct>0)return{text:"🟢 現在可做觀察",cls:"entry-go",reason:"方向、位置、振幅與量能條件較完整",rank:4};if(pos>82||pct>6)return{text:"🟡 等拉回",cls:"entry-wait",reason:"方向偏多，但目前價格偏高",rank:2};if(pos<55)return{text:"🟡 等轉強",cls:"entry-wait",reason:"多方條件尚可，但盤中位置仍需轉強",rank:2};return{text:"🟡 等確認",cls:"entry-wait",reason:"條件接近成立，等待進一步確認",rank:3};}
+if(ex.ready&&ex.sell>=80)return{text:"⛔ 賣盤竭盡｜停止追空",cls:"entry-stop",reason:"近即時量價顯示賣盤下殺效率明顯衰退",rank:0};if(ex.ready&&ex.sell>=65)return{text:"🟡 賣盤轉弱｜等反彈",cls:"entry-wait",reason:"賣盤竭盡分偏高，等待反彈後確認",rank:1};if(pos<=5||pct<=-9||openPct<=-6)return{text:"⛔ 禁止追空",cls:"entry-stop",reason:"價格過度下殺，不符合目前風險報酬",rank:0};if(score<60)return{text:"⚪ 暫不進場",cls:"entry-neutral",reason:"目前空方可交易性不足",rank:1};if(score>=72&&pos>=18&&pos<=45&&pct<0&&pct>=-6&&openPct<0)return{text:"🟢 現在可做觀察",cls:"entry-go",reason:"方向、位置、振幅與量能條件較完整",rank:4};if(pos<18||pct<-6)return{text:"🟡 等反彈",cls:"entry-wait",reason:"方向偏空，但目前位置偏低",rank:2};if(pos>45)return{text:"🟡 等轉弱",cls:"entry-wait",reason:"空方條件尚可，但盤中位置仍需轉弱",rank:2};return{text:"🟡 等確認",cls:"entry-wait",reason:"條件接近成立，等待空方動能確認",rank:3};}
+function selectionReasons(q,x,side){const r=[],v=N(q.volume);if(v>=12000)r.push("量能強");else if(v>=5000)r.push("量能佳");else if(v>=1500)r.push("成交活躍");if(x.range>=2&&x.range<=5)r.push("振幅佳");else if(x.range>=1&&x.range<=7)r.push("振幅可交易");if(side==="long"){if(x.pct>=1&&x.pct<=5)r.push("漲幅適中");if(x.openPct>0)r.push("站上開盤");if(x.pos>=55&&x.pos<=80)r.push("位置適中");if(x.ex.ready&&x.ex.buy<55)r.push("未見高度買盤竭盡")}else{if(x.pct<=-1&&x.pct>=-5)r.push("跌幅適中");if(x.openPct<0)r.push("跌破開盤");if(x.pos>=20&&x.pos<=45)r.push("位置適中");if(x.ex.ready&&x.ex.sell<55)r.push("未見高度賣盤竭盡")}if(!r.length)r.push("綜合條件入選");return r.slice(0,5).join("｜");}
+function rankingData(q,side){const x=calc(q),decision=entryDecision(q,x,side),score=side==="long"?x.longScore:x.shortScore;return{q,x,decision,score};}
+function rankQuotes(list,side,n=10){return list.map(q=>rankingData(q,side)).sort((a,b)=>b.decision.rank!==a.decision.rank?b.decision.rank-a.decision.rank:b.score-a.score).slice(0,n).map(x=>x.q);}
+function makeWatchList(list){const scored=list.map(q=>{const x=calc(q),ld=entryDecision(q,x,"long"),sd=entryDecision(q,x,"short");return{q,rank:Math.max(ld.rank,sd.rank),score:Math.max(x.longScore,x.shortScore)};}).sort((a,b)=>b.rank!==a.rank?b.rank-a.rank:b.score-a.score);return scored.slice(0,WATCH_SIZE).map(x=>({symbol:x.q.symbol,market:x.q.market}));}
+function signalText(score,side){if(side==="long"){if(score>=88)return"🔥 高可交易性";if(score>=78)return"🟢 多方優先";if(score>=68)return"偏多觀察";return"條件普通"}if(score>=88)return"❄️ 高可交易性";if(score>=78)return"🟢 空方優先";if(score>=68)return"偏空觀察";return"條件普通";}
+function entryZone(q,side){const h=N(q.high),l=N(q.low),p=N(q.price);if(!h||!l||h<=l)return{low:p,high:p};const s=h-l;return side==="long"?{low:l+s*.55,high:l+s*.72}:{low:l+s*.28,high:l+s*.45};}
+function cancelLevel(q,side){const o=N(q.open),h=N(q.high),l=N(q.low);if(side==="long")return o&&l?Math.max(l,o*.992):l;return o&&h?Math.min(h,o*1.008):h;}
+function plan(q,side){const p=N(q.price);return side==="long"?{stop:p*.988,target:p*1.022}:{stop:p*1.012,target:p*.978};}
+function riskText(x,side){const risk=side==="long"?x.longRisk:x.shortRisk,ex=side==="long"?x.ex.buy:x.ex.sell;if(x.ex.ready&&ex>=80)return side==="long"?"⚠️ 高度買盤竭盡，不追多":"⚠️ 高度賣盤竭盡，不追空";if(x.ex.ready&&ex>=65)return side==="long"?"⚠️ 買盤效率衰退，等待拉回":"⚠️ 賣盤效率衰退，等待反彈";if(risk>=12)return"⚠️ 極端位置，不適合追價";if(risk>=7)return"⚠️ 追價風險偏高";if(risk>=4)return"注意進場位置";return"位置與動能正常";}
+function exhaustionLevel(s){if(s>=80)return"高度";if(s>=65)return"偏高";if(s>=50)return"觀察";return"低";}
+function exhaustionBox(x){const ex=x.ex;if(!ex.ready)return`<div class="exhaustbox"><div class="exhaust-title exhaust-neutral">⚪ 竭盡資料累積中 ${ex.samples}/${SNAPSHOT_NEED}</div>Top 20 近即時快照累積滿 ${SNAPSHOT_NEED} 筆後開始判定。</div>`;return`<div class="exhaustbox"><div class="exhaust-title exhaust-buy">🔴 買盤竭盡 ${ex.buy.toFixed(0)}｜${exhaustionLevel(ex.buy)}</div>${ex.buyReasons.join("｜")}<br><div class="exhaust-title exhaust-sell">🟢 賣盤竭盡 ${ex.sell.toFixed(0)}｜${exhaustionLevel(ex.sell)}</div>${ex.sellReasons.join("｜")}<br><span class="small">最近價格變化 ${ex.lastMove>0?"+":""}${ex.lastMove.toFixed(2)}%｜增量比 ${ex.volumeRatio.toFixed(2)}</span></div>`;}
+function render(list,id,side){const el=document.getElementById(id);if(!list.length){el.innerHTML='<div class="card">目前沒有符合資料</div>';return}el.innerHTML=list.map((q,i)=>{const x=calc(q),pct=x.pct,score=side==="long"?x.longScore:x.shortScore,base=side==="long"?x.longBase:x.shortBase,cls=pct>0?"up":pct<0?"down":"flat",market=q.market==="otc"?"上櫃":"上市",p=plan(q,side),d=entryDecision(q,x,side),z=entryZone(q,side),c=cancelLevel(q,side),reasons=selectionReasons(q,x,side),ct=side==="long"?"跌破取消":"突破取消";return`<div class="stock"><div class="row"><div class="name">#${i+1} ${q.name||""} ${q.symbol||""}<span class="tag">${market}</span></div><div><div class="score">${score.toFixed(1)}</div><div class="scoreLabel">竭盡校正後</div></div></div><div class="row" style="margin-top:10px"><div class="price ${cls}">${q.price??"--"}</div><div class="${cls}">${pct>0?"+":""}${pct.toFixed(2)}%</div></div><div class="signal">${signalText(score,side)}</div><div class="entry ${d.cls}">${d.text}</div>${exhaustionBox(x)}<div class="reasonbox"><b>入選原因</b><br>${reasons}<br><span class="small">基礎可交易分 ${base.toFixed(1)}</span></div><div class="tradebox"><b>進場判斷</b><br>${d.reason}<br><b>參考進場區</b> ${fmt(z.low)} ～ ${fmt(z.high)}<br><b>${ct}</b> ${fmt(c)}<br><b>參考停損</b> ${fmt(p.stop)}　<b>參考目標</b> ${fmt(p.target)}</div><div class="info">開 ${q.open??"--"}　高 ${q.high??"--"}　低 ${q.low??"--"}<br>成交量 ${q.volume??"--"}　盤中位置 ${x.pos.toFixed(0)}%<br>開盤後 ${x.openPct>0?"+":""}${x.openPct.toFixed(2)}%　振幅 ${x.range.toFixed(2)}%<br>行情時間 ${q.tradeTime||"--"}</div><div class="risk">${riskText(x,side)}</div></div>`;}).join("");}
+function mergeQuotes(quotes){for(const q of quotes){if(N(q.price)>0&&N(q.previousClose)>0)latestMap.set(historyKey(q),q);}}
+function currentWatchQuotes(){return watchList.map(x=>latestMap.get(x.market+"_"+x.symbol)).filter(Boolean);}
+function renderWatch(){const list=currentWatchQuotes();if(!list.length)return;render(rankQuotes(list,"long",10),"long","long");render(rankQuotes(list,"short",10),"short","short");}
+
+async function focusScan(){if(focusScanning||!watchList.length||!sessionState().open)return;focusScanning=true;try{const q=await getBatch(watchList);const valid=q.filter(x=>N(x.price)>0&&N(x.previousClose)>0);if(valid.length){mergeQuotes(valid);addSnapshots(valid);lastFocusAt=Date.now();renderWatch();document.getElementById("status").textContent="Top 20 近即時追蹤中";document.getElementById("time").textContent=`約 5 秒更新｜本次 ${valid.length}/${watchList.length} 檔｜${new Date().toLocaleTimeString("zh-TW")}`;}}catch(e){console.log("focus scan fail",e)}finally{focusScanning=false;}}
+
+async function fullScan(manual=false){if(backgroundScanning)return;const s=refreshSessionUI();if(!s.open){document.getElementById("status").textContent=s.code==="premarket"?"🌅 盤前等待開盤":"目前非一般盤中時段";document.getElementById("time").textContent=manual?"目前不執行盤中掃描｜保留上一輪 Top 10":"等待下一個一般盤中時段";return}if(!pool.length){document.getElementById("status").textContent="尚未建立候選池";return}backgroundScanning=true;const btn=document.getElementById("scanBtn");btn.disabled=true;try{const result=await getAllQuotes(),valid=result.quotes.filter(q=>N(q.price)>0&&N(q.previousClose)>0);if(!valid.length)throw new Error("沒有有效成交價");mergeQuotes(valid);addSnapshots(valid);watchList=makeWatchList(valid);lastFullScanAt=Date.now();renderWatch();document.getElementById("status").textContent="背景全掃完成｜Top 20 已鎖定追蹤";document.getElementById("time").textContent=`有效 ${valid.length}/${pool.length} 檔｜Top 20 約 5 秒更新｜${new Date().toLocaleTimeString("zh-TW")}`;setTimeout(()=>focusScan(),700);}catch(e){console.error(e);document.getElementById("status").textContent="本輪背景掃描失敗";document.getElementById("time").textContent=String(e.message||e)+"｜保留近即時 Top 10";}finally{backgroundScanning=false;btn.disabled=false;refreshSessionUI();}}
+
+refreshSessionUI();buildPool();
+setInterval(()=>{const s=refreshSessionUI();if(s.open&&pool.length&&!backgroundScanning&&Date.now()-lastFullScanAt>=FULL_SCAN_MS)fullScan(false);},5000);
+setInterval(()=>{if(sessionState().open&&watchList.length&&!focusScanning)focusScan();},FOCUS_MS);
+</script>
+</body>
+</html>
