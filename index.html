@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#07101f">
-<title>台股當沖助手 V4.5.5</title>
+<title>台股當沖助手 V4.5.6</title>
 <style>
 *{box-sizing:border-box}
 html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:900px;margin:auto;padding:22px 14px 80px}h1{margin:0;font-size:29px}.sub{color:#9fb0ca;margin:8px 0 16px;line-height:1.55}.card,.stock{background:#101a2d;border:1px solid #293a55;border-radius:17px;padding:15px;margin-bottom:12px}.row,.status{display:flex;justify-content:space-between;align-items:center;gap:10px}.live{color:#67e394;font-weight:900}.small,.info{color:#9fb0ca;font-size:13px}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}button{width:100%;border:0;border-radius:13px;padding:14px;background:#568cff;color:white;font-size:16px;font-weight:850}button:disabled{opacity:.55}.title{font-size:23px;font-weight:900;margin:23px 0 11px}.name{font-size:19px;font-weight:850}.price{font-size:27px;font-weight:900}.score{font-size:25px;font-weight:900}.scoreLabel{color:#9fb0ca;font-size:11px;text-align:right}.up{color:#ff6969}.down{color:#59dc9c}.flat{color:#eef4ff}.tag{display:inline-block;background:#1e2d49;border-radius:8px;padding:4px 7px;font-size:11px;margin-left:5px}.signal{display:inline-block;margin-top:9px;padding:6px 9px;border-radius:9px;background:#20304d;font-weight:800}.entry{margin-top:11px;border-radius:12px;padding:11px 12px;font-weight:900;font-size:15px}.entry-go{background:#123c2c;color:#74edac;border:1px solid #266c4e}.entry-wait{background:#3d351b;color:#f2cd68;border:1px solid #6f5e2b}.entry-stop{background:#482329;color:#ff8b94;border:1px solid #7c3a44}.entry-neutral{background:#1d2c46;color:#a9bbd6;border:1px solid #354865}.reasonbox{margin-top:10px;padding:10px 12px;background:#17243a;border-radius:11px;color:#b9c9df;font-size:13px;line-height:1.7}.reasonbox b{color:#eef4ff}.exhaustbox{margin-top:10px;padding:11px 12px;background:#111d31;border:1px solid #2a3c59;border-radius:12px;font-size:13px;line-height:1.7}.exhaust-title{font-weight:900}.exhaust-buy{color:#ff8b94}.exhaust-sell{color:#74edac}.exhaust-neutral{color:#a9bbd6}.tradebox{margin-top:10px;padding:11px 12px;background:#0c1527;border:1px solid #233756;border-radius:12px;line-height:1.8;font-size:13px}.tradebox b{color:#eef4ff}.info{line-height:1.7;margin-top:10px}.risk{margin-top:8px;font-size:12px;color:#f0c36a}.session{margin-top:8px;padding:8px 10px;border-radius:10px;background:#17243a;color:#a9bbd6;font-size:12px;line-height:1.5}.pulse{color:#67e394}footer{text-align:center;color:#74859e;font-size:12px;margin-top:25px;line-height:1.6}
@@ -22,7 +22,7 @@ html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;fo
 </head>
 <body>
 <main class="wrap">
-<h1>台股當沖助手 V4.5.5</h1>
+<h1>台股當沖助手 V4.5.6</h1>
 <div class="sub">上市＋上櫃｜200 檔分段輪替雷達｜Top 20 約 5 秒近即時追蹤｜買盤竭盡＋賣盤竭盡</div>
 <div class="card status"><div><b id="status">建立候選池...</b><div id="time" class="small">--</div><div id="session" class="session">正在確認台北盤中時段...</div></div><div class="live">● 近即時</div></div>
 <div class="card"><div class="row"><span>全市場當沖候選池</span><b id="poolCount">--</b></div><div class="small" id="poolInfo">正在讀取上市＋上櫃市場資料</div></div>
@@ -37,7 +37,7 @@ html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;fo
 </div>
 <div class="title">🔥 多方優先 Top 10</div><div id="long"><div class="card small">等待第一次完整掃描...</div></div>
 <div class="title">❄️ 空方優先 Top 10</div><div id="short"><div class="card small">等待第一次完整掃描...</div></div>
-<footer>V4.5.5｜上市＋上櫃盤後日期驗證＋過熱修正＋明日當沖候選｜竭盡模型使用連續價格＋增量成交量推進效率｜非逐筆委託流模型｜行情來源 TWSE MIS｜實際交易請以券商報價確認</footer>
+<footer>V4.5.6｜上市＋上櫃盤後日期驗證＋過熱修正＋明日當沖候選｜竭盡模型使用連續價格＋增量成交量推進效率｜非逐筆委託流模型｜行情來源 TWSE MIS｜實際交易請以券商報價確認</footer>
 </main>
 <script>
 let pool=[],watchList=[];
@@ -84,25 +84,27 @@ async function getBatch(list){
 }
 async function rescueBatch(list){if(list.length<=1){try{return await getBatch(list)}catch(e){return[]}}const mid=Math.ceil(list.length/2),left=list.slice(0,mid),right=list.slice(mid),out=[];try{out.push(...await getBatch(left))}catch(e){}await sleep(400);try{out.push(...await getBatch(right))}catch(e){}return out;}
 async function getAllQuotesCore(){
-  // V4.4: low-pressure rotating radar.
-  // Scan only 5 candidates at a time, sequentially, and merge into a rolling cache.
+  // Low-pressure rotating radar: use the real global `pool` objects
+  // ({symbol, market}) so makeQuery() can build valid tse:/otc: symbols.
   if(!window.__radarCache)window.__radarCache=new Map();
   if(!Number.isInteger(window.__radarCursor))window.__radarCursor=0;
-  const pool=(typeof candidatePool!=="undefined"&&Array.isArray(candidatePool))?candidatePool:[];
-  if(!pool.length)return [...window.__radarCache.values()];
+  if(!Array.isArray(pool)||!pool.length)return [...window.__radarCache.values()];
 
   const slice=[];
-  for(let i=0;i<5;i++){
+  for(let i=0;i<5&&i<pool.length;i++){
     const item=pool[(window.__radarCursor+i)%pool.length];
-    const sym=typeof item==="string"?item:(item.symbol||item.code);
-    if(sym)slice.push(String(sym));
+    if(item&&item.symbol)slice.push(item);
   }
-  window.__radarCursor=(window.__radarCursor+5)%pool.length;
+  window.__radarCursor=(window.__radarCursor+slice.length)%pool.length;
 
-  for(const sym of slice){
+  for(const item of slice){
     try{
-      const rows=await getBatch([sym]);
-      for(const q of rows)if(q&&q.symbol)window.__radarCache.set(q.symbol,q);
+      const rows=await getBatch([item]);
+      for(const q of rows){
+        if(!q||!q.symbol)continue;
+        const key=(q.market||item.market||"tse")+"_"+q.symbol;
+        window.__radarCache.set(key,q);
+      }
     }catch(e){}
     await sleep(140);
   }
@@ -444,35 +446,33 @@ document.addEventListener("DOMContentLoaded",()=>{const ab=document.getElementBy
 });
 
 async function focusScan(){
-  if(focusBusy)return;
-  focusBusy=true;
+  if(focusScanning)return;
+  focusScanning=true;
   try{
-    const syms=Array.isArray(watchSymbols)?watchSymbols:[];
-    if(!syms.length)return;
+    if(!Array.isArray(watchList)||!watchList.length)return;
     if(!Number.isInteger(window.__focusCursor))window.__focusCursor=0;
     const part=[];
-    for(let i=0;i<4&&i<syms.length;i++)part.push(syms[(window.__focusCursor+i)%syms.length]);
-    window.__focusCursor=(window.__focusCursor+4)%syms.length;
+    for(let i=0;i<4&&i<watchList.length;i++){
+      part.push(watchList[(window.__focusCursor+i)%watchList.length]);
+    }
+    window.__focusCursor=(window.__focusCursor+part.length)%watchList.length;
 
-    for(const sym of part){
+    for(const item of part){
       try{
-        const rows=await getBatch([sym]);
-        for(const q of rows){
-          if(!q||!q.symbol)continue;
-          quoteMap.set(q.symbol,q);
-          pushHistory(q);
-        }
+        const rows=await getBatch([item]);
+        mergeQuotes(rows);
+        addSnapshots(rows);
       }catch(e){}
       await sleep(100);
     }
+    lastFocusAt=Date.now();
     renderWatch();
-    setLive(true);
   }finally{
-    focusBusy=false;
+    focusScanning=false;
   }
 }
 
-async function fullScan(manual=false){if(backgroundScanning)return;const s=refreshSessionUI();if(!s.open){document.getElementById("status").textContent=s.code==="premarket"?"🌅 盤前等待開盤":"目前非一般盤中時段";document.getElementById("time").textContent=manual?"目前不執行盤中掃描｜保留上一輪 Top 10":"等待下一個一般盤中時段";return}if(!pool.length){document.getElementById("status").textContent="尚未建立候選池";return}backgroundScanning=true;const btn=document.getElementById("scanBtn");btn.disabled=true;try{const result=await getAllQuotes(),valid=result.quotes.filter(q=>N(q.price)>0&&N(q.previousClose)>0);if(!valid.length)throw new Error("沒有有效成交價");mergeQuotes(valid);addSnapshots(valid);watchList=makeWatchList(valid);lastFullScanAt=Date.now();renderWatch();document.getElementById("status").textContent="分段雷達更新完成｜Top 20 已鎖定追蹤";document.getElementById("time").textContent=`有效 ${valid.length}/${pool.length} 檔｜Top 20 約 5 秒更新｜${new Date().toLocaleTimeString("zh-TW")}`;setTimeout(()=>focusScan(),700);}catch(e){console.error(e);document.getElementById("status").textContent="行情暫時重試中";document.getElementById("time").textContent=String(e.message||e)+"｜保留近即時 Top 10";}finally{backgroundScanning=false;btn.disabled=false;refreshSessionUI();}}
+async function fullScan(manual=false){if(backgroundScanning)return;const s=refreshSessionUI();if(!s.open){document.getElementById("status").textContent=s.code==="premarket"?"🌅 盤前等待開盤":"目前非一般盤中時段";document.getElementById("time").textContent=manual?"目前不執行盤中掃描｜保留上一輪 Top 10":"等待下一個一般盤中時段";return}if(!pool.length){document.getElementById("status").textContent="尚未建立候選池";return}backgroundScanning=true;const btn=document.getElementById("scanBtn");btn.disabled=true;try{const result=await getAllQuotes(),valid=result.filter(q=>N(q.price)>0&&N(q.previousClose)>0);if(!valid.length)throw new Error("沒有有效成交價");mergeQuotes(valid);addSnapshots(valid);watchList=makeWatchList(valid);lastFullScanAt=Date.now();renderWatch();document.getElementById("status").textContent="分段雷達更新完成｜Top 20 已鎖定追蹤";document.getElementById("time").textContent=`有效 ${valid.length}/${pool.length} 檔｜Top 20 約 5 秒更新｜${new Date().toLocaleTimeString("zh-TW")}`;setTimeout(()=>focusScan(),700);}catch(e){console.error(e);document.getElementById("status").textContent="行情暫時重試中";document.getElementById("time").textContent=String(e.message||e)+"｜保留近即時 Top 10";}finally{backgroundScanning=false;btn.disabled=false;refreshSessionUI();}}
 
 refreshSessionUI();buildPool();
 setInterval(()=>{const s=refreshSessionUI();if(s.open&&pool.length&&!backgroundScanning&&Date.now()-lastFullScanAt>=FULL_SCAN_MS)fullScan(false);},5000);
