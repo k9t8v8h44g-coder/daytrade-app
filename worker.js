@@ -1,4 +1,44 @@
 const TWSE_URL="https://mis.twse.com.tw/stock/api/getStockInfo.jsp";
+
+const TWSE_AFTER="https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL";
+const TPEX_AFTER="https://www.tpex.org.tw/openapi/v1/tpex_mainboard_quotes";
+function pick(o,keys){for(const k of keys)if(o&&o[k]!=null&&o[k]!=="")return o[k];return null}
+function nn(v){if(v==null||v===""||v==="--"||v==="---")return null;const x=Number(String(v).replace(/,/g,"").replace(/[＋+]/g,""));return Number.isFinite(x)?x:null}
+function afterRow(r,market){
+  const symbol=String(pick(r,["Code","SecuritiesCompanyCode","股票代號","代號","code"])||"").trim();
+  const name=String(pick(r,["Name","CompanyName","證券名稱","股票名稱","name"])||"").trim();
+  const price=nn(pick(r,["ClosingPrice","Close","收盤價","收盤","close"]));
+  const open=nn(pick(r,["OpeningPrice","Open","開盤價","開盤","open"]));
+  const high=nn(pick(r,["HighestPrice","High","最高價","最高","high"]));
+  const low=nn(pick(r,["LowestPrice","Low","最低價","最低","low"]));
+  const volume=nn(pick(r,["TradeVolume","TradingShares","成交股數","成交量","volume"]))||0;
+  const ch=nn(pick(r,["Change","ChangeAmount","漲跌價差","漲跌","change"]));
+  let previousClose=(price!=null&&ch!=null)?price-ch:null;
+  const ref=nn(pick(r,["PreviousClose","ReferencePrice","昨收","參考價","previousClose"]));
+  if(ref!=null)previousClose=ref;
+  return {symbol,name,market,price,previousClose,open,high,low,volume,change:ch,source:market==="tse"?"TWSE OpenAPI":"TPEx OpenAPI"};
+}
+async function fetchAfter(url,market){
+  const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),10000);
+  try{
+    const r=await fetch(url,{signal:ctl.signal,headers:{"Accept":"application/json","User-Agent":"Mozilla/5.0"}});
+    if(!r.ok)throw new Error((market==="tse"?"TWSE":"TPEx")+" HTTP "+r.status);
+    const j=await r.json();
+    const arr=Array.isArray(j)?j:(Array.isArray(j?.data)?j.data:[]);
+    return arr.map(x=>afterRow(x,market)).filter(q=>/^\d{4}$/.test(q.symbol)&&q.price!=null&&q.price>0&&q.previousClose!=null&&q.previousClose>0);
+  }finally{clearTimeout(timer)}
+}
+async function getAfterHours(){
+  const settled=await Promise.allSettled([fetchAfter(TWSE_AFTER,"tse"),fetchAfter(TPEX_AFTER,"otc")]);
+  const quotes=[],errors=[];
+  for(let i=0;i<settled.length;i++){
+    const x=settled[i],label=i===0?"TWSE":"TPEx";
+    if(x.status==="fulfilled")quotes.push(...x.value);
+    else errors.push(label+": "+String(x.reason?.message||x.reason));
+  }
+  return {quotes,errors};
+}
+
 const CORS={
   "Access-Control-Allow-Origin":"*",
   "Access-Control-Allow-Methods":"GET,OPTIONS",
@@ -70,6 +110,24 @@ export default{
       ok:true,service:"daytrade-realtime",source:"TWSE MIS",
       mode:"single-symbol-pool",concurrency:4,timeoutMs:4500
     });
+
+    if(u.pathname==="/api/afterhours"){
+      const started=Date.now();
+      try{
+        const out=await getAfterHours();
+        return json({
+          ok:out.quotes.length>0,
+          count:out.quotes.length,
+          partial:out.errors.length>0,
+          errors:out.errors,
+          elapsedMs:Date.now()-started,
+          source:"TWSE + TPEx official after-hours",
+          quotes:out.quotes
+        },out.quotes.length?200:502);
+      }catch(e){
+        return json({ok:false,error:String(e?.message||e),count:0,quotes:[]},502);
+      }
+    }
     if(u.pathname==="/api/quote"||u.pathname==="/api/quotes"){
       const raw=u.pathname==="/api/quote"
         ?[(u.searchParams.get("symbol")||"").trim()]
