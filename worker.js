@@ -1003,7 +1003,7 @@ export default{
 
         otcAfterMode:"TWSE MIS symbol watchlist",
 
-        version:"5.1.0"
+        version:"5.2.0"
       });
     }
 
