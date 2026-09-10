@@ -4,22 +4,29 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#07101f">
-<title>台股當沖助手 V4.2.4</title>
+<title>台股當沖助手 V4.2.5</title>
 <style>
 *{box-sizing:border-box}
 html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:900px;margin:auto;padding:22px 14px 80px}h1{margin:0;font-size:29px}.sub{color:#9fb0ca;margin:8px 0 16px;line-height:1.55}.card,.stock{background:#101a2d;border:1px solid #293a55;border-radius:17px;padding:15px;margin-bottom:12px}.row,.status{display:flex;justify-content:space-between;align-items:center;gap:10px}.live{color:#67e394;font-weight:900}.small,.info{color:#9fb0ca;font-size:13px}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}button{width:100%;border:0;border-radius:13px;padding:14px;background:#568cff;color:white;font-size:16px;font-weight:850}button:disabled{opacity:.55}.title{font-size:23px;font-weight:900;margin:23px 0 11px}.name{font-size:19px;font-weight:850}.price{font-size:27px;font-weight:900}.score{font-size:25px;font-weight:900}.scoreLabel{color:#9fb0ca;font-size:11px;text-align:right}.up{color:#ff6969}.down{color:#59dc9c}.flat{color:#eef4ff}.tag{display:inline-block;background:#1e2d49;border-radius:8px;padding:4px 7px;font-size:11px;margin-left:5px}.signal{display:inline-block;margin-top:9px;padding:6px 9px;border-radius:9px;background:#20304d;font-weight:800}.entry{margin-top:11px;border-radius:12px;padding:11px 12px;font-weight:900;font-size:15px}.entry-go{background:#123c2c;color:#74edac;border:1px solid #266c4e}.entry-wait{background:#3d351b;color:#f2cd68;border:1px solid #6f5e2b}.entry-stop{background:#482329;color:#ff8b94;border:1px solid #7c3a44}.entry-neutral{background:#1d2c46;color:#a9bbd6;border:1px solid #354865}.reasonbox{margin-top:10px;padding:10px 12px;background:#17243a;border-radius:11px;color:#b9c9df;font-size:13px;line-height:1.7}.reasonbox b{color:#eef4ff}.exhaustbox{margin-top:10px;padding:11px 12px;background:#111d31;border:1px solid #2a3c59;border-radius:12px;font-size:13px;line-height:1.7}.exhaust-title{font-weight:900}.exhaust-buy{color:#ff8b94}.exhaust-sell{color:#74edac}.exhaust-neutral{color:#a9bbd6}.tradebox{margin-top:10px;padding:11px 12px;background:#0c1527;border:1px solid #233756;border-radius:12px;line-height:1.8;font-size:13px}.tradebox b{color:#eef4ff}.info{line-height:1.7;margin-top:10px}.risk{margin-top:8px;font-size:12px;color:#f0c36a}.session{margin-top:8px;padding:8px 10px;border-radius:10px;background:#17243a;color:#a9bbd6;font-size:12px;line-height:1.5}.pulse{color:#67e394}footer{text-align:center;color:#74859e;font-size:12px;margin-top:25px;line-height:1.6}
+
+#rankUpdateBtn{
+ position:fixed;right:16px;bottom:22px;z-index:9999;
+ display:none;border:0;border-radius:999px;padding:12px 16px;
+ font-size:15px;font-weight:800;background:#4f86ff;color:white;
+ box-shadow:0 6px 24px rgba(0,0,0,.28)
+}
 </style>
 </head>
 <body>
 <main class="wrap">
-<h1>台股當沖助手 V4.2.4</h1>
+<h1>台股當沖助手 V4.2.5</h1>
 <div class="sub">上市＋上櫃｜200 檔極速背景雷達｜Top 20 約 5 秒近即時追蹤｜買盤竭盡＋賣盤竭盡</div>
 <div class="card status"><div><b id="status">建立候選池...</b><div id="time" class="small">--</div><div id="session" class="session">正在確認台北盤中時段...</div></div><div class="live">● 近即時</div></div>
 <div class="card"><div class="row"><span>全市場當沖候選池</span><b id="poolCount">--</b></div><div class="small" id="poolInfo">正在讀取上市＋上櫃市場資料</div></div>
 <div class="buttons"><button onclick="buildPool()">重建候選池</button><button id="scanBtn" onclick="fullScan(true)">立即全掃</button></div>
 <div class="title">🔥 多方優先 Top 10</div><div id="long"><div class="card small">等待第一次完整掃描...</div></div>
 <div class="title">❄️ 空方優先 Top 10</div><div id="short"><div class="card small">等待第一次完整掃描...</div></div>
-<footer>V4.2.4｜視窗錨點鎖定＋Cloudflare 即時行情＋穩定極速背景掃描＋Top 20 近即時追蹤｜竭盡模型使用連續價格＋增量成交量推進效率｜非逐筆委託流模型｜行情來源 TWSE MIS｜實際交易請以券商報價確認</footer>
+<footer>V4.2.5｜閱讀鎖定＋Cloudflare 即時行情＋穩定極速背景掃描＋Top 20 近即時追蹤｜竭盡模型使用連續價格＋增量成交量推進效率｜非逐筆委託流模型｜行情來源 TWSE MIS｜實際交易請以券商報價確認</footer>
 </main>
 <script>
 let pool=[],watchList=[];
@@ -168,7 +175,42 @@ function restoreViewportAnchor(a){
 function render(list,id,side){const viewportAnchor=captureViewportAnchor();const el=document.getElementById(id);if(!list.length){el.innerHTML='<div class="card">目前沒有符合資料</div>';restoreViewportAnchor(viewportAnchor);return}el.innerHTML=list.map((q,i)=>{const x=calc(q),pct=x.pct,score=side==="long"?x.longScore:x.shortScore,base=side==="long"?x.longBase:x.shortBase,cls=pct>0?"up":pct<0?"down":"flat",market=q.market==="otc"?"上櫃":"上市",p=plan(q,side),d=entryDecision(q,x,side),z=entryZone(q,side),c=cancelLevel(q,side),reasons=selectionReasons(q,x,side),ct=side==="long"?"跌破取消":"突破取消";return`<div class="stock" data-stock-key="${side}-${q.symbol||i}"><div class="row"><div class="name">#${i+1} ${q.name||""} ${q.symbol||""}<span class="tag">${market}</span></div><div><div class="score">${score.toFixed(1)}</div><div class="scoreLabel">竭盡校正後</div></div></div><div class="row" style="margin-top:10px"><div class="price ${cls}">${q.price??"--"}</div><div class="${cls}">${pct>0?"+":""}${pct.toFixed(2)}%</div></div><div class="signal">${signalText(score,side)}</div><div class="entry ${d.cls}">${d.text}</div>${exhaustionBox(x)}<div class="reasonbox"><b>入選原因</b><br>${reasons}<br><span class="small">基礎可交易分 ${base.toFixed(1)}</span></div><div class="tradebox"><b>進場判斷</b><br>${d.reason}<br><b>參考進場區</b> ${fmt(z.low)} ～ ${fmt(z.high)}<br><b>${ct}</b> ${fmt(c)}<br><b>參考停損</b> ${fmt(p.stop)}　<b>參考目標</b> ${fmt(p.target)}</div><div class="info">開 ${q.open??"--"}　高 ${q.high??"--"}　低 ${q.low??"--"}<br>成交量 ${q.volume??"--"}　盤中位置 ${x.pos.toFixed(0)}%<br>開盤後 ${x.openPct>0?"+":""}${x.openPct.toFixed(2)}%　振幅 ${x.range.toFixed(2)}%<br>行情時間 ${q.tradeTime||"--"}</div><div class="risk">${riskText(x,side)}</div></div>`;}).join("");restoreViewportAnchor(viewportAnchor);}
 function mergeQuotes(quotes){for(const q of quotes){if(N(q.price)>0&&N(q.previousClose)>0)latestMap.set(historyKey(q),q);}}
 function currentWatchQuotes(){return watchList.map(x=>latestMap.get(x.market+"_"+x.symbol)).filter(Boolean);}
-function renderWatch(){const list=currentWatchQuotes();if(!list.length)return;render(rankQuotes(list,"long",10),"long","long");render(rankQuotes(list,"short",10),"short","short");}
+let pendingVisualUpdate=false;
+const VIEW_LOCK_Y=220;
+
+function showRankUpdateButton(show){
+  const b=document.getElementById("rankUpdateBtn");
+  if(b)b.style.display=show?"block":"none";
+}
+
+function renderWatch(force=false){
+  const list=currentWatchQuotes();
+  if(!list.length)return;
+
+  // When user is reading lower on the page, keep fetching data but freeze DOM/ranking.
+  // This completely prevents automatic jumps caused by re-ranking/card replacement.
+  if(!force && window.scrollY>VIEW_LOCK_Y){
+    pendingVisualUpdate=true;
+    showRankUpdateButton(true);
+    return;
+  }
+
+  pendingVisualUpdate=false;
+  showRankUpdateButton(false);
+  render(rankQuotes(list,"long",10),"long","long");
+  render(rankQuotes(list,"short",10),"short","short");
+}
+
+window.addEventListener("scroll",()=>{
+  if(window.scrollY<=VIEW_LOCK_Y && pendingVisualUpdate){
+    renderWatch(true);
+  }
+},{passive:true});
+
+document.addEventListener("DOMContentLoaded",()=>{
+  const b=document.getElementById("rankUpdateBtn");
+  if(b)b.addEventListener("click",()=>renderWatch(true));
+});
 
 async function focusScan(){if(focusScanning||!watchList.length||!sessionState().open)return;focusScanning=true;try{const q=await getBatch(watchList);const valid=q.filter(x=>N(x.price)>0&&N(x.previousClose)>0);if(valid.length){mergeQuotes(valid);addSnapshots(valid);lastFocusAt=Date.now();renderWatch();document.getElementById("status").textContent="Top 20 近即時追蹤中";document.getElementById("time").textContent=`約 5 秒更新｜本次 ${valid.length}/${watchList.length} 檔｜${new Date().toLocaleTimeString("zh-TW")}`;}}catch(e){console.log("focus scan fail",e)}finally{focusScanning=false;}}
 
@@ -178,5 +220,6 @@ refreshSessionUI();buildPool();
 setInterval(()=>{const s=refreshSessionUI();if(s.open&&pool.length&&!backgroundScanning&&Date.now()-lastFullScanAt>=FULL_SCAN_MS)fullScan(false);},5000);
 setInterval(()=>{if(sessionState().open&&watchList.length&&!focusScanning)focusScan();},FOCUS_MS);
 </script>
+<button id="rankUpdateBtn" type="button">有新排名｜點我更新</button>
 </body>
 </html>
