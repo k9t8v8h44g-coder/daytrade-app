@@ -893,7 +893,7 @@ export default{
 
         otcAfterMode:"TWSE MIS symbol watchlist",
 
-        version:"4.7.0"
+        version:"4.7.1"
       });
     }
 
@@ -970,6 +970,13 @@ export default{
           errors:
             out.errors,
 
+          warnings:
+            payloadDates.length>1
+              ?[
+                  "Market dates are not aligned; do not combine TSE and OTC rows for same-day ranking until dates match."
+                ]
+              :[],
+
           elapsedMs:
             Date.now()-started,
 
@@ -979,6 +986,29 @@ export default{
           marketDate,
 
           payloadDates,
+
+          marketDates:{
+            tse:[
+              ...new Set(
+                out.quotes
+                  .filter(q=>q.market==="tse")
+                  .map(q=>rocDateISO(q.tradeDate))
+                  .filter(Boolean)
+              )
+            ].sort().at(-1)||null,
+
+            otc:[
+              ...new Set(
+                out.quotes
+                  .filter(q=>q.market==="otc")
+                  .map(q=>rocDateISO(q.tradeDate))
+                  .filter(Boolean)
+              )
+            ].sort().at(-1)||null
+          },
+
+          datesAligned:
+            payloadDates.length<=1,
 
           marketCounts:{
 
