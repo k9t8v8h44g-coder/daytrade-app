@@ -253,27 +253,31 @@ async function fetchAfter(url,market){
 
   const timer=setTimeout(
     ()=>ctl.abort(),
-    market==="otc" ? 8000 : 5000
+    market==="otc" ? 8000 : 12000
   );
 
   try{
 
-    const r=await fetch(url,{
-      signal:ctl.signal,
-      redirect:
-        market==="otc"
-          ?"manual"
-          :"follow",
-      headers:{
-        "Accept":"application/json,text/plain,*/*",
-        "User-Agent":
-          "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1",
-        "Referer":
-          market==="otc"
-            ?"https://www.tpex.org.tw/"
-            :"https://www.twse.com.tw/"
-      }
-    });
+    const fetchOptions =
+      market==="tse"
+        ?{
+            signal:ctl.signal,
+            headers:{
+              "Accept":"application/json",
+              "User-Agent":"Mozilla/5.0"
+            }
+          }
+        :{
+            signal:ctl.signal,
+            redirect:"manual",
+            headers:{
+              "Accept":"application/json,text/plain,*/*",
+              "User-Agent":"Mozilla/5.0",
+              "Referer":"https://www.tpex.org.tw/"
+            }
+          };
+
+    const r=await fetch(url,fetchOptions);
 
     if(
       market==="otc" &&
@@ -783,9 +787,9 @@ export default{
 
         timeoutMs:4500,
 
-        afterhoursTimeoutMs:8000,
+        afterhoursTimeoutMs:12000,
 
-        version:"4.5.9"
+        version:"4.6.0"
       });
     }
 
