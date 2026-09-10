@@ -135,10 +135,14 @@ export default{
       const started=Date.now();
       try{
         const out=await getAfterHours();
-        let marketDate=null;
-        try{marketDate=await fetchLatestTwseTradeDate()}catch(e){out.errors.push("TWSE date: "+String(e?.message||e))}
+        // Prefer the actual date carried by today's after-hours payload.
+        // FMTQIK can lag behind the daily-close endpoints after market close.
         const payloadDates=[...new Set(out.quotes.map(q=>rocDateISO(q.tradeDate)).filter(Boolean))].sort();
-        if(!marketDate && payloadDates.length)marketDate=payloadDates.at(-1);
+        let marketDate=payloadDates.length?payloadDates.at(-1):null;
+        if(!marketDate){
+          try{marketDate=await fetchLatestTwseTradeDate()}
+          catch(e){out.errors.push("TWSE date: "+String(e?.message||e))}
+        }
         return json({
           ok:out.quotes.length>0,
           count:out.quotes.length,
@@ -162,24 +166,36 @@ export default{
       const raw=u.pathname==="/api/quote"
         ?[(u.searchParams.get("symbol")||"").trim()]
         :(u.searchParams.get("symbols")||"").split(",").map(s=>s.trim());
-      const symbols=[...new Set(raw)].filter(s=>/^\d{4,6}$/.test(s));
-      if(!symbols.length)return json({ok:false,error:"No valid symbols"},400);
-      if(symbols.length>20)return json({ok:false,error:"Maximum 20 symbols"},400);
+      const parsed=[...new Set(raw)].map(s=>{
+        const m=String(s).match(/^(?:(tse|otc):)?(\d{4,6})$/i);
+        return m?{market:(m[1]||"").toLowerCase(),symbol:m[2]}:null;
+      }).filter(Boolean);
+      if(!parsed.length)return json({ok:false,error:"No valid symbols"},400);
+      if(parsed.length>20)return json({ok:false,error:"Maximum 20 symbols"},400);
       const started=Date.now();
       try{
-        const quotes=await getQuotes(symbols);
+        const quotes=[];
+        for(const x of parsed){
+          let q=null;
+          if(x.market){
+            try{q=await oneExchange(x.symbol,x.market)}catch(e){}
+          }else{
+            q=await oneSymbol(x.symbol);
+          }
+          if(q)quotes.push(q);
+        }
         return json({
           ok:quotes.length>0,
           count:quotes.length,
-          requested:symbols.length,
-          partial:quotes.length<symbols.length,
+          requested:parsed.length,
+          partial:quotes.length<parsed.length,
           elapsedMs:Date.now()-started,
           mode:"single-symbol-pool",
           source:"TWSE MIS",
           quotes
         },quotes.length?200:502);
       }catch(e){
-        return json({ok:false,error:String(e?.message||e),count:0,requested:symbols.length,quotes:[]},502);
+        return json({ok:false,error:String(e?.message||e),count:0,requested:parsed.length,quotes:[]},502);
       }
     }
     if(env&&env.ASSETS)return env.ASSETS.fetch(request);
