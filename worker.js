@@ -137,24 +137,54 @@ export default{
         const out=await getAfterHours();
         // Prefer the actual date carried by today's after-hours payload.
         // FMTQIK can lag behind the daily-close endpoints after market close.
-        const payloadDates=[...new Set(out.quotes.map(q=>rocDateISO(q.tradeDate)).filter(Boolean))].sort();
-        let marketDate=payloadDates.length?payloadDates.at(-1):null;
-        if(!marketDate){
-          try{marketDate=await fetchLatestTwseTradeDate()}
-          catch(e){out.errors.push("TWSE date: "+String(e?.message||e))}
-        }
+        const tseQuotes=out.quotes.filter(q=>q.market==="tse");
+        const otcQuotes=out.quotes.filter(q=>q.market==="otc");
+
+        const tseDates=[...new Set(tseQuotes.map(q=>rocDateISO(q.tradeDate)).filter(Boolean))].sort();
+        const otcDates=[...new Set(otcQuotes.map(q=>rocDateISO(q.tradeDate)).filter(Boolean))].sort();
+        const payloadDates=[...new Set([...tseDates,...otcDates])].sort();
+
+        const tseDate=tseDates.length?tseDates.at(-1):null;
+        const otcDate=otcDates.length?otcDates.at(-1):null;
+
+        // Use the oldest available market date as the safe combined marketDate.
+        // This prevents a fresh market from masking another stale market.
+        let marketDate=null;
+        const latestMarketDates=[tseDate,otcDate].filter(Boolean).sort();
+        if(latestMarketDates.length) marketDate=latestMarketDates[0];
+
+        let twseCalendarDate=null;
+        try{twseCalendarDate=await fetchLatestTwseTradeDate()}
+        catch(e){out.errors.push("TWSE calendar date: "+String(e?.message||e))}
+
+        if(!marketDate) marketDate=twseCalendarDate;
+
+        const dateMismatch=!!(tseDate&&otcDate&&tseDate!==otcDate);
+
         return json({
           ok:out.quotes.length>0,
           count:out.quotes.length,
-          partial:out.errors.length>0,
+          partial:out.errors.length>0 || dateMismatch,
           errors:out.errors,
           elapsedMs:Date.now()-started,
           source:"TWSE + TPEx official after-hours",
           marketDate,
           payloadDates,
+          diagnostic:{
+            tseDate,
+            otcDate,
+            twseCalendarDate,
+            dateMismatch,
+            tseDates,
+            otcDates,
+            tseCount:tseQuotes.length,
+            otcCount:otcQuotes.length,
+            tseSample:tseQuotes.slice(0,3).map(q=>({symbol:q.symbol,tradeDate:q.tradeDate,price:q.price})),
+            otcSample:otcQuotes.slice(0,3).map(q=>({symbol:q.symbol,tradeDate:q.tradeDate,price:q.price}))
+          },
           marketCounts:{
-            tse:out.quotes.filter(q=>q.market==="tse").length,
-            otc:out.quotes.filter(q=>q.market==="otc").length
+            tse:tseQuotes.length,
+            otc:otcQuotes.length
           },
           quotes:out.quotes
         },out.quotes.length?200:502);
