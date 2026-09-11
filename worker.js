@@ -1327,10 +1327,12 @@ export default{
         .map(s=>s.trim());
 
       const symbols=[
-        ...new Set(raw)
-      ].filter(
-        s=>/^\d{4,6}$/.test(s)
-      );
+        ...new Set(
+          raw
+            .map(s=>s.replace(/^(?:tse|otc):/i,""))
+            .filter(s=>/^\d{4,6}$/.test(s))
+        )
+      ];
 
       if(!symbols.length){
 
