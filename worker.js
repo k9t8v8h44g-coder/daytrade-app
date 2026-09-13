@@ -677,7 +677,13 @@ async function getAfterHours(otcSymbols=DEFAULT_OTC_AFTER_SYMBOLS,tseSymbols=[])
     errors.push("MIS combined: "+String(e?.message||e));
   }
 
-  return {quotes,errors};
+  // After-hours API contract: volume is shares for every source and market.
+  // Keep normalize() unchanged: the intraday endpoint uses MIS lots.
+  return {quotes:quotes.map(q=>({
+    ...q,
+    volume:/TWSE MIS/i.test(String(q.source||""))?(Number(q.volume)||0)*1000:(Number(q.volume)||0),
+    volumeUnit:"shares"
+  })),errors};
 }
 const CORS={
   "Access-Control-Allow-Origin":"*",
