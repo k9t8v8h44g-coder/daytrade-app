@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="theme-color" content="#07101f">
-<title>台股當沖助手 V5.9.3</title>
+<title>台股當沖助手 V5.9.4</title>
 <style>
 *{box-sizing:border-box}
 html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:900px;margin:auto;padding:22px 14px 80px}h1{margin:0;font-size:29px}.sub{color:#9fb0ca;margin:8px 0 16px;line-height:1.55}.card,.stock{background:#101a2d;border:1px solid #293a55;border-radius:17px;padding:15px;margin-bottom:12px}.row,.status{display:flex;justify-content:space-between;align-items:center;gap:10px}.live{color:#67e394;font-weight:900}.small,.info{color:#9fb0ca;font-size:13px}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}button{width:100%;border:0;border-radius:13px;padding:14px;background:#568cff;color:white;font-size:16px;font-weight:850}button:disabled{opacity:.55}.title{font-size:23px;font-weight:900;margin:23px 0 11px}.name{font-size:19px;font-weight:850}.price{font-size:27px;font-weight:900}.score{font-size:25px;font-weight:900}.scoreLabel{color:#9fb0ca;font-size:11px;text-align:right}.up{color:#ff6969}.down{color:#59dc9c}.flat{color:#eef4ff}.tag{display:inline-block;background:#1e2d49;border-radius:8px;padding:4px 7px;font-size:11px;margin-left:5px}.signal{display:inline-block;margin-top:9px;padding:6px 9px;border-radius:9px;background:#20304d;font-weight:800}.entry{margin-top:11px;border-radius:12px;padding:11px 12px;font-weight:900;font-size:15px}.entry-go{background:#123c2c;color:#74edac;border:1px solid #266c4e}.entry-wait{background:#3d351b;color:#f2cd68;border:1px solid #6f5e2b}.entry-stop{background:#482329;color:#ff8b94;border:1px solid #7c3a44}.entry-neutral{background:#1d2c46;color:#a9bbd6;border:1px solid #354865}.reasonbox{margin-top:10px;padding:10px 12px;background:#17243a;border-radius:11px;color:#b9c9df;font-size:13px;line-height:1.7}.reasonbox b{color:#eef4ff}.exhaustbox{margin-top:10px;padding:11px 12px;background:#111d31;border:1px solid #2a3c59;border-radius:12px;font-size:13px;line-height:1.7}.exhaust-title{font-weight:900}.exhaust-buy{color:#ff8b94}.exhaust-sell{color:#74edac}.exhaust-neutral{color:#a9bbd6}.tradebox{margin-top:10px;padding:11px 12px;background:#0c1527;border:1px solid #233756;border-radius:12px;line-height:1.8;font-size:13px}.tradebox b{color:#eef4ff}.info{line-height:1.7;margin-top:10px}.risk{margin-top:8px;font-size:12px;color:#f0c36a}.session{margin-top:8px;padding:8px 10px;border-radius:10px;background:#17243a;color:#a9bbd6;font-size:12px;line-height:1.5}.pulse{color:#67e394}footer{text-align:center;color:#74859e;font-size:12px;margin-top:25px;line-height:1.6}
@@ -22,7 +22,7 @@ html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;fo
 .ahTitle{font-size:18px;font-weight:900;margin:16px 0 7px}.ahRow{border-top:1px solid #293a55;padding:11px 0}
 .ahScore{font-size:20px;font-weight:900}.ahMeta{color:#9fb0ca;font-size:13px;line-height:1.65;margin-top:4px}
 
-/* V5.9.3 多空色彩區隔：紅=多、綠=空 */
+/* V5.9.4 多空色彩區隔：紅=多、綠=空 */
 .ah-side{
   display:inline-flex;align-items:center;gap:6px;
   font-weight:800;padding:5px 10px;border-radius:999px;
@@ -284,7 +284,7 @@ footer{margin-top:22px;font-size:10px;opacity:.45;text-align:center}
 </style>
 </head>
 <body>
-<!-- BUILD: DAYTRADE_APP_V5.9.3_20260913 -->
+<!-- BUILD: DAYTRADE_APP_V5.9.4_20260913 -->
 <main class="wrap">
   <header class="appbar">
     <div>
@@ -295,12 +295,12 @@ footer{margin-top:22px;font-size:10px;opacity:.45;text-align:center}
   </header>
 
   <div class="main-tabs">
-    <button class="tab active" id="tabAfter" onclick="showMainTab('after')">明日候選</button>
+    <button class="tab active" id="tabAfter" onclick="showMainTab('after')">下一交易日候選</button>
     <button class="tab" id="tabLive" onclick="showMainTab('live')">盤中排行</button>
   </div>
 
   <section id="panelAfter" class="main-panel">
-    <button id="afterBtn" type="button" class="hero-btn">產生明日候選</button>
+    <button id="afterBtn" type="button" class="hero-btn">產生下一交易日候選</button>
     <div id="afterStatus" class="status-line">等待分析</div>
 
     <div class="section-label long-label">偏多</div>
@@ -816,7 +816,7 @@ async function fetchJSON(url){
 
 function isCommonStock(q){
  const code=String(q.symbol||"").trim(),name=String(q.name||"").trim();
- // 明日當沖候選先限定一般 4 碼股票；排除 ETF/ETN/權證等非一般股票代號。
+ // 下一交易日當沖候選先限定一般 4 碼股票；排除 ETF/ETN/權證等非一般股票代號。
  return /^\d{4}$/.test(code) && !/(ETF|ETN|指數|債|反|正2|槓桿)/i.test(name);
 }
 function ahMetrics(q){
@@ -975,22 +975,22 @@ function ahOperation(q,side){
  const m=ahMetrics(q), sc=ahScore(q,side);
  const px=v=>Number.isFinite(v)&&v>0?v.toFixed(2):"—";
  if(sc<58)return {
-   title:"明日盤前計畫：低優先／先觀望",
-   text:"盤後訊號不足；明日開盤後除非量價明顯轉強／轉弱，否則略過。",
+   title:"下一交易日盤前計畫：低優先／先觀望",
+   text:"盤後訊號不足；下一交易日開盤後除非量價明顯轉強／轉弱，否則略過。",
    key:`前一日高 ${px(m.h)}｜前一日低 ${px(m.l)}｜前一日收 ${px(m.p)}`,
    risk:"開盤後以今日即時價、今日開盤價與盤中高低重新判斷。"
  };
  if(side==="long")return {
-   title:sc>=72?"明日盤前計畫：偏多優先":"明日盤前計畫：偏多觀察",
-   text:`前一日高 ${px(m.h)} 為突破參考；明日開盤後若現價站上今日開盤價且量價轉強，再確認偏多。`,
+   title:sc>=72?"下一交易日盤前計畫：偏多優先":"下一交易日盤前計畫：偏多觀察",
+   text:`前一日高 ${px(m.h)} 為突破參考；下一交易日開盤後若現價站上今日開盤價且量價轉強，再確認偏多。`,
    key:`盤前突破參考 ${px(m.h)}｜失效參考：跌破前一日低 ${px(m.l)}`,
-   risk:m.pct>6.5?"前一日漲幅偏大，避免開盤直接追價。":"這是盤前劇本，不把前一日收盤價當成明日即時進場價。"
+   risk:m.pct>6.5?"前一日漲幅偏大，避免開盤直接追價。":"這是盤前劇本，不把前一日收盤價當成下一交易日即時進場價。"
  };
  return {
-   title:sc>=72?"明日盤前計畫：偏空優先":"明日盤前計畫：偏空觀察",
-   text:`前一日低 ${px(m.l)} 為跌破參考；明日開盤後若現價跌破今日開盤價且賣壓增強，再確認偏空。`,
+   title:sc>=72?"下一交易日盤前計畫：偏空優先":"下一交易日盤前計畫：偏空觀察",
+   text:`前一日低 ${px(m.l)} 為跌破參考；下一交易日開盤後若現價跌破今日開盤價且賣壓增強，再確認偏空。`,
    key:`盤前跌破參考 ${px(m.l)}｜失效參考：突破前一日高 ${px(m.h)}`,
-   risk:m.pct<-6.5?"前一日跌幅偏大，避免開盤直接追空。":"這是盤前劇本，不把前一日收盤價當成明日即時進場價。"
+   risk:m.pct<-6.5?"前一日跌幅偏大，避免開盤直接追空。":"這是盤前劇本，不把前一日收盤價當成下一交易日即時進場價。"
  };
 }
 
@@ -1195,94 +1195,77 @@ function twToday(){
 }
 
 
-const AH_CACHE_KEY="daytrade_afterhours_lastgood_v1";
-function saveAfterHoursCache(date,rows){
-  try{
-    localStorage.setItem(AH_CACHE_KEY,JSON.stringify({
-      date,
-      savedAt:Date.now(),
-      rows:Array.isArray(rows)?rows:[]
-    }));
-  }catch(e){}
+const AH_CACHE_KEY="daytrade_afterhours_lastgood_v2";
+function selectAfterHours(data,today){
+ const all=Array.isArray(data.quotes)?data.quotes:[];
+ const valid=all.filter(q=>N(q.price)>0&&N(q.previousClose)>0);
+ const dates=[...new Set(valid.map(q=>parseTradeDate(q.tradeDate)).filter(Boolean))].sort();
+ const date=dates.at(-1);
+ if(!date)throw new Error("未取得有效盤後資料日期");
+ if(date>today)throw new Error("資料日期超前，暫停產生候選");
+ const age=(Date.parse(today)-Date.parse(date))/86400000;
+ if(!Number.isFinite(age)||age>10)throw new Error("資料過舊（"+date+"），請稍後重新取得");
+ const declared=parseTradeDate(data.marketDate);
+ if(declared&&declared!==date)throw new Error("API 資料日期與股票日期不一致，請稍後重試");
+ return {date,rows:valid.filter(q=>parseTradeDate(q.tradeDate)===date),mixed:dates.length>1};
 }
-function loadAfterHoursCache(date){
-  try{
-    const x=JSON.parse(localStorage.getItem(AH_CACHE_KEY)||"null");
-    if(!x||x.date!==date||!Array.isArray(x.rows)||!x.rows.length)return null;
-    return x;
-  }catch(e){return null}
+function saveAfterHoursCache(result){
+ try{localStorage.setItem(AH_CACHE_KEY,JSON.stringify({...result,savedAt:Date.now()}));}catch(e){}
+}
+function loadAfterHoursCache(today){
+ try{
+  const x=JSON.parse(localStorage.getItem(AH_CACHE_KEY)||"null");
+  if(!x||!Array.isArray(x.rows)||!Number.isFinite(x.savedAt))return null;
+  // A fallback is a labelled snapshot, never a silently refreshed dataset.
+  if(Date.now()-x.savedAt>72*3600000||x.savedAt>Date.now())return null;
+  return {...selectAfterHours({quotes:x.rows,marketDate:x.date},today),savedAt:x.savedAt};
+ }catch(e){return null;}
+}
+function displayAfterHours(result,notice=""){
+ const {date,rows,mixed}=result;
+ const longs=[...rows].sort((a,b)=>ahScore(b,"long")-ahScore(a,"long")).slice(0,10);
+ const shorts=[...rows].sort((a,b)=>ahScore(b,"short")-ahScore(a,"short")).slice(0,10);
+ renderAH(longs,"tomorrowLong","long");renderAH(shorts,"tomorrowShort","short");
+ document.getElementById("afterStatus").textContent=
+  `資料日期 ${date}｜${rows.length} 檔｜供下一交易日參考`+
+  (date!==twToday()?"｜非今日資料，開盤前請再更新":"")+
+  (mixed?"｜不同日期資料已排除":"")+(notice?"｜"+notice:"");
 }
 async function runAfterHours(){
  const st=document.getElementById("afterStatus"),btn=document.getElementById("afterBtn");
- btn.disabled=true;
- st.textContent="正在更新盤後資料…";
+ if(btn.disabled)return;
+ btn.disabled=true;st.textContent="正在更新盤後資料…";
  const today=twToday();
-
  try{
   const c=new AbortController(),timer=setTimeout(()=>c.abort(),22000);
-  let res;
+  let res,data;
   try{
-    res=await fetch(API_BASE+"/api/afterhours?"+(()=>{
-      const otcPool=[...new Set((pool||[]).filter(x=>x&&x.market==="otc").map(x=>x.symbol))].slice(0,60);
-      const tsePool=[...new Set((pool||[]).filter(x=>x&&x.market==="tse").map(x=>x.symbol))].slice(0,60);
-      const p=new URLSearchParams();
-      p.set("ts",Date.now());
-      if(otcPool.length)p.set("otc",otcPool.join(","));
-      if(tsePool.length)p.set("tse",tsePool.join(","));
-      return p.toString();
-    })(),{cache:"no-store",signal:c.signal});
-  }finally{
-    clearTimeout(timer);
+   const p=new URLSearchParams({ts:String(Date.now())});
+   for(const market of ["otc","tse"]){
+    const symbols=[...new Set((pool||[]).filter(x=>x&&x.market===market).map(x=>x.symbol))].slice(0,60);
+    if(symbols.length)p.set(market,symbols.join(","));
+   }
+   res=await fetch(API_BASE+"/api/afterhours?"+p,{cache:"no-store",signal:c.signal});
+   data=await res.json().catch(()=>({}));
+  }finally{clearTimeout(timer);}
+  if(!res.ok||!data.ok){
+   const detail=String(data.error||(Array.isArray(data.errors)?data.errors.join("｜"):"")||"");
+   if(res.status===409)throw new Error("盤後資料檢查未通過（HTTP 409）"+(detail?"："+detail:"，請確認後端版本與資料日期"));
+   throw new Error(detail||("盤後 API HTTP "+res.status));
   }
-
-  const data=await res.json().catch(()=>({}));
-  if(!res.ok||!data.ok)throw new Error(data.error||(data.errors||[]).join("｜")||("盤後 API HTTP "+res.status));
-
-  const allRows=Array.isArray(data.quotes)?data.quotes.filter(q=>N(q.price)>0&&N(q.previousClose)>0):[];
-  const rows=allRows.filter(q=>parseTradeDate(q.tradeDate)===today);
-
-  if(!rows.length){
-    const cached=loadAfterHoursCache(today);
-    if(cached){
-      const longs=[...cached.rows].sort((a,b)=>ahScore(b,"long")-ahScore(a,"long")).slice(0,10);
-      const shorts=[...cached.rows].sort((a,b)=>ahScore(b,"short")-ahScore(a,"short")).slice(0,10);
-      renderAH(longs,"tomorrowLong","long");
-      renderAH(shorts,"tomorrowShort","short");
-      const tm=new Date(cached.savedAt).toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"});
-      st.textContent=`${today.slice(5).replace("-","/")}｜${cached.rows.length} 檔｜使用 ${tm} 資料`;
-      return;
-    }
-
-    const marketDates=data.marketDates||{};
-    const tseDate=parseTradeDate(marketDates.tse);
-    const otcDate=parseTradeDate(marketDates.otc);
-    throw new Error(`今日盤後資料尚未就緒｜上市 ${tseDate||"未取得"}｜上櫃 ${otcDate||"未取得"}`);
-  }
-
-  // Only replace cards after a valid same-day dataset is confirmed.
-  const longs=[...rows].sort((a,b)=>ahScore(b,"long")-ahScore(a,"long")).slice(0,10);
-  const shorts=[...rows].sort((a,b)=>ahScore(b,"short")-ahScore(a,"short")).slice(0,10);
-
-  renderAH(longs,"tomorrowLong","long");
-  renderAH(shorts,"tomorrowShort","short");
-  saveAfterHoursCache(today,rows);
-
-  st.textContent=`${today.slice(5).replace("-","/")}｜${rows.length} 檔｜已更新`;
+  const result=selectAfterHours(data,today);
+  displayAfterHours(result,data.partial?"部分資料未取得":"");
+  saveAfterHoursCache(result);
  }catch(e){
+  const reason=e.name==="AbortError"?"盤後 API 逾時":String(e.message||e);
   const cached=loadAfterHoursCache(today);
-  if(cached){
-    const longs=[...cached.rows].sort((a,b)=>ahScore(b,"long")-ahScore(a,"long")).slice(0,10);
-    const shorts=[...cached.rows].sort((a,b)=>ahScore(b,"short")-ahScore(a,"short")).slice(0,10);
-    renderAH(longs,"tomorrowLong","long");
-    renderAH(shorts,"tomorrowShort","short");
-    const tm=new Date(cached.savedAt).toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"});
-    st.textContent=`${today.slice(5).replace("-","/")}｜${cached.rows.length} 檔｜使用 ${tm} 資料`;
-  }else{
-    st.textContent="盤後資料暫時無法完成："+(e.message||e);
+  if(cached){displayAfterHours(cached,"更新失敗，顯示暫存｜"+reason);}
+  else{
+   document.getElementById("tomorrowLong").replaceChildren();
+   document.getElementById("tomorrowShort").replaceChildren();
+   st.textContent="盤後資料暫時無法完成："+reason;
   }
- }finally{
-  btn.disabled=false;
- }
+ }finally{btn.disabled=false;}
 }
 document.addEventListener("DOMContentLoaded",()=>{const ab=document.getElementById("afterBtn");if(ab)ab.addEventListener("click",runAfterHours);
   const b=document.getElementById("rankUpdateBtn");
