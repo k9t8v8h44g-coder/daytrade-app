@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="theme-color" content="#07101f">
-<title>台股當沖助手 V5.9.5</title>
+<title>台股當沖助手 V6.0.0｜雙刀版</title>
 <style>
 *{box-sizing:border-box}
 html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:900px;margin:auto;padding:22px 14px 80px}h1{margin:0;font-size:29px}.sub{color:#9fb0ca;margin:8px 0 16px;line-height:1.55}.card,.stock{background:#101a2d;border:1px solid #293a55;border-radius:17px;padding:15px;margin-bottom:12px}.row,.status{display:flex;justify-content:space-between;align-items:center;gap:10px}.live{color:#67e394;font-weight:900}.small,.info{color:#9fb0ca;font-size:13px}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}button{width:100%;border:0;border-radius:13px;padding:14px;background:#568cff;color:white;font-size:16px;font-weight:850}button:disabled{opacity:.55}.title{font-size:23px;font-weight:900;margin:23px 0 11px}.name{font-size:19px;font-weight:850}.price{font-size:27px;font-weight:900}.score{font-size:25px;font-weight:900}.scoreLabel{color:#9fb0ca;font-size:11px;text-align:right}.up{color:#ff6969}.down{color:#59dc9c}.flat{color:#eef4ff}.tag{display:inline-block;background:#1e2d49;border-radius:8px;padding:4px 7px;font-size:11px;margin-left:5px}.signal{display:inline-block;margin-top:9px;padding:6px 9px;border-radius:9px;background:#20304d;font-weight:800}.entry{margin-top:11px;border-radius:12px;padding:11px 12px;font-weight:900;font-size:15px}.entry-go{background:#123c2c;color:#74edac;border:1px solid #266c4e}.entry-wait{background:#3d351b;color:#f2cd68;border:1px solid #6f5e2b}.entry-stop{background:#482329;color:#ff8b94;border:1px solid #7c3a44}.entry-neutral{background:#1d2c46;color:#a9bbd6;border:1px solid #354865}.reasonbox{margin-top:10px;padding:10px 12px;background:#17243a;border-radius:11px;color:#b9c9df;font-size:13px;line-height:1.7}.reasonbox b{color:#eef4ff}.exhaustbox{margin-top:10px;padding:11px 12px;background:#111d31;border:1px solid #2a3c59;border-radius:12px;font-size:13px;line-height:1.7}.exhaust-title{font-weight:900}.exhaust-buy{color:#ff8b94}.exhaust-sell{color:#74edac}.exhaust-neutral{color:#a9bbd6}.tradebox{margin-top:10px;padding:11px 12px;background:#0c1527;border:1px solid #233756;border-radius:12px;line-height:1.8;font-size:13px}.tradebox b{color:#eef4ff}.info{line-height:1.7;margin-top:10px}.risk{margin-top:8px;font-size:12px;color:#f0c36a}.session{margin-top:8px;padding:8px 10px;border-radius:10px;background:#17243a;color:#a9bbd6;font-size:12px;line-height:1.5}.pulse{color:#67e394}footer{text-align:center;color:#74859e;font-size:12px;margin-top:25px;line-height:1.6}
@@ -22,7 +22,7 @@ html,body{overflow-anchor:none}body{margin:0;background:#07101f;color:#eef4ff;fo
 .ahTitle{font-size:18px;font-weight:900;margin:16px 0 7px}.ahRow{border-top:1px solid #293a55;padding:11px 0}
 .ahScore{font-size:20px;font-weight:900}.ahMeta{color:#9fb0ca;font-size:13px;line-height:1.65;margin-top:4px}
 
-/* V5.9.5 多空色彩區隔：紅=多、綠=空 */
+/* V5.9.3 多空色彩區隔：紅=多、綠=空 */
 .ah-side{
   display:inline-flex;align-items:center;gap:6px;
   font-weight:800;padding:5px 10px;border-radius:999px;
@@ -118,7 +118,7 @@ body{background:#08111f}
 .appbar h1{font-size:25px;margin:0}
 .app-sub{font-size:13px;color:#93a4bf;margin-top:5px;max-width:290px}
 .live-dot{font-size:18px;color:#69e39c;padding-top:4px}
-.main-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#0e192b;padding:5px;border-radius:14px;margin-bottom:14px}
+.main-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:#0e192b;padding:5px;border-radius:14px;margin-bottom:14px}
 .main-tabs .tab{margin:0;min-height:44px;border:0;border-radius:10px;background:transparent;color:#8fa2bf;font-size:15px;font-weight:800}
 .main-tabs .tab.active{background:#233555;color:#fff}
 .main-panel.hidden{display:none}
@@ -281,10 +281,48 @@ footer{margin-top:22px;font-size:10px;opacity:.45;text-align:center}
   .live-plan{grid-template-columns:repeat(2,1fr)}
 }
 
+
+/* V6.0 雙刀配對掃描 */
+.twin-controls{background:#101a2d;border:1px solid #293a55;border-radius:16px;padding:13px;margin-bottom:12px}
+.twin-control-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+.twin-control{background:#0c1627;border:1px solid #263957;border-radius:12px;padding:10px}
+.twin-control label{display:block;color:#91a4c2;font-size:12px;margin-bottom:6px}
+.twin-control select{width:100%;background:#0a1322;color:#eef4ff;border:1px solid #334867;border-radius:9px;padding:9px}
+.twin-check{display:flex;align-items:center;gap:9px;color:#c8d4e7;font-size:14px;margin-top:11px}
+.twin-check input{width:18px;height:18px}
+.twin-status{color:#91a4c2;font-size:12px;line-height:1.55;margin:8px 1px 12px}
+.twin-card{background:#101a2d;border:1px solid #30415e;border-radius:17px;padding:14px;margin-bottom:12px}
+.twin-card.strong{border-color:#4b6b99;box-shadow:0 0 0 1px rgba(91,140,255,.08) inset}
+.twin-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.twin-sector{font-size:12px;color:#90a3bf;font-weight:800;letter-spacing:.04em}
+.twin-badge{display:inline-flex;align-items:center;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:850;background:#20304d;color:#dbe6f7}
+.twin-badge.hot{background:#27385a;color:#f2f6ff}
+.twin-pair{display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch;gap:8px;margin-top:11px}
+.twin-leg{border-radius:13px;padding:11px;background:#0c1627;border:1px solid #253852}
+.twin-leg.long{border-left:4px solid #ff5b62}
+.twin-leg.short{border-left:4px solid #39d98a}
+.twin-side{font-size:12px;font-weight:900}
+.twin-leg.long .twin-side{color:#ff7076}.twin-leg.short .twin-side{color:#49df99}
+.twin-name{font-weight:900;font-size:17px;margin-top:3px}
+.twin-meta{color:#91a4c2;font-size:12px;line-height:1.55;margin-top:5px}
+.twin-vs{display:flex;align-items:center;justify-content:center;color:#6f84a4;font-size:12px;font-weight:900}
+.twin-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:10px}
+.twin-kpi{background:#0d1727;border-radius:10px;padding:8px 5px;text-align:center}
+.twin-kpi span{display:block;color:#7f93b0;font-size:10px}
+.twin-kpi b{display:block;margin-top:3px;font-size:13px;color:#e7eef9}
+.twin-spread{margin-top:10px;background:#0b1525;border-radius:12px;padding:9px 10px}
+.twin-spread-head{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:12px;color:#91a4c2}
+.twin-spread strong{font-size:15px;color:#eef4ff}
+.twin-chart{width:100%;height:42px;display:block;margin-top:5px}
+.twin-plan{margin-top:10px;color:#a9b8cd;font-size:12px;line-height:1.6}
+.twin-plan b{color:#e8eef8}
+.twin-empty{padding:20px 14px;text-align:center;color:#8fa2bf;background:#101a2d;border:1px solid #293a55;border-radius:15px}
+@media(max-width:520px){.twin-control-row{grid-template-columns:1fr}.twin-kpis{grid-template-columns:repeat(2,1fr)}.twin-name{font-size:15px}.twin-pair{grid-template-columns:1fr 24px 1fr}}
+
 </style>
 </head>
 <body>
-<!-- BUILD: DAYTRADE_APP_V5.9.5_20260913 -->
+<!-- BUILD: DAYTRADE_APP_V6.0.0_TWIN_20260919 -->
 <main class="wrap">
   <header class="appbar">
     <div>
@@ -295,17 +333,13 @@ footer{margin-top:22px;font-size:10px;opacity:.45;text-align:center}
   </header>
 
   <div class="main-tabs">
-    <button class="tab active" id="tabAfter" onclick="showMainTab('after')">下一交易日候選</button>
+    <button class="tab active" id="tabAfter" onclick="showMainTab('after')">明日候選</button>
     <button class="tab" id="tabLive" onclick="showMainTab('live')">盤中排行</button>
+    <button class="tab" id="tabTwin" onclick="showMainTab('twin')">雙刀</button>
   </div>
 
   <section id="panelAfter" class="main-panel">
-    <label for="afterMarket" style="display:block;margin:12px 0">候選市場
-      <select id="afterMarket" onchange="refreshAfterMarket()" style="font:inherit;padding:8px;border-radius:8px">
-        <option value="all">全部</option><option value="tse">上市</option><option value="otc">上櫃</option>
-      </select>
-    </label>
-    <button id="afterBtn" type="button" class="hero-btn">產生下一交易日候選</button>
+    <button id="afterBtn" type="button" class="hero-btn">產生明日候選</button>
     <div id="afterStatus" class="status-line">等待分析</div>
 
     <div class="section-label long-label">偏多</div>
@@ -335,16 +369,45 @@ footer{margin-top:22px;font-size:10px;opacity:.45;text-align:center}
     <div id="short"><div class="empty">等待更新排行</div></div>
   </section>
 
+  <section id="panelTwin" class="main-panel hidden">
+    <button id="twinScanBtn" type="button" class="hero-btn" onclick="scanTwin(true)">掃描雙刀配對</button>
+    <div class="twin-controls">
+      <b>同族群強弱配對</b>
+      <div class="twin-control-row">
+        <div class="twin-control">
+          <label for="twinCorr">20 日相關係數門檻</label>
+          <select id="twinCorr" onchange="renderTwinResults()">
+            <option value="0.55">0.55｜寬鬆</option>
+            <option value="0.65" selected>0.65｜標準</option>
+            <option value="0.75">0.75｜嚴格</option>
+          </select>
+        </div>
+        <div class="twin-control">
+          <label for="twinGap">強弱差門檻</label>
+          <select id="twinGap" onchange="renderTwinResults()">
+            <option value="10">10｜觀察</option>
+            <option value="15" selected>15｜標準</option>
+            <option value="20">20｜明顯</option>
+          </select>
+        </div>
+      </div>
+      <label class="twin-check"><input id="twinPrice200" type="checkbox" checked onchange="renderTwinResults()">只看兩邊股價都 ≤ 200 元</label>
+    </div>
+    <div id="twinStatus" class="twin-status">第一次掃描會讀取同族群即時報價與近 20 個交易日資料；之後歷史相關係數會使用快取。</div>
+    <div id="twinResults"><div class="twin-empty">按「掃描雙刀配對」開始。</div></div>
+  </section>
+
   <footer>行情來源 TWSE MIS｜交易請以券商報價確認</footer>
 </main>
 <script>
 
 function showMainTab(which){
-  const after=which==="after";
-  document.getElementById("panelAfter")?.classList.toggle("hidden",!after);
-  document.getElementById("panelLive")?.classList.toggle("hidden",after);
-  document.getElementById("tabAfter")?.classList.toggle("active",after);
-  document.getElementById("tabLive")?.classList.toggle("active",!after);
+  const tabs=["after","live","twin"];
+  for(const x of tabs){
+    document.getElementById("panel"+x[0].toUpperCase()+x.slice(1))?.classList.toggle("hidden",which!==x);
+    document.getElementById("tab"+x[0].toUpperCase()+x.slice(1))?.classList.toggle("active",which===x);
+  }
+  if(which==="twin"&&!window.__twinScanned){scanTwin(false);}
 }
 let pool=[],watchList=[];
 let backgroundScanning=false,focusScanning=false;
@@ -355,6 +418,21 @@ const POOL_SIZE=200,WATCH_SIZE=20,MAX_HISTORY=14,SNAPSHOT_NEED=3;
 const MICRO_SNAPSHOT_NEED=6,ENTRY_SCORE_MIN=74,MIN_ENTRY_VOLUME=800;
 const FULL_SCAN_MS=60000,FOCUS_MS=5000;
 const historyMap=new Map(),latestMap=new Map();
+
+// V6.0：雙刀族群池。即時報價若找不到個股會自動略過，不影響其他族群。
+const TWIN_SECTORS={
+  "記憶體":[["2344","tse"],["2408","tse"],["2451","tse"],["8299","otc"]],
+  "PCB／CCL":[["2313","tse"],["8039","tse"],["1815","otc"],["6274","tse"],["2383","tse"]],
+  "矽晶圓":[["6182","otc"],["6488","otc"],["3532","tse"]],
+  "被動元件":[["2492","tse"],["2327","tse"],["6173","otc"],["3026","tse"]],
+  "整流／功率":[["5425","otc"],["2481","tse"],["2351","tse"]],
+  "光學":[["3019","tse"],["3504","tse"],["3406","tse"]],
+  "光通訊":[["3081","otc"],["4979","otc"],["3163","otc"],["3234","otc"],["3363","otc"]],
+  "自動化":[["2464","tse"],["2049","tse"],["1590","tse"]]
+};
+const twinHistCache=new Map(),twinSpreadHistory=new Map();
+let twinPairsAll=[],twinScanning=false,twinLastScanAt=0;
+
 const N=x=>{const n=Number(x);return Number.isFinite(n)?n:0;};
 const clamp=(x,min,max)=>Math.max(min,Math.min(max,x));
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -821,18 +899,11 @@ async function fetchJSON(url){
 
 function isCommonStock(q){
  const code=String(q.symbol||"").trim(),name=String(q.name||"").trim();
- // 下一交易日當沖候選先限定一般 4 碼股票；排除 ETF/ETN/權證等非一般股票代號。
+ // 明日當沖候選先限定一般 4 碼股票；排除 ETF/ETN/權證等非一般股票代號。
  return /^\d{4}$/.test(code) && !/(ETF|ETN|指數|債|反|正2|槓桿)/i.test(name);
 }
-function ahVolumeShares(q){
- const volume=N(q.volume);
- if(q.volumeUnit==="shares")return volume;
- if(q.volumeUnit==="lots")return volume*1000;
- // Older backend responses identify the source but omit the unit.
- return /TWSE MIS/i.test(String(q.source||""))?volume*1000:volume;
-}
 function ahMetrics(q){
- const p=N(q.price),y=N(q.previousClose),o=N(q.open),h=N(q.high),l=N(q.low),shares=ahVolumeShares(q);
+ const p=N(q.price),y=N(q.previousClose),o=N(q.open),h=N(q.high),l=N(q.low),shares=N(q.volume);
  const pct=y?(p-y)/y*100:0;
  const pos=(h&&l&&h!==l)?(p-l)/(h-l)*100:50;
  const range=y&&h&&l?(h-l)/y*100:0;
@@ -987,22 +1058,22 @@ function ahOperation(q,side){
  const m=ahMetrics(q), sc=ahScore(q,side);
  const px=v=>Number.isFinite(v)&&v>0?v.toFixed(2):"—";
  if(sc<58)return {
-   title:"下一交易日盤前計畫：低優先／先觀望",
-   text:"盤後訊號不足；下一交易日開盤後除非量價明顯轉強／轉弱，否則略過。",
+   title:"明日盤前計畫：低優先／先觀望",
+   text:"盤後訊號不足；明日開盤後除非量價明顯轉強／轉弱，否則略過。",
    key:`前一日高 ${px(m.h)}｜前一日低 ${px(m.l)}｜前一日收 ${px(m.p)}`,
    risk:"開盤後以今日即時價、今日開盤價與盤中高低重新判斷。"
  };
  if(side==="long")return {
-   title:sc>=72?"下一交易日盤前計畫：偏多優先":"下一交易日盤前計畫：偏多觀察",
-   text:`前一日高 ${px(m.h)} 為突破參考；下一交易日開盤後若現價站上今日開盤價且量價轉強，再確認偏多。`,
+   title:sc>=72?"明日盤前計畫：偏多優先":"明日盤前計畫：偏多觀察",
+   text:`前一日高 ${px(m.h)} 為突破參考；明日開盤後若現價站上今日開盤價且量價轉強，再確認偏多。`,
    key:`盤前突破參考 ${px(m.h)}｜失效參考：跌破前一日低 ${px(m.l)}`,
-   risk:m.pct>6.5?"前一日漲幅偏大，避免開盤直接追價。":"這是盤前劇本，不把前一日收盤價當成下一交易日即時進場價。"
+   risk:m.pct>6.5?"前一日漲幅偏大，避免開盤直接追價。":"這是盤前劇本，不把前一日收盤價當成明日即時進場價。"
  };
  return {
-   title:sc>=72?"下一交易日盤前計畫：偏空優先":"下一交易日盤前計畫：偏空觀察",
-   text:`前一日低 ${px(m.l)} 為跌破參考；下一交易日開盤後若現價跌破今日開盤價且賣壓增強，再確認偏空。`,
+   title:sc>=72?"明日盤前計畫：偏空優先":"明日盤前計畫：偏空觀察",
+   text:`前一日低 ${px(m.l)} 為跌破參考；明日開盤後若現價跌破今日開盤價且賣壓增強，再確認偏空。`,
    key:`盤前跌破參考 ${px(m.l)}｜失效參考：突破前一日高 ${px(m.h)}`,
-   risk:m.pct<-6.5?"前一日跌幅偏大，避免開盤直接追空。":"這是盤前劇本，不把前一日收盤價當成下一交易日即時進場價。"
+   risk:m.pct<-6.5?"前一日跌幅偏大，避免開盤直接追空。":"這是盤前劇本，不把前一日收盤價當成明日即時進場價。"
  };
 }
 
@@ -1207,85 +1278,244 @@ function twToday(){
 }
 
 
-const AH_CACHE_KEY="daytrade_afterhours_lastgood_v3";
-function selectAfterHours(data,today){
- const all=Array.isArray(data.quotes)?data.quotes:[];
- const valid=all.filter(q=>N(q.price)>0&&N(q.previousClose)>0);
- const dates=[...new Set(valid.map(q=>parseTradeDate(q.tradeDate)).filter(Boolean))].sort();
- const date=dates.at(-1);
- if(!date)throw new Error("未取得有效盤後資料日期");
- if(date>today)throw new Error("資料日期超前，暫停產生候選");
- const age=(Date.parse(today)-Date.parse(date))/86400000;
- if(!Number.isFinite(age)||age>10)throw new Error("資料過舊（"+date+"），請稍後重新取得");
- const declared=parseTradeDate(data.marketDate);
- if(declared&&declared!==date)throw new Error("API 資料日期與股票日期不一致，請稍後重試");
- return {date,rows:valid.filter(q=>parseTradeDate(q.tradeDate)===date),mixed:dates.length>1};
+
+// ---------------- V6.0 雙刀配對掃描 ----------------
+function twinUniverse(){
+ const m=new Map();
+ Object.values(TWIN_SECTORS).flat().forEach(([symbol,market])=>m.set(market+"_"+symbol,{symbol,market}));
+ return [...m.values()];
 }
-function saveAfterHoursCache(result){
- try{localStorage.setItem(AH_CACHE_KEY,JSON.stringify({...result,savedAt:Date.now()}));}catch(e){}
+function twinQuoteKey(q){return String(q?.market||"tse")+"_"+String(q?.symbol||"")}
+function twinPct(q){const p=N(q?.price),y=N(q?.previousClose);return p&&y?(p-y)/y*100:0}
+function twinOpenPct(q){const p=N(q?.price),o=N(q?.open);return p&&o?(p-o)/o*100:0}
+function twinPos(q){return position(q)}
+function twinStrength(q,sectorMean=0){
+ const x=calc(q),pct=twinPct(q),op=twinOpenPct(q),pos=twinPos(q);
+ const directional=(x.longScore-x.shortScore)*0.55;
+ const rel=clamp((pct-sectorMean)*4,-18,18);
+ const open=clamp(op*2.7,-10,10);
+ const loc=clamp((pos-50)*0.18,-9,9);
+ return clamp(50+directional+rel+open+loc,0,100);
 }
-function loadAfterHoursCache(today){
+function normalizeHistDate(x){
+ const s=String(x||"").trim();
+ return parseTradeDate(s)||s.replace(/\//g,"-");
+}
+async function twinHistory(q){
+ const key=twinQuoteKey(q),cached=twinHistCache.get(key);
+ if(cached&&Date.now()-cached.ts<6*3600e3)return cached.rows;
  try{
-  const x=JSON.parse(localStorage.getItem(AH_CACHE_KEY)||"null");
-  if(!x||!Array.isArray(x.rows)||!Number.isFinite(x.savedAt))return null;
-  // A fallback is a labelled snapshot, never a silently refreshed dataset.
-  if(Date.now()-x.savedAt>72*3600000||x.savedAt>Date.now())return null;
-  return {...selectAfterHours({quotes:x.rows,marketDate:x.date},today),savedAt:x.savedAt};
- }catch(e){return null;}
+  const r=await fetch(API_BASE+`/api/history?symbol=${encodeURIComponent(q.symbol)}&market=${encodeURIComponent(q.market||"tse")}`,{cache:"no-store"});
+  const j=await r.json();
+  const rows=(Array.isArray(j.rows)?j.rows:[]).map(x=>({date:normalizeHistDate(x.date),close:N(x.close)})).filter(x=>x.date&&x.close>0).slice(-20);
+  twinHistCache.set(key,{ts:Date.now(),rows});
+  return rows;
+ }catch(e){
+  twinHistCache.set(key,{ts:Date.now(),rows:[]});
+  return [];
+ }
 }
-let lastAfterHoursView=null;
-function refreshAfterMarket(){
- if(lastAfterHoursView)displayAfterHours(lastAfterHoursView.result,lastAfterHoursView.notice);
+function dailyReturns(rows){
+ const out=new Map();
+ for(let i=1;i<rows.length;i++){
+  const a=N(rows[i-1].close),b=N(rows[i].close);
+  if(a>0&&b>0)out.set(rows[i].date,(b-a)/a);
+ }
+ return out;
 }
-function displayAfterHours(result,notice=""){
- lastAfterHoursView={result,notice};
- const {date,rows,mixed}=result;
- const market=document.getElementById("afterMarket")?.value||"all";
- const selected=rows.filter(q=>market==="all"||q.market===market);
- const longs=selected.filter(q=>ahEligible(q,"long")).sort((a,b)=>ahScore(b,"long")-ahScore(a,"long")).slice(0,10);
- const shorts=selected.filter(q=>ahEligible(q,"short")).sort((a,b)=>ahScore(b,"short")-ahScore(a,"short")).slice(0,10);
- renderAH(longs,"tomorrowLong","long");renderAH(shorts,"tomorrowShort","short");
- document.getElementById("afterStatus").textContent=
-  `資料日期 ${date}｜上市 ${rows.filter(q=>q.market==="tse").length} 檔・上櫃 ${rows.filter(q=>q.market==="otc").length} 檔｜供下一交易日參考`+
-  (date!==twToday()?"｜非今日資料，開盤前請再更新":"")+
-  (mixed?"｜不同日期資料已排除":"")+(notice?"｜"+notice:"");
+function pearson(a,b){
+ const keys=[...a.keys()].filter(k=>b.has(k));
+ if(keys.length<8)return null;
+ const xs=keys.map(k=>a.get(k)),ys=keys.map(k=>b.get(k));
+ const mx=xs.reduce((p,c)=>p+c,0)/xs.length,my=ys.reduce((p,c)=>p+c,0)/ys.length;
+ let num=0,dx=0,dy=0;
+ for(let i=0;i<xs.length;i++){const xx=xs[i]-mx,yy=ys[i]-my;num+=xx*yy;dx+=xx*xx;dy+=yy*yy;}
+ return dx>0&&dy>0?num/Math.sqrt(dx*dy):null;
+}
+function pairCorrelation(a,b){
+ const ra=twinHistCache.get(twinQuoteKey(a))?.rows||[],rb=twinHistCache.get(twinQuoteKey(b))?.rows||[];
+ return pearson(dailyReturns(ra),dailyReturns(rb));
+}
+async function twinFetchHistories(quotes,concurrency=4){
+ let i=0;
+ async function worker(){while(i<quotes.length){const q=quotes[i++];await twinHistory(q)}}
+ await Promise.all(Array.from({length:Math.min(concurrency,quotes.length)},worker));
+}
+function twinPairSignal(gap,corr){
+ if(gap>=30&&corr>=.75)return{label:"強雙刀",hot:true};
+ if(gap>=20&&corr>=.65)return{label:"雙刀訊號",hot:false};
+ return{label:"觀察",hot:false};
+}
+function twinSpreadKey(p){return p.sector+"_"+p.long.symbol+"_"+p.short.symbol}
+function recordTwinSpread(p){
+ const k=twinSpreadKey(p),arr=twinSpreadHistory.get(k)||[];
+ arr.push({ts:Date.now(),v:p.spread});while(arr.length>30)arr.shift();twinSpreadHistory.set(k,arr);
+}
+function twinSparkSvg(arr){
+ const vals=(arr||[]).map(x=>N(x.v)).filter(Number.isFinite);
+ if(vals.length<2)return`<svg class="twin-chart" viewBox="0 0 240 42" preserveAspectRatio="none"><line x1="0" y1="21" x2="240" y2="21" stroke="#263957" stroke-width="1"/></svg>`;
+ const min=Math.min(...vals),max=Math.max(...vals),span=Math.max(.01,max-min);
+ const pts=vals.map((v,i)=>`${(i/(vals.length-1)*240).toFixed(1)},${(38-(v-min)/span*34).toFixed(1)}`).join(" ");
+ return`<svg class="twin-chart" viewBox="0 0 240 42" preserveAspectRatio="none"><line x1="0" y1="38" x2="240" y2="38" stroke="#263957" stroke-width="1"/><polyline points="${pts}" fill="none" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
+}
+function twinVwapText(q,side){
+ const m=microSignal(q,side);
+ if(!m.ready)return"VWAP 累積中";
+ if(side==="long")return m.dist>=0?`VWAP 上 +${m.dist.toFixed(2)}%`:`VWAP 下 ${m.dist.toFixed(2)}%`;
+ return m.dist<=0?`VWAP 下 ${m.dist.toFixed(2)}%`:`VWAP 上 +${m.dist.toFixed(2)}%`;
+}
+function twinBuildPairs(quotes){
+ const byKey=new Map(quotes.map(q=>[twinQuoteKey(q),q])),out=[];
+ for(const [sector,members] of Object.entries(TWIN_SECTORS)){
+  const qs=members.map(([symbol,market])=>byKey.get(market+"_"+symbol)).filter(Boolean);
+  if(qs.length<2)continue;
+  const mean=qs.reduce((a,q)=>a+twinPct(q),0)/qs.length;
+  const scored=qs.map(q=>({q,strength:twinStrength(q,mean)}));
+  for(let i=0;i<scored.length;i++)for(let j=i+1;j<scored.length;j++){
+   const A=scored[i],B=scored[j],long=A.strength>=B.strength?A:B,short=A.strength>=B.strength?B:A;
+   const corr=pairCorrelation(long.q,short.q);if(corr==null)continue;
+   const gap=long.strength-short.strength,spread=twinPct(long.q)-twinPct(short.q);
+   const quality=gap*.78+Math.max(0,corr)*22;
+   out.push({sector,long:long.q,short:short.q,longStrength:long.strength,shortStrength:short.strength,gap,corr,spread,quality});
+  }
+ }
+ return out.sort((a,b)=>b.quality-a.quality);
+}
+function fmtSigned(x,d=2){const n=N(x);return`${n>0?"+":""}${n.toFixed(d)}`}
+function twinCard(p){
+ const sig=twinPairSignal(p.gap,p.corr),hist=twinSpreadHistory.get(twinSpreadKey(p))||[];
+ const lp=twinPct(p.long),sp=twinPct(p.short);
+ return`<div class="twin-card ${sig.hot?"strong":""}">
+  <div class="twin-head"><div><div class="twin-sector">${esc(p.sector)}</div><b>${p.long.symbol} ↔ ${p.short.symbol}</b></div><span class="twin-badge ${sig.hot?"hot":""}">${sig.label}</span></div>
+  <div class="twin-pair">
+   <div class="twin-leg long"><div class="twin-side">第一刀｜做多強勢</div><div class="twin-name">${esc(p.long.name||p.long.symbol)} ${esc(p.long.symbol)}</div><div class="twin-meta">${fmtPx(p.long.price)}｜${fmtSigned(lp)}%<br>強度 ${p.longStrength.toFixed(0)}｜${twinVwapText(p.long,"long")}</div></div>
+   <div class="twin-vs">VS</div>
+   <div class="twin-leg short"><div class="twin-side">第二刀｜做空弱勢</div><div class="twin-name">${esc(p.short.name||p.short.symbol)} ${esc(p.short.symbol)}</div><div class="twin-meta">${fmtPx(p.short.price)}｜${fmtSigned(sp)}%<br>強度 ${p.shortStrength.toFixed(0)}｜${twinVwapText(p.short,"short")}</div></div>
+  </div>
+  <div class="twin-kpis"><div class="twin-kpi"><span>20日相關</span><b>${p.corr.toFixed(2)}</b></div><div class="twin-kpi"><span>強弱差</span><b>${p.gap.toFixed(1)}</b></div><div class="twin-kpi"><span>即時價差</span><b>${fmtSigned(p.spread)}%</b></div><div class="twin-kpi"><span>配對品質</span><b>${p.quality.toFixed(0)}</b></div></div>
+  <div class="twin-spread"><div class="twin-spread-head"><span>價差線（本次開啟後）</span><strong>${fmtSigned(p.spread)}%</strong></div>${twinSparkSvg(hist)}</div>
+  <div class="twin-plan"><b>進場核對：</b>多方維持 VWAP 上／高點墊高，空方維持 VWAP 下／低點降低，再考慮同步建立部位。<br><b>失效：</b>價差明顯收斂、強股跌回 VWAP 或弱股站回 VWAP；不要把「對鎖」視為無風險。</div>
+ </div>`;
+}
+function renderTwinResults(){
+ const el=document.getElementById("twinResults");if(!el)return;
+ const corrMin=N(document.getElementById("twinCorr")?.value||.65),gapMin=N(document.getElementById("twinGap")?.value||15),under200=!!document.getElementById("twinPrice200")?.checked;
+ let rows=twinPairsAll.filter(p=>p.corr>=corrMin&&p.gap>=gapMin);
+ if(under200)rows=rows.filter(p=>N(p.long.price)<=200&&N(p.short.price)<=200);
+ // 同一股票避免在前幾名重複出現太多次，先保留每族群品質最高的 2 組。
+ const counts=new Map();rows=rows.filter(p=>{const n=counts.get(p.sector)||0;if(n>=2)return false;counts.set(p.sector,n+1);return true}).slice(0,10);
+ if(!rows.length){el.innerHTML=`<div class="twin-empty">目前沒有同時通過相關係數、強弱差與價格條件的配對。可降低門檻觀察，但不要為了有訊號硬做。</div>`;return;}
+ el.innerHTML=rows.map(twinCard).join("");
+}
+async function scanTwin(manual=false){
+ if(twinScanning)return;
+ twinScanning=true;const btn=document.getElementById("twinScanBtn"),st=document.getElementById("twinStatus");if(btn)btn.disabled=true;
+ try{
+  if(st)st.textContent="讀取雙刀族群即時報價…";
+  const universe=twinUniverse(),chunks=[];for(let i=0;i<universe.length;i+=20)chunks.push(universe.slice(i,i+20));
+  const got=[];for(const c of chunks){try{got.push(...await getBatch(c))}catch(e){}await sleep(120)}
+  const quotes=got.filter(q=>N(q.price)>0&&N(q.previousClose)>0);
+  mergeQuotes(quotes);addSnapshots(quotes);
+  if(quotes.length<2)throw new Error("雙刀族群報價不足");
+  if(st)st.textContent=`已取得 ${quotes.length} 檔報價｜計算近 20 日相關係數…`;
+  await twinFetchHistories(quotes,4);
+  twinPairsAll=twinBuildPairs(quotes);twinPairsAll.forEach(recordTwinSpread);twinLastScanAt=Date.now();window.__twinScanned=true;
+  renderTwinResults();
+  const valid=twinPairsAll.filter(p=>p.corr>=.65&&p.gap>=15).length;
+  if(st)st.textContent=`${new Date().toLocaleTimeString("zh-TW")}｜${quotes.length} 檔｜${valid} 組通過標準門檻｜相關係數採近 20 日報酬率`;
+ }catch(e){
+  if(st)st.textContent="雙刀掃描暫時無法完成："+(e.message||e);
+ }finally{twinScanning=false;if(btn)btn.disabled=false;}
+}
+
+const AH_CACHE_KEY="daytrade_afterhours_lastgood_v1";
+function saveAfterHoursCache(date,rows){
+  try{
+    localStorage.setItem(AH_CACHE_KEY,JSON.stringify({
+      date,
+      savedAt:Date.now(),
+      rows:Array.isArray(rows)?rows:[]
+    }));
+  }catch(e){}
+}
+function loadAfterHoursCache(date){
+  try{
+    const x=JSON.parse(localStorage.getItem(AH_CACHE_KEY)||"null");
+    if(!x||x.date!==date||!Array.isArray(x.rows)||!x.rows.length)return null;
+    return x;
+  }catch(e){return null}
 }
 async function runAfterHours(){
  const st=document.getElementById("afterStatus"),btn=document.getElementById("afterBtn");
- if(btn.disabled)return;
- btn.disabled=true;st.textContent="正在更新盤後資料…";
+ btn.disabled=true;
+ st.textContent="正在更新盤後資料…";
  const today=twToday();
+
  try{
   const c=new AbortController(),timer=setTimeout(()=>c.abort(),22000);
-  let res,data;
+  let res;
   try{
-   const p=new URLSearchParams({ts:String(Date.now())});
-   for(const market of ["otc","tse"]){
-    const symbols=[...new Set((pool||[]).filter(x=>x&&x.market===market).map(x=>x.symbol))].slice(0,60);
-    if(symbols.length)p.set(market,symbols.join(","));
-   }
-   res=await fetch(API_BASE+"/api/afterhours?"+p,{cache:"no-store",signal:c.signal});
-   data=await res.json().catch(()=>({}));
-  }finally{clearTimeout(timer);}
-  if(!res.ok||!data.ok){
-   const detail=String(data.error||(Array.isArray(data.errors)?data.errors.join("｜"):"")||"");
-   if(res.status===409)throw new Error("盤後資料檢查未通過（HTTP 409）"+(detail?"："+detail:"，請確認後端版本與資料日期"));
-   throw new Error(detail||("盤後 API HTTP "+res.status));
+    res=await fetch(API_BASE+"/api/afterhours?"+(()=>{
+      const otcPool=[...new Set((pool||[]).filter(x=>x&&x.market==="otc").map(x=>x.symbol))].slice(0,60);
+      const tsePool=[...new Set((pool||[]).filter(x=>x&&x.market==="tse").map(x=>x.symbol))].slice(0,60);
+      const p=new URLSearchParams();
+      p.set("ts",Date.now());
+      if(otcPool.length)p.set("otc",otcPool.join(","));
+      if(tsePool.length)p.set("tse",tsePool.join(","));
+      return p.toString();
+    })(),{cache:"no-store",signal:c.signal});
+  }finally{
+    clearTimeout(timer);
   }
-  const result=selectAfterHours(data,today);
-  displayAfterHours(result,data.partial?"部分資料未取得":"");
-  saveAfterHoursCache(result);
+
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok||!data.ok)throw new Error(data.error||(data.errors||[]).join("｜")||("盤後 API HTTP "+res.status));
+
+  const allRows=Array.isArray(data.quotes)?data.quotes.filter(q=>N(q.price)>0&&N(q.previousClose)>0):[];
+  const rows=allRows.filter(q=>parseTradeDate(q.tradeDate)===today);
+
+  if(!rows.length){
+    const cached=loadAfterHoursCache(today);
+    if(cached){
+      const longs=[...cached.rows].sort((a,b)=>ahScore(b,"long")-ahScore(a,"long")).slice(0,10);
+      const shorts=[...cached.rows].sort((a,b)=>ahScore(b,"short")-ahScore(a,"short")).slice(0,10);
+      renderAH(longs,"tomorrowLong","long");
+      renderAH(shorts,"tomorrowShort","short");
+      const tm=new Date(cached.savedAt).toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"});
+      st.textContent=`${today.slice(5).replace("-","/")}｜${cached.rows.length} 檔｜使用 ${tm} 資料`;
+      return;
+    }
+
+    const marketDates=data.marketDates||{};
+    const tseDate=parseTradeDate(marketDates.tse);
+    const otcDate=parseTradeDate(marketDates.otc);
+    throw new Error(`今日盤後資料尚未就緒｜上市 ${tseDate||"未取得"}｜上櫃 ${otcDate||"未取得"}`);
+  }
+
+  // Only replace cards after a valid same-day dataset is confirmed.
+  const longs=[...rows].sort((a,b)=>ahScore(b,"long")-ahScore(a,"long")).slice(0,10);
+  const shorts=[...rows].sort((a,b)=>ahScore(b,"short")-ahScore(a,"short")).slice(0,10);
+
+  renderAH(longs,"tomorrowLong","long");
+  renderAH(shorts,"tomorrowShort","short");
+  saveAfterHoursCache(today,rows);
+
+  st.textContent=`${today.slice(5).replace("-","/")}｜${rows.length} 檔｜已更新`;
  }catch(e){
-  const reason=e.name==="AbortError"?"盤後 API 逾時":String(e.message||e);
   const cached=loadAfterHoursCache(today);
-  if(cached){displayAfterHours(cached,"更新失敗，顯示暫存｜"+reason);}
-  else{
-   lastAfterHoursView=null;
-   document.getElementById("tomorrowLong").replaceChildren();
-   document.getElementById("tomorrowShort").replaceChildren();
-   st.textContent="盤後資料暫時無法完成："+reason;
+  if(cached){
+    const longs=[...cached.rows].sort((a,b)=>ahScore(b,"long")-ahScore(a,"long")).slice(0,10);
+    const shorts=[...cached.rows].sort((a,b)=>ahScore(b,"short")-ahScore(a,"short")).slice(0,10);
+    renderAH(longs,"tomorrowLong","long");
+    renderAH(shorts,"tomorrowShort","short");
+    const tm=new Date(cached.savedAt).toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"});
+    st.textContent=`${today.slice(5).replace("-","/")}｜${cached.rows.length} 檔｜使用 ${tm} 資料`;
+  }else{
+    st.textContent="盤後資料暫時無法完成："+(e.message||e);
   }
- }finally{btn.disabled=false;}
+ }finally{
+  btn.disabled=false;
+ }
 }
 document.addEventListener("DOMContentLoaded",()=>{const ab=document.getElementById("afterBtn");if(ab)ab.addEventListener("click",runAfterHours);
   const b=document.getElementById("rankUpdateBtn");
@@ -1324,6 +1554,10 @@ async function fullScan(manual=false){if(backgroundScanning)return;const s=refre
 refreshSessionUI();buildPool();
 setInterval(()=>{const s=refreshSessionUI();if(s.open&&pool.length&&!backgroundScanning&&Date.now()-lastFullScanAt>=FULL_SCAN_MS)fullScan(false);},5000);
 setInterval(()=>{if(sessionState().open&&watchList.length&&!focusScanning)focusScan();},FOCUS_MS);
+setInterval(()=>{
+ const twinOpen=!document.getElementById("panelTwin")?.classList.contains("hidden");
+ if(twinOpen&&sessionState().open&&!twinScanning&&Date.now()-twinLastScanAt>=20000)scanTwin(false);
+},5000);
 
 // V4.7.4 cache guard: remove stale PWA/service-worker caches after deployment.
 (async function clearOldAppCaches(){
